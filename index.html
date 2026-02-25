@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ramadan Ibadah Tracker</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Ramadan Tracker">
+    <meta name="theme-color" content="#22c55e">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2319/2319914.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #fcfcfc;
+        }
+        .gradient-green {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+        }
+        .gradient-green-soft {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #166534 0%, #15803d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        [x-cloak] { display: none !important; }
+        .custom-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+        .btn-active {
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased" x-data="trackerApp()">
+    <div class="max-w-md mx-auto min-h-screen pb-24 px-4 pt-8">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gradient mb-2">Ramadan Tracker</h1>
+            <p class="text-slate-500 font-medium">Lengkapkan ibadah anda hari ini</p>
+        </header>
+
+        <!-- Day Selector -->
+        <div class="flex items-center justify-between bg-white rounded-3xl p-4 custom-shadow mb-8 overflow-x-auto whitespace-nowrap gap-4 scrollbar-hide">
+            <template x-for="day in 30" :key="day">
+                <button 
+                    @click="currentDay = day"
+                    :data-day="day"
+                    class="flex-shrink-0 w-12 h-12 rounded-2xl flex flex-col items-center justify-center transition-all duration-300"
+                    :class="currentDay === day ? 'gradient-green text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'"
+                >
+                    <span class="text-[10px] uppercase font-bold" x-text="'Day'"></span>
+                    <span class="text-lg font-bold" x-text="day"></span>
+                </button>
+            </template>
+        </div>
+
+        <!-- Score Summary -->
+        <div class="bg-white rounded-[2rem] p-8 custom-shadow mb-8 text-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                <i data-lucide="moon" class="w-16 h-16 text-green-600"></i>
+            </div>
+            <div class="flex flex-col items-center">
+                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-4" x-text="`Ramadan Day ${currentDay}`"></span>
+                <h2 class="text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Total Score</h2>
+                <div class="flex items-baseline justify-center gap-1">
+                    <span class="text-6xl font-bold text-gradient" x-text="calculateTotal()"></span>
+                    <span class="text-xl text-slate-300 font-medium">/ 50</span>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mt-6 h-3 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full gradient-green transition-all duration-500" :style="`width: ${(calculateTotal() / 50) * 100}%`"></div>
+            </div>
+        </div>
+
+        <!-- Ibadah List -->
+        <div class="space-y-6">
+            <template x-for="item in ibadahList" :key="item.id">
+                <div class="bg-white rounded-[2rem] p-6 custom-shadow transition-all duration-300">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 rounded-xl gradient-green-soft">
+                            <i :data-lucide="item.icon" class="w-5 h-5 text-green-600"></i>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-700" x-text="item.name"></h3>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <template x-for="option in item.options" :key="option.v">
+                            <button 
+                                @click="updateScore(item.id, option.v)"
+                                class="flex-1 min-w-[80px] py-6 px-2 rounded-[1.5rem] text-sm font-bold transition-all duration-300 border-2 flex flex-col items-center justify-center gap-1"
+                                :class="getScore(item.id) === option.v ? 'btn-active border-transparent' : 'bg-slate-50 border-slate-50 text-slate-500 hover:border-green-200'"
+                            >
+                                <span class="text-[10px] opacity-60 uppercase tracking-tighter" x-text="`Score ${option.v}`"></span>
+                                <span x-text="option.l"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation (Optional Info) -->
+    <div class="mt-12 mb-24 px-4 text-center">
+        <p class="text-slate-400 text-xs font-medium mb-6">"Sebaik-baik amalan adalah yang berterusan walaupun sedikit."</p>
+        <button 
+            @click="if(confirm('Padam semua data?')) { scores = {}; localStorage.removeItem('ramadan_tracker_scores'); }"
+            class="text-red-400 text-xs font-bold uppercase tracking-widest hover:text-red-600 transition-colors"
+        >
+            Padam Semua Data
+        </button>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent pointer-events-none"></div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        function trackerApp() {
+            return {
+                currentDay: 1,
+                scores: {}, // Format: { day: { itemID: score } }
+                ibadahList: [
+                    { id: 'puasa', name: 'Puasa Ramadan', icon: 'check-circle', options: [{v:0, l:'Tidak'}, {v:2, l:'Ya'}] },
+                    { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'Tidak'}, {v:2, l:'Ya'}] },
+                    { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 30 min'}] },
+                    { id: 'alkahfi_1', name: 'Al-Kahfi (Pagi)', icon: 'book-open', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'qobliah_zohor', name: 'Sunat Qobliah (Zohor)', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
+                    { id: 'badiah_zohor', name: 'Sunat Ba\'diah (Zohor)', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'sunat_asar', name: 'Sunat Asar', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
+                    { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'qobliah_maghrib', name: 'Sunat Qobliah (Maghrib)', icon: 'clock', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
+                    { id: 'badiah_maghrib', name: 'Sunat Ba\'diah (Maghrib)', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'alkahfi_2', name: 'Al-Kahfi (Malam)', icon: 'book-open', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'alwaqiah', name: 'Al-Waqiah', icon: 'book', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'qobliah_isyak', name: 'Sunat Qobliah (Isyak)', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
+                    { id: 'badiah_isyak', name: 'Sunat Ba\'diah (Isyak)', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 Rakaat'}] },
+                    { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'8 Rakaat'}, {v:2, l:'20 Rakaat'}] },
+                    { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:2, l:'3 Rakaat'}] },
+                    { id: 'almulk', name: 'Al Mulk', icon: 'book', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'quran', name: 'Baca Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}, {v:2, l:'2 Juz'}] },
+                    { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'Tidak'}, {v:1, l:'Ya'}] },
+                    { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
+                    { id: 'selawat', name: 'Selawat', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
+                ],
+                init() {
+                    const saved = localStorage.getItem('ramadan_tracker_scores');
+                    if (saved) {
+                        this.scores = JSON.parse(saved);
+                    }
+                    
+                    // Set current day based on today's date if possible, or default to 1
+                    // For simplicity in this demo, we stay at 1 or saved day
+                    
+                    this.$nextTick(() => {
+                        lucide.createIcons();
+                        this.scrollToCurrentDay();
+                    });
+                    this.$watch('currentDay', () => {
+                        this.$nextTick(() => {
+                            lucide.createIcons();
+                            this.scrollToCurrentDay();
+                        });
+                    });
+                },
+                scrollToCurrentDay() {
+                    const el = document.querySelector(`[data-day="${this.currentDay}"]`);
+                    if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+                },
+                getScore(id) {
+                    if (!this.scores[this.currentDay]) return 0;
+                    return this.scores[this.currentDay][id] || 0;
+                },
+                updateScore(id, value) {
+                    if (!this.scores[this.currentDay]) {
+                        this.scores[this.currentDay] = {};
+                    }
+                    this.scores[this.currentDay][id] = value;
+                    localStorage.setItem('ramadan_tracker_scores', JSON.stringify(this.scores));
+                },
+                calculateTotal() {
+                    if (!this.scores[this.currentDay]) return 0;
+                    return Object.values(this.scores[this.currentDay]).reduce((a, b) => a + b, 0);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
