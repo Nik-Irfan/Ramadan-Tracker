@@ -373,25 +373,36 @@
                 </div>
                 
                 <div class="flex justify-between items-start mb-4">
-                    <span class="text-[9px] font-black text-accent bg-accent/10 px-3 py-1 rounded-full uppercase tracking-widest">Hafiz Quiz Mode</span>
-                    <button @click="quiz.active = false" class="text-muted hover:text-red-500 transition-colors">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[9px] font-black text-accent bg-accent/10 px-3 py-1 rounded-full uppercase tracking-widest w-fit">Hafiz Quiz Mode</span>
+                        <div class="flex gap-2 mt-1">
+                            <span class="text-[8px] font-black text-green-500 uppercase" x-text="`Betul: ${quiz.session.correct}`"></span>
+                            <span class="text-[8px] font-black text-red-400 uppercase" x-text="`Salah: ${quiz.session.wrong}`"></span>
+                        </div>
+                    </div>
+                    <button @click="quiz.active = false; quiz.session = {correct:0, wrong:0, total:0}" class="text-muted hover:text-red-500 transition-colors">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
 
                 <div class="text-center py-4">
-                    <p class="text-muted text-[9px] font-black uppercase tracking-widest mb-4">Sambung Ayat Ini:</p>
-                    <p class="text-2xl font-bold text-main leading-relaxed dir-rtl font-arabic mb-6" 
-                       x-text="quiz.verse?.text" :style="`font-family: '${mushaf.fontFamily}', serif;`"></p>
+                    <p class="text-muted text-[9px] font-black uppercase tracking-widest mb-4">Sila Baca & Sambung Ayat Ini:</p>
+                    <div class="text-2xl font-bold text-main leading-relaxed dir-rtl font-arabic mb-6 flex flex-wrap justify-center gap-x-2 gap-y-1" :style="`font-family: '${mushaf.fontFamily}', serif;`" dir="rtl">
+                        <template x-for="word in quiz.verse?.text.split(' ')" :key="word + Math.random()">
+                            <span :class="quiz.matchedWords.includes(word.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, '')) ? 'text-accent scale-110' : 'text-main'" 
+                                  class="transition-all duration-300" x-text="word"></span>
+                        </template>
+                    </div>
                     
                     <div class="flex flex-col items-center gap-4">
-                        <button @mousedown="startRecitation()" @touchstart="startRecitation()" @mouseup="stopRecitation()" @touchend="stopRecitation()"
+                        <button @click="toggleRecitation()"
                             class="w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 relative"
                             :class="quiz.recording ? 'bg-red-500 scale-110 shadow-lg' : 'gradient-accent shadow-accent'">
-                            <i data-lucide="mic" class="w-8 h-8 text-white"></i>
+                            <i :data-lucide="quiz.recording ? 'square' : 'mic'" class="w-8 h-8 text-white"></i>
+                            <div x-show="quiz.recording" class="absolute -inset-2 border-2 border-red-500 rounded-full animate-ping opacity-20"></div>
                         </button>
                         <p class="text-[9px] font-black uppercase tracking-widest" :class="quiz.recording ? 'text-red-500' : 'text-muted'" 
-                           x-text="quiz.recording ? 'Sedang Mendengar...' : 'Tahan & Baca 2-3 Baris'"></p>
+                           x-text="quiz.recording ? 'Sedang Mendengar (Klik Untuk Selesai)' : 'Klik Untuk Mula Membaca'"></p>
                     </div>
                 </div>
 
@@ -760,8 +771,8 @@
 
             <!-- Version Timestamp -->
             <div class="text-center py-8">
-                <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 02:10</p>
-                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.4.0-unified-quran</p>
+                <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 02:35</p>
+                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.4.5-quiz-pro</p>
             </div>
         </div>
     </div>
@@ -933,7 +944,10 @@
                     recording: false,
                     transcript: '',
                     status: 'idle', // idle, success, error
-                    feedback: ''
+                    feedback: '',
+                    session: { correct: 0, wrong: 0, total: 0 },
+                    matchedWords: [],
+                    idleTimer: null
                 },
 
                 init() {
@@ -1310,6 +1324,7 @@
                     this.quiz.active = true;
                     this.quiz.status = 'idle';
                     this.quiz.transcript = '';
+                    this.quiz.matchedWords = [];
                     this.quiz.loading = true;
                     
                     try {
@@ -1330,6 +1345,7 @@
                             surah: verse.surah.name,
                             numberInSurah: verse.numberInSurah
                         };
+                        this.quiz.session.total++;
                     } catch (e) {
                         console.error('Quiz Error:', e);
                         alert('Gagal memuatkan ayat. Sila periksa internet anda.');
@@ -1337,6 +1353,14 @@
                     } finally {
                         this.quiz.loading = false;
                         this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                toggleRecitation() {
+                    if (this.quiz.recording) {
+                        this.stopRecitation();
+                    } else {
+                        this.startRecitation();
                     }
                 },
 
@@ -1349,69 +1373,117 @@
                     const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                     this.recognition = new Recognition();
                     this.recognition.lang = 'ar-SA';
-                    this.recognition.continuous = false;
-                    this.recognition.interimResults = false;
+                    this.recognition.continuous = true; // Stay active during breaths
+                    this.recognition.interimResults = true; // Show words as they are spoken
 
                     this.recognition.onstart = () => {
                         this.quiz.recording = true;
                         this.quiz.status = 'idle';
+                        this.quiz.transcript = '';
+                        this.resetQuizIdleTimer();
                     };
 
                     this.recognition.onresult = (event) => {
-                        const transcript = event.results[0][0].transcript;
-                        this.quiz.transcript = transcript;
-                        this.checkQuizAnswer(transcript);
+                        this.resetQuizIdleTimer();
+                        let interimTranscript = '';
+                        for (let i = event.resultIndex; i < event.results.length; ++i) {
+                            if (event.results[i].isFinal) {
+                                this.quiz.transcript += event.results[i][0].transcript + ' ';
+                            } else {
+                                interimTranscript += event.results[i][0].transcript;
+                            }
+                        }
+                        
+                        // Live Highlighting
+                        const currentWords = (this.quiz.transcript + interimTranscript).split(/\s+/);
+                        const targetWords = this.quiz.verse.text.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "").split(/\s+/);
+                        
+                        this.quiz.matchedWords = currentWords.filter(w => 
+                            targetWords.some(tw => tw.includes(w) || w.includes(tw))
+                        );
                     };
 
                     this.recognition.onerror = (event) => {
-                        console.error(event.error);
-                        this.quiz.recording = false;
-                        this.quiz.status = 'error';
-                        this.quiz.feedback = 'Ralat pengecaman. Sila cuba lagi.';
+                        if (event.error !== 'no-speech') {
+                            console.error(event.error);
+                            this.quiz.recording = false;
+                            this.quiz.status = 'error';
+                            this.quiz.feedback = 'Ralat pengecaman. Sila cuba lagi.';
+                        }
                     };
 
                     this.recognition.onend = () => {
-                        this.quiz.recording = false;
+                        if (this.quiz.recording) {
+                            // Recognition might auto-stop, restart if we're still in recording mode
+                            this.recognition.start();
+                        }
                     };
 
                     this.recognition.start();
                 },
 
+                resetQuizIdleTimer() {
+                    if (this.quiz.idleTimer) clearTimeout(this.quiz.idleTimer);
+                    this.quiz.idleTimer = setTimeout(() => {
+                        if (this.quiz.recording) {
+                            this.stopRecitation();
+                        }
+                    }, 5000); // 5 seconds of silence = finish
+                },
+
                 stopRecitation() {
+                    if (this.quiz.idleTimer) clearTimeout(this.quiz.idleTimer);
+                    this.quiz.recording = false;
                     if (this.recognition) {
                         this.recognition.stop();
                     }
+                    this.checkQuizAnswer(this.quiz.transcript);
                 },
 
                 checkQuizAnswer(userText) {
-                    const targetText = this.quiz.verse.nextText;
+                    const displayedText = this.quiz.verse.text;
+                    const targetNextText = this.quiz.verse.nextText;
                     
-                    // Helper to clean Arabic (remove harakat)
-                    const clean = (str) => str.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "").trim();
+                    const normalize = (str) => {
+                        return str
+                            .replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "") 
+                            .replace(/[إأآا]/g, "ا")
+                            .replace(/ة/g, "ه")
+                            .replace(/ى/g, "ي")
+                            .trim();
+                    };
                     
-                    const cleanUser = clean(userText);
-                    const cleanTarget = clean(targetText);
+                    const cleanUser = normalize(userText);
+                    const cleanTargetDisplay = normalize(displayedText);
+                    const cleanTargetNext = normalize(targetNextText);
 
-                    // Fuzzy match: check if a good portion of the words match
-                    const userWords = cleanUser.split(' ');
-                    const targetWords = cleanTarget.split(' ');
-                    let matches = 0;
+                    // Logic: Must match words from BOTH displayed verse AND next verse
+                    const userWords = cleanUser.split(/\s+/).filter(w => w.length > 1);
+                    const displayWords = cleanTargetDisplay.split(/\s+/).filter(w => w.length > 1);
+                    const nextWords = cleanTargetNext.split(/\s+/).filter(w => w.length > 1);
                     
+                    let displayMatches = 0;
+                    let nextMatches = 0;
+
                     userWords.forEach(w => {
-                        if (targetWords.includes(w)) matches++;
+                        if (displayWords.some(tw => tw.includes(w) || w.includes(tw))) displayMatches++;
+                        if (nextWords.some(tw => tw.includes(w) || w.includes(tw))) nextMatches++;
                     });
 
-                    const accuracy = (matches / targetWords.length) * 100;
+                    const displayAccuracy = (displayMatches / displayWords.length) * 100;
+                    const nextAccuracy = (nextMatches / nextWords.length) * 100;
 
-                    if (accuracy > 30) { // If > 30% words match, consider success for web-speech
+                    // Success if at least 30% of BOTH verses matched (flexible for breathing/errors)
+                    if (displayAccuracy > 30 && nextAccuracy > 20) {
                         this.quiz.status = 'success';
-                        this.quiz.feedback = 'Masha Allah, bacaan anda tepat!';
-                        // Bonus XP
+                        this.quiz.feedback = `Masha Allah! Hafalan mantap.`;
+                        this.quiz.session.correct++;
                         this.activeProfile.totalXP += 10;
                         this.save();
                     } else {
                         this.quiz.status = 'error';
-                        this.quiz.feedback = 'Bacaan kurang tepat. Sila cuba lagi atau semak mushaf.';
+                        this.quiz.feedback = `Hampir tepat! Sila pastikan anda membaca ayat paparan dan menyambung ayat seterusnya.`;
+                        this.quiz.session.wrong++;
                     }
                     
                     this.$nextTick(() => lucide.createIcons());

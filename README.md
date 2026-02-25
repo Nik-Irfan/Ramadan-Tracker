@@ -9,6 +9,8 @@ A beautiful, gamified, and minimalist Ramadan Ibadah Tracker designed as a Progr
 - **👥 Multi-Profile Support**: Perfect for families! Create multiple "Hero" profiles on a single device.
 - **🎨 Dynamic Theming**: 6 beautiful color themes (Emerald, Rose, Ocean, Purple, Pink, Gold) with a dedicated Dark Mode.
 - **📅 Smart Calendar**: Toggle between List View and Calendar View. Includes auto-sync for Ramadan 2026 (Starting Feb 18).
+- **📖 Digital Mushaf**: Read the Quran directly in the app with Uthmani script support.
+- **🎤 Hafiz Quiz**: Test your memorization by completing random verses from any Juz with AI voice recognition.
 - **🛠️ Custom Missions**: Add your own personal ibadah goals with custom XP rewards.
 - **📱 PWA Ready**: Install it on your phone for a native app experience with offline support.
 - **🔒 Private & Secure**: All data is stored locally in your browser's `localStorage`. No accounts or internet required.
@@ -42,7 +44,7 @@ If you find this project useful, please consider supporting my work:
 
 - [☕ Buy Me a Coffee](https://buymeacoffee.com/nikirfan)
 - [⭐ Star the Repository](https://github.com/Nik-Irfan/Ramadan-Tracker)
-- [📸 Connect on LinkedIn](https://my.linkedin.com/in/nikirfan98)
+- [🔗 Connect on LinkedIn](https://my.linkedin.com/in/nikirfan98)
 
 ## 📄 License
 
