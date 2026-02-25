@@ -36,6 +36,14 @@ A beautiful, gamified, and minimalist Ramadan Ibadah Tracker designed as a Progr
 
 The app includes a built-in self-test suite that runs automatically on startup. Check the browser console (F12) to see the results of logic verification.
 
+## 💖 Support the Developer
+
+If you find this project useful, please consider supporting my work:
+
+- [☕ Buy Me a Coffee](https://www.buymeacoffee.com/yourusername)
+- [⭐ Star the Repository](https://github.com/yourusername/Ramadan-RPG)
+- [📸 Follow on Instagram](https://instagram.com/yourusername)
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
