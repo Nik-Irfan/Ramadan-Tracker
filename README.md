@@ -40,9 +40,9 @@ The app includes a built-in self-test suite that runs automatically on startup. 
 
 If you find this project useful, please consider supporting my work:
 
-- [☕ Buy Me a Coffee](https://www.buymeacoffee.com/yourusername)
-- [⭐ Star the Repository](https://github.com/yourusername/Ramadan-RPG)
-- [📸 Follow on Instagram](https://instagram.com/yourusername)
+- [☕ Buy Me a Coffee](https://buymeacoffee.com/nikirfan)
+- [⭐ Star the Repository](https://github.com/Nik-Irfan/Ramadan-Tracker)
+- [📸 Connect on LinkedIn]((https://my.linkedin.com/in/nikirfan98))
 
 ## 📄 License
 
