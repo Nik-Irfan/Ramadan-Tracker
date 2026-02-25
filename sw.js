@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ramadan-tracker-v1';
+const CACHE_NAME = 'ramadan-tracker-v2'; // Updated to force cache refresh
 const ASSETS = [
   'index.html',
   'manifest.json'
