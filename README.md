@@ -42,7 +42,7 @@ If you find this project useful, please consider supporting my work:
 
 - [☕ Buy Me a Coffee](https://buymeacoffee.com/nikirfan)
 - [⭐ Star the Repository](https://github.com/Nik-Irfan/Ramadan-Tracker)
-- [📸 Connect on LinkedIn]((https://my.linkedin.com/in/nikirfan98))
+- [📸 Connect on LinkedIn](https://my.linkedin.com/in/nikirfan98)
 
 ## 📄 License
 
