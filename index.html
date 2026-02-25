@@ -29,7 +29,7 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Outfit', sans-serif; transition: background-color 0.3s, color 0.3s; }
@@ -339,6 +339,142 @@
         </div>
     </div>
 
+    <!-- Mushaf Page (Combined with Quiz) -->
+    <div x-show="view === 'mushaf'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8">
+        <header class="mb-6 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-black text-main tracking-tighter">Al-Quran</h1>
+                <p class="text-muted font-medium text-xs">Mushaf & Ujian Hafazan</p>
+            </div>
+            <div class="flex gap-2">
+                <button @click="quiz.active = !quiz.active; if(quiz.active) startQuiz()" 
+                    class="p-3 rounded-2xl transition-all"
+                    :class="quiz.active ? 'gradient-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
+                    <i data-lucide="mic-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Juz Selector -->
+        <div class="bg-card rounded-[2.5rem] p-5 custom-shadow border border-theme mb-6 overflow-x-auto scrollbar-hide flex gap-3 whitespace-nowrap">
+            <template x-for="j in 30" :key="j">
+                <button @click="mushaf.currentJuz = j; quiz.currentJuz = j; fetchMushaf(); if(quiz.active) startQuiz()" 
+                    class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-black transition-all text-xs"
+                    :class="mushaf.currentJuz === j ? 'gradient-accent text-white shadow-accent' : 'bg-inset text-muted'"
+                    x-text="j"></button>
+            </template>
+        </div>
+
+        <!-- Quiz Section (Overlay when active) -->
+        <div x-show="quiz.active" x-transition class="mb-6 space-y-4">
+            <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border-2 border-accent relative overflow-hidden">
+                <div x-show="quiz.loading" class="absolute inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center z-10">
+                    <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                
+                <div class="flex justify-between items-start mb-4">
+                    <span class="text-[9px] font-black text-accent bg-accent/10 px-3 py-1 rounded-full uppercase tracking-widest">Hafiz Quiz Mode</span>
+                    <button @click="quiz.active = false" class="text-muted hover:text-red-500 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div class="text-center py-4">
+                    <p class="text-muted text-[9px] font-black uppercase tracking-widest mb-4">Sambung Ayat Ini:</p>
+                    <p class="text-2xl font-bold text-main leading-relaxed dir-rtl font-arabic mb-6" 
+                       x-text="quiz.verse?.text" :style="`font-family: '${mushaf.fontFamily}', serif;`"></p>
+                    
+                    <div class="flex flex-col items-center gap-4">
+                        <button @mousedown="startRecitation()" @touchstart="startRecitation()" @mouseup="stopRecitation()" @touchend="stopRecitation()"
+                            class="w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 relative"
+                            :class="quiz.recording ? 'bg-red-500 scale-110 shadow-lg' : 'gradient-accent shadow-accent'">
+                            <i data-lucide="mic" class="w-8 h-8 text-white"></i>
+                        </button>
+                        <p class="text-[9px] font-black uppercase tracking-widest" :class="quiz.recording ? 'text-red-500' : 'text-muted'" 
+                           x-text="quiz.recording ? 'Sedang Mendengar...' : 'Tahan & Baca 2-3 Baris'"></p>
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div x-show="quiz.status !== 'idle'" x-transition class="mt-6 pt-6 border-t border-theme text-center">
+                    <div class="flex items-center justify-center gap-3 mb-4">
+                        <i :data-lucide="quiz.status === 'success' ? 'check-circle' : 'alert-circle'" 
+                           :class="quiz.status === 'success' ? 'text-green-500' : 'text-red-500'" class="w-5 h-5"></i>
+                        <h4 class="font-black text-main text-sm uppercase tracking-widest" x-text="quiz.status === 'success' ? 'Masha Allah!' : 'Cuba Lagi'"></h4 >
+                    </div>
+                    <p class="text-[10px] font-medium text-muted mb-4" x-text="quiz.feedback"></p>
+                    <div class="p-3 bg-inset rounded-xl mb-4">
+                        <p class="text-sm font-bold text-main font-arabic" dir="rtl" x-text="quiz.transcript || '...'"></p>
+                    </div>
+                    <button @click="startQuiz()" class="w-full py-3 bg-inset text-accent font-black rounded-xl text-[10px] uppercase tracking-widest">Ayat Seterusnya</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mushaf Layout Controls -->
+        <div class="flex items-center justify-between mb-4 px-2">
+            <div class="flex gap-2">
+                <button @click="mushaf.viewMode = 'list'" class="p-2 rounded-lg transition-all" :class="mushaf.viewMode === 'list' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
+                    <i data-lucide="list" class="w-4 h-4"></i>
+                </button>
+                <button @click="mushaf.viewMode = 'page'" class="p-2 rounded-lg transition-all" :class="mushaf.viewMode === 'page' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-theme custom-shadow">
+                <button @click="mushaf.fontSize = Math.max(20, mushaf.fontSize - 4)" class="text-muted hover:text-accent"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                <span class="text-[10px] font-black text-main" x-text="`${mushaf.fontSize}px`"></span >
+                <button @click="mushaf.fontSize = Math.min(60, mushaf.fontSize + 4)" class="text-muted hover:text-accent"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                <div class="w-px h-4 bg-theme mx-1"></div>
+                <button @click="mushaf.fontFamily = mushaf.fontFamily === 'Amiri' ? 'Scheherazade New' : 'Amiri'" 
+                    class="text-[10px] font-black text-accent uppercase tracking-tighter" x-text="mushaf.fontFamily.split(' ')[0]"></button>
+            </div>
+        </div>
+
+        <!-- Mushaf Content -->
+        <div class="bg-card rounded-[3rem] p-8 custom-shadow border border-theme relative min-h-[400px]">
+            <div x-show="mushaf.loading" class="absolute inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-[3rem]">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-[10px] font-black text-muted uppercase tracking-widest animate-pulse">Memuatkan Kalamullah...</p>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div x-show="!mushaf.loading && mushaf.verses.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
+                <i data-lucide="wifi-off" class="w-12 h-12 text-red-300 mb-4"></i>
+                <p class="text-xs font-bold text-muted mb-6 uppercase tracking-widest leading-relaxed">Gagal memuatkan data.<br>Sila periksa sambungan internet anda.</p>
+                <button @click="fetchMushaf()" class="px-6 py-3 bg-inset text-accent font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-accent hover:text-white transition-all">
+                    Cuba Lagi
+                </button>
+            </div>
+
+            <!-- List View -->
+            <div class="space-y-12" x-show="!mushaf.loading && mushaf.verses.length > 0 && mushaf.viewMode === 'list'">
+                <template x-for="v in mushaf.verses" :key="v.number">
+                    <div class="text-right">
+                        <p class="font-bold text-main leading-[2.2] font-arabic mb-4" dir="rtl" 
+                           x-text="v.text" :style="`font-family: '${mushaf.fontFamily}', serif; font-size: ${mushaf.fontSize}px;`"></p>
+                        <div class="flex justify-between items-center border-t border-theme pt-3">
+                            <span class="text-[8px] font-black text-accent bg-accent/10 px-2 py-1 rounded-md" x-text="v.surah?.name ? `${v.surah.name} : ${v.numberInSurah}` : `Ayat ${v.numberInSurah}`"></span>
+                            <div class="w-6 h-6 rounded-full border border-theme flex items-center justify-center text-[10px] font-black text-muted" x-text="v.numberInSurah"></div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Page/Continuous View -->
+            <div x-show="!mushaf.loading && mushaf.verses.length > 0 && mushaf.viewMode === 'page'" class="text-right leading-[2.5] font-arabic" dir="rtl">
+                <template x-for="v in mushaf.verses" :key="v.number">
+                    <span class="inline">
+                        <span :style="`font-family: '${mushaf.fontFamily}', serif; font-size: ${mushaf.fontSize}px;`" class="text-main font-bold" x-text="v.text"></span>
+                        <span class="inline-flex w-6 h-6 rounded-full border border-theme items-center justify-center text-[8px] font-black text-accent mx-1 align-middle" x-text="v.numberInSurah"></span>
+                    </span>
+                </template>
+            </div>
+        </div>
+    </div>
+
     <!-- Stats Page -->
     <div x-show="view === 'stats'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8 text-center">
         <header class="mb-12 text-left">
@@ -624,8 +760,8 @@
 
             <!-- Version Timestamp -->
             <div class="text-center py-8">
-                <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 01:05</p>
-                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.1.7-sync-fix</p>
+                <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 02:10</p>
+                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.4.0-unified-quran</p>
             </div>
         </div>
     </div>
@@ -655,22 +791,26 @@
     </div>
 
     <!-- Bottom Nav -->
-    <nav class="fixed bottom-6 left-4 right-4 max-w-md mx-auto bg-card/90 backdrop-blur-2xl rounded-[3rem] p-5 custom-shadow flex justify-around items-center border border-theme z-50">
+    <nav class="fixed bottom-6 left-2 right-2 max-w-lg mx-auto bg-card/90 backdrop-blur-2xl rounded-[3rem] p-4 custom-shadow flex justify-around items-center border border-theme z-50">
         <button @click="view = 'tracker'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'tracker' ? 'nav-active' : 'text-muted'">
-            <i data-lucide="layout-grid" class="w-6 h-6"></i>
-            <span class="text-[9px] font-black uppercase tracking-[0.2em]">Tracker</span>
+            <i data-lucide="layout-grid" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter">Tracker</span>
+        </button>
+        <button @click="view = 'mushaf'; fetchMushaf()" class="flex flex-col items-center gap-1 transition-all" :class="view === 'mushaf' ? 'nav-active' : 'text-muted'">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter">Al-Quran</span>
         </button>
         <button @click="view = 'stats'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'stats' ? 'nav-active' : 'text-muted'">
-            <i data-lucide="trophy" class="w-6 h-6"></i>
-            <span class="text-[9px] font-black uppercase tracking-[0.2em]">Stats</span>
+            <i data-lucide="trophy" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter">Stats</span>
         </button>
         <button @click="view = 'profiles'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'profiles' ? 'nav-active' : 'text-muted'">
-            <i data-lucide="swords" class="w-6 h-6"></i>
-            <span class="text-[9px] font-black uppercase tracking-[0.2em]">Arena</span>
+            <i data-lucide="swords" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter">Arena</span>
         </button>
         <button @click="view = 'settings'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'settings' ? 'nav-active' : 'text-muted'">
-            <i data-lucide="settings-2" class="w-6 h-6"></i>
-            <span class="text-[9px] font-black uppercase tracking-[0.2em]">Config</span>
+            <i data-lucide="settings-2" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter">Config</span>
         </button>
     </nav>
 
@@ -777,6 +917,24 @@
                 theme: 'emerald',
                 selectedBadge: null,
                 showCalendar: false,
+                mushaf: {
+                    loading: false,
+                    currentJuz: 1,
+                    verses: [],
+                    fontSize: 32, // default size in px
+                    fontFamily: 'Amiri', // 'Amiri' or 'Scheherazade New'
+                    viewMode: 'list' // 'list' or 'page'
+                },
+                quiz: {
+                    active: false,
+                    loading: false,
+                    currentJuz: 1,
+                    verse: null,
+                    recording: false,
+                    transcript: '',
+                    status: 'idle', // idle, success, error
+                    feedback: ''
+                },
 
                 init() {
                     const saved = localStorage.getItem('ramadan_rpg_data');
@@ -1090,6 +1248,175 @@
                     }
                 },
 
+                async fetchJuzData(juz) {
+                    const fetchWithTimeout = async (url, options = {}, timeout = 15000) => {
+                        const controller = new AbortController();
+                        const id = setTimeout(() => controller.abort(), timeout);
+                        try {
+                            const response = await fetch(url, { ...options, signal: controller.signal });
+                            clearTimeout(id);
+                            return response;
+                        } catch (err) {
+                            clearTimeout(id);
+                            throw err;
+                        }
+                    };
+
+                    // Source 1: Quran.com API (Primary - More Reliable)
+                    try {
+                        const res = await fetchWithTimeout(`https://api.quran.com/api/v4/quran/verses/uthmani?juz_number=${juz}`);
+                        const data = await res.json();
+                        if (data.verses && data.verses.length > 0) {
+                            return data.verses.map(v => ({
+                                text: v.text_uthmani,
+                                surah: { name: 'Surah ' + v.verse_key.split(':')[0] },
+                                numberInSurah: v.verse_key.split(':')[1],
+                                number: v.id
+                            }));
+                        }
+                    } catch (e) { console.warn('Quran.com API failed, trying AlQuran.cloud...'); }
+
+                    // Source 2: AlQuran.cloud (Fallback 1)
+                    try {
+                        const res = await fetchWithTimeout(`https://api.alquran.cloud/v1/juz/${juz}/quran-uthmani`);
+                        const data = await res.json();
+                        if (data.code === 200) return data.data.verses;
+                    } catch (e) { console.warn('AlQuran.cloud Uthmani failed'); }
+
+                    // Source 3: AlQuran.cloud (Fallback 2 - Simple)
+                    try {
+                        const res = await fetchWithTimeout(`https://api.alquran.cloud/v1/juz/${juz}`);
+                        const data = await res.json();
+                        if (data.code === 200) return data.data.verses;
+                    } catch (e) { console.error('All Quran API sources failed'); }
+
+                    throw new Error('Semua sumber API gagal dicapai.');
+                },
+
+                async fetchMushaf() {
+                    this.mushaf.loading = true;
+                    this.mushaf.verses = [];
+                    try {
+                        this.mushaf.verses = await this.fetchJuzData(this.mushaf.currentJuz);
+                    } catch (e) {
+                        console.error('Mushaf Error:', e);
+                    } finally {
+                        this.mushaf.loading = false;
+                        this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                async startQuiz() {
+                    this.quiz.active = true;
+                    this.quiz.status = 'idle';
+                    this.quiz.transcript = '';
+                    this.quiz.loading = true;
+                    
+                    try {
+                        let verses;
+                        if (this.mushaf.currentJuz === this.quiz.currentJuz && this.mushaf.verses.length > 0) {
+                            verses = this.mushaf.verses;
+                        } else {
+                            verses = await this.fetchJuzData(this.quiz.currentJuz);
+                        }
+                        
+                        const idx = Math.floor(Math.random() * (verses.length - 1));
+                        const verse = verses[idx];
+                        const nextVerse = verses[idx + 1];
+
+                        this.quiz.verse = {
+                            text: verse.text,
+                            nextText: nextVerse.text,
+                            surah: verse.surah.name,
+                            numberInSurah: verse.numberInSurah
+                        };
+                    } catch (e) {
+                        console.error('Quiz Error:', e);
+                        alert('Gagal memuatkan ayat. Sila periksa internet anda.');
+                        this.quiz.active = false;
+                    } finally {
+                        this.quiz.loading = false;
+                        this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
+                startRecitation() {
+                    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                        alert('Maaf, pelayar anda tidak menyokong pengecaman suara. Sila gunakan Chrome atau Edge.');
+                        return;
+                    }
+
+                    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new Recognition();
+                    this.recognition.lang = 'ar-SA';
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+
+                    this.recognition.onstart = () => {
+                        this.quiz.recording = true;
+                        this.quiz.status = 'idle';
+                    };
+
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        this.quiz.transcript = transcript;
+                        this.checkQuizAnswer(transcript);
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        console.error(event.error);
+                        this.quiz.recording = false;
+                        this.quiz.status = 'error';
+                        this.quiz.feedback = 'Ralat pengecaman. Sila cuba lagi.';
+                    };
+
+                    this.recognition.onend = () => {
+                        this.quiz.recording = false;
+                    };
+
+                    this.recognition.start();
+                },
+
+                stopRecitation() {
+                    if (this.recognition) {
+                        this.recognition.stop();
+                    }
+                },
+
+                checkQuizAnswer(userText) {
+                    const targetText = this.quiz.verse.nextText;
+                    
+                    // Helper to clean Arabic (remove harakat)
+                    const clean = (str) => str.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "").trim();
+                    
+                    const cleanUser = clean(userText);
+                    const cleanTarget = clean(targetText);
+
+                    // Fuzzy match: check if a good portion of the words match
+                    const userWords = cleanUser.split(' ');
+                    const targetWords = cleanTarget.split(' ');
+                    let matches = 0;
+                    
+                    userWords.forEach(w => {
+                        if (targetWords.includes(w)) matches++;
+                    });
+
+                    const accuracy = (matches / targetWords.length) * 100;
+
+                    if (accuracy > 30) { // If > 30% words match, consider success for web-speech
+                        this.quiz.status = 'success';
+                        this.quiz.feedback = 'Masha Allah, bacaan anda tepat!';
+                        // Bonus XP
+                        this.activeProfile.totalXP += 10;
+                        this.save();
+                    } else {
+                        this.quiz.status = 'error';
+                        this.quiz.feedback = 'Bacaan kurang tepat. Sila cuba lagi atau semak mushaf.';
+                    }
+                    
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
                 syncTemplate() {
                     const p = this.activeProfile;
                     if (!p) return;
@@ -1107,7 +1434,7 @@
                     }
                 },
 
-                save() {
+                scrollToCurrentDay() {
                     const el = document.querySelector(`[data-day="${this.currentDay}"]`);
                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 },
