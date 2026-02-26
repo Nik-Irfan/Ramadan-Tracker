@@ -362,69 +362,38 @@
             </button>
         </div>
 
-        <!-- Selection Mode Toggle (Juz vs Surah vs Page) -->
+        <!-- Selection Mode Toggle (Juz vs Surah) -->
         <div class="flex gap-2 mb-6">
             <button @click="mushaf.selectionMode = 'juz'; quiz.selectionMode = 'juz'; if(quiz.active) startQuiz(); else fetchMushaf()" 
                 class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                :class="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'juz' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
-                Juz
+                :class="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'juz' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
+                Pilih Juz
             </button>
             <button @click="mushaf.selectionMode = 'surah'; quiz.selectionMode = 'surah'; if(quiz.active) startQuiz(); else fetchMushaf()" 
                 class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                :class="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'surah' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
-                Surah
-            </button>
-            <button x-show="!quiz.active" @click="mushaf.selectionMode = 'page'; fetchMushaf()" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                :class="mushaf.selectionMode === 'page' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
-                Page
+                :class="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'surah' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
+                Pilih Surah
             </button>
         </div>
 
-        <!-- Juz Selector (Grid/Calendar Style) -->
-        <div x-show="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'juz'" class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme mb-6">
-            <div class="grid grid-cols-5 gap-3">
-                <template x-for="j in 30" :key="j">
-                    <button @click="mushaf.currentJuz = j; quiz.currentJuz = j; if(quiz.active) startQuiz(); else fetchMushaf()" 
-                        class="aspect-square rounded-xl flex items-center justify-center font-black transition-all text-xs border-2"
-                        :class="(quiz.active ? quiz.currentJuz : mushaf.currentJuz) === j ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted'"
-                        x-text="j"></button>
-                </template>
-            </div>
+        <!-- Juz Selector -->
+        <div x-show="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'juz'" class="bg-card rounded-[2.5rem] p-5 custom-shadow border border-theme mb-6 overflow-x-auto scrollbar-hide flex gap-3 whitespace-nowrap">
+            <template x-for="j in 30" :key="j">
+                <button @click="mushaf.currentJuz = j; quiz.currentJuz = j; if(quiz.active) startQuiz(); else fetchMushaf()" 
+                    class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-black transition-all text-xs"
+                    :class="(quiz.active ? quiz.currentJuz : mushaf.currentJuz) === j ? 'gradient-accent text-white shadow-accent' : 'bg-inset text-muted'"
+                    x-text="j"></button>
+            </template>
         </div>
 
-        <!-- Surah Selector (Grid with Search) -->
-        <div x-show="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'surah'" class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme mb-6">
-            <div class="mb-4 relative">
-                <input type="text" x-model="mushaf.searchSurah" placeholder="Cari surah..." 
-                    class="w-full p-4 bg-inset rounded-xl border-none text-[10px] font-bold text-main focus:ring-2 ring-accent ring-opacity-10 transition-all">
-                <i data-lucide="search" class="absolute right-4 top-3.5 w-4 h-4 text-muted"></i>
-            </div>
-            <div class="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
-                <template x-for="s in filteredSurahs" :key="s.number">
-                    <button @click="mushaf.currentSurah = s.number; quiz.currentSurah = s.number; if(quiz.active) startQuiz(); else fetchMushaf()" 
-                        class="p-3 rounded-xl flex items-center gap-3 transition-all border-2 text-left"
-                        :class="(quiz.active ? quiz.currentSurah : mushaf.currentSurah) === s.number ? 'border-accent bg-accent/5' : 'border-transparent bg-inset'">
-                        <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[8px] font-black text-accent" x-text="s.number"></span>
-                        <div class="min-w-0">
-                            <p class="text-[9px] font-black text-main truncate uppercase" x-text="s.englishName"></p>
-                            <p class="text-[8px] font-bold text-muted truncate" x-text="s.name"></p>
-                        </div>
-                    </button>
-                </template>
-            </div>
-        </div>
-
-        <!-- Page Selector (Grid Style) -->
-        <div x-show="mushaf.selectionMode === 'page' && !quiz.active" class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme mb-6">
-            <div class="grid grid-cols-6 gap-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
-                <template x-for="p in 604" :key="p">
-                    <button @click="mushaf.currentPage = p; fetchMushaf(false)" 
-                        class="aspect-square rounded-lg flex items-center justify-center text-[8px] font-black transition-all border"
-                        :class="mushaf.currentPage === p ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted/50'"
-                        x-text="p"></button>
-                </template>
-            </div>
+        <!-- Surah Selector -->
+        <div x-show="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'surah'" class="bg-card rounded-[2.5rem] p-5 custom-shadow border border-theme mb-6 overflow-x-auto scrollbar-hide flex gap-3 whitespace-nowrap">
+            <template x-for="s in mushaf.surahs" :key="s.number">
+                <button @click="mushaf.currentSurah = s.number; quiz.currentSurah = s.number; if(quiz.active) startQuiz(); else fetchMushaf()" 
+                    class="px-4 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-black transition-all text-[10px] uppercase tracking-tighter"
+                    :class="(quiz.active ? quiz.currentSurah : mushaf.currentSurah) === s.number ? 'gradient-accent text-white shadow-accent' : 'bg-inset text-muted'"
+                    x-text="s.englishName"></button>
+            </template>
         </div>
 
         <!-- Quiz Section (Overlay when active) -->
@@ -683,26 +652,17 @@
                             <i data-lucide="building-2" class="w-8 h-8"></i>
                         </div>
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-xl font-black text-main tracking-tighter" x-text="community.joinedMosque"></h2>
-                                <i data-lucide="check-circle" class="w-4 h-4 text-blue-500 fill-current text-white"></i>
-                            </div>
+                            <h2 class="text-xl font-black text-main tracking-tighter" x-text="community.joinedMosque"></h2>
                             <div class="flex items-center gap-2 mt-1">
                                 <i data-lucide="map-pin" class="w-3 h-3 text-accent"></i>
                                 <span class="text-[10px] font-bold text-muted uppercase tracking-wider" x-text="community.dummyMosque.location"></span>
                             </div>
                         </div>
                     </div>
-                    <div class="flex gap-2">
-                        <button @click="community.isAdmin = !community.isAdmin" 
-                            class="p-3 rounded-xl transition-all" :class="community.isAdmin ? 'bg-accent text-white shadow-accent' : 'bg-inset text-muted'">
-                            <i data-lucide="shield-check" class="w-5 h-5"></i>
-                        </button>
-                        <button @click="if(confirm('Tinggalkan komuniti ini?')) { community.joinedMosque = null; save(); }" 
-                            class="p-3 bg-inset rounded-xl text-muted hover:text-red-500 transition-all">
-                            <i data-lucide="more-horizontal" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+                    <button @click="if(confirm('Tinggalkan komuniti ini?')) { community.joinedMosque = null; save(); }" 
+                        class="p-3 bg-inset rounded-xl text-muted hover:text-red-500 transition-all">
+                        <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                    </button>
                 </div>
 
                 <!-- Real-time Distance Tracking -->
@@ -724,35 +684,6 @@
                 </div>
             </div>
 
-            <!-- Admin Panel (Only for AJK) -->
-            <div x-show="community.isAdmin" x-transition class="bg-blue-50 dark:bg-blue-900/20 rounded-[2.5rem] p-6 border-2 border-blue-200 dark:border-blue-800">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="settings" class="w-4 h-4"></i> Panel Admin AJK
-                    </h3>
-                    <span class="text-[8px] font-black bg-blue-600 text-white px-2 py-1 rounded-full uppercase">Verified Batch</span>
-                </div>
-                
-                <div class="space-y-4">
-                    <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest" x-text="`Persetujuan Post (${community.pendingPosts.length})`"></p>
-                    <template x-for="post in community.pendingPosts" :key="post.id">
-                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-blue-100">
-                            <p class="text-[9px] font-black text-main mb-1" x-text="post.user"></p>
-                            <p class="text-xs text-muted mb-3" x-text="post.content"></p>
-                            <div class="flex gap-2">
-                                <button @click="post.status = 'approved'; community.updates.unshift(post); community.pendingPosts = community.pendingPosts.filter(p => p.id !== post.id);" 
-                                    class="flex-1 py-2 bg-green-500 text-white text-[9px] font-black rounded-lg uppercase">Approve</button>
-                                <button @click="community.pendingPosts = community.pendingPosts.filter(p => p.id !== post.id);" 
-                                    class="flex-1 py-2 bg-red-100 text-red-500 text-[9px] font-black rounded-lg uppercase">Reject</button>
-                            </div>
-                        </div>
-                    </template>
-                    <div x-show="community.pendingPosts.length === 0" class="text-center py-4">
-                        <p class="text-[10px] text-blue-300 font-bold uppercase">Tiada post menunggu kelulusan</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Social Feed Tab Switcher -->
             <div class="flex p-1.5 bg-inset rounded-2xl border border-theme">
                 <button @click="community.activeTab = 'feed'" 
@@ -769,38 +700,14 @@
 
             <!-- Feed Section -->
             <div x-show="!community.activeTab || community.activeTab === 'feed'" class="space-y-4">
-                <!-- Create Post (Social Style) -->
-                <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-inset rounded-full flex items-center justify-center font-black text-xs text-accent" x-text="activeProfile.name[0]"></div>
-                        <p class="text-xs font-black text-main">Apa khabar jemaah?</p>
-                    </div>
-                    <textarea x-model="community.newPostContent" placeholder="Kongsi sesuatu dengan komuniti..." 
-                        class="w-full p-4 bg-inset rounded-2xl border-none text-xs font-medium text-main focus:ring-2 ring-accent ring-opacity-10 min-h-[80px] mb-3"></textarea>
-                    <button @click="if(community.newPostContent) { 
-                        const newPost = { id: Date.now(), mosque: community.joinedMosque, title: 'Kiriman Jemaah', content: community.newPostContent, time: 'Baru sahaja', likes: 0, comments: 0, isAJK: community.isAdmin, status: community.isAdmin ? 'approved' : 'pending', user: activeProfile.name };
-                        if(community.isAdmin) { community.updates.unshift(newPost); } else { community.pendingPosts.unshift(newPost); alert('Post anda telah dihantar untuk kelulusan AJK.'); }
-                        community.newPostContent = ''; 
-                    }" 
-                        class="w-full py-4 gradient-accent text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-accent">
-                        Hantar Post
-                    </button>
-                </div>
-
                 <template x-for="update in community.updates" :key="update.id">
-                    <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme" x-show="update.status === 'approved'">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 gradient-accent rounded-full flex items-center justify-center text-white font-black text-xs" x-text="update.isAJK ? 'M' : update.user[0]"></div>
-                                <div>
-                                    <div class="flex items-center gap-1">
-                                        <p class="text-xs font-black text-main" x-text="update.isAJK ? update.mosque : update.user"></p>
-                                        <i x-show="update.isAJK" data-lucide="check-circle" class="w-3 h-3 text-blue-500 fill-current text-white"></i>
-                                    </div>
-                                    <p class="text-[9px] text-muted font-bold" x-text="update.time"></p>
-                                </div>
+                    <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 gradient-accent rounded-full flex items-center justify-center text-white font-black text-xs">M</div>
+                            <div>
+                                <p class="text-xs font-black text-main" x-text="update.mosque"></p>
+                                <p class="text-[9px] text-muted font-bold" x-text="update.time"></p>
                             </div>
-                            <span x-show="update.isAJK" class="text-[7px] font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full uppercase">Official AJK</span>
                         </div>
                         <h4 class="font-black text-main text-sm mb-2" x-text="update.title"></h4>
                         <p class="text-xs text-muted mb-4 leading-relaxed" x-text="update.content"></p>
@@ -1319,28 +1226,27 @@
                 showCalendar: false,
                 mushaf: {
                     loading: false,
-                    selectionMode: 'juz', // 'juz', 'surah', or 'page'
+                    selectionMode: 'juz', // 'juz' or 'surah'
                     currentJuz: 1,
                     currentSurah: 1,
                     currentPage: 1,
                     verses: [],
-                    surahs: [],
+                    surahs: [], // List of 114 surahs
                     fontSize: 32,
                     fontFamily: 'Amiri',
-                    viewMode: 'page',
-                    searchSurah: ''
+                    viewMode: 'page' // 'list' or 'page'
                 },
                 quiz: {
                     active: false,
                     loading: false,
-                    testMode: 'voice',
-                    selectionMode: 'juz',
+                    testMode: 'voice', // 'voice' or 'mcq'
+                    selectionMode: 'juz', // 'juz' or 'surah'
                     currentJuz: 1,
                     currentSurah: 1,
                     verse: null,
                     recording: false,
                     transcript: '',
-                    status: 'idle',
+                    status: 'idle', // idle, success, error
                     feedback: '',
                     session: { correct: 0, wrong: 0, total: 0 },
                     matchedWords: [],
@@ -1354,18 +1260,16 @@
                     newQuestion: '',
                     userLocation: null,
                     mosqueDistance: null,
-                    isAdmin: false, // AJK Mode
-                    pendingPosts: [],
                     dummyMosque: {
                         id: 'masjid_muaz',
                         name: 'Masjid Muaz Bin Jabal',
                         location: 'Setiawangsa, KL',
-                        coords: { lat: 3.1761, lng: 101.7428 },
-                        pinUrl: 'https://maps.app.goo.gl/QG3rpD2hxa6pTDZN6'
+                        coords: { lat: 3.1761, lng: 101.7428 }, // Setiawangsa area
+                        pinUrl: 'https://maps.app.goo.gl/uR5CunX42Yj8x8mN7'
                     },
                     updates: [
-                        { id: 1, mosque: 'Masjid Muaz Bin Jabal', title: 'Kuliah Maghrib Perdana', content: 'Jemput hadir ke kuliah Maghrib malam ini bersama Ustaz Badli Shah.', time: '2 jam yang lalu', likes: 12, comments: 3, isAJK: true, status: 'approved' },
-                        { id: 2, mosque: 'Masjid Muaz Bin Jabal', title: 'Agihan Bubur Lambuk', content: 'Agihan akan bermula jam 5:00 petang di perkarangan masjid. Sila bawa bekas sendiri.', time: '5 jam yang lalu', likes: 45, comments: 8, isAJK: true, status: 'approved' }
+                        { id: 1, mosque: 'Masjid Muaz Bin Jabal', title: 'Kuliah Maghrib Perdana', content: 'Jemput hadir ke kuliah Maghrib malam ini bersama Ustaz Badli Shah.', time: '2 jam yang lalu', likes: 12, comments: 3 },
+                        { id: 2, mosque: 'Masjid Muaz Bin Jabal', title: 'Agihan Bubur Lambuk', content: 'Agihan akan bermula jam 5:00 petang di perkarangan masjid. Sila bawa bekas sendiri.', time: '5 jam yang lalu', likes: 45, comments: 8 }
                     ],
                     questions: [
                         { id: 1, user: 'Ahmad', text: 'Adakah batal puasa jika menggunakan inhaler?', answer: 'Tidak batal mengikut fatwa kebangsaan...', time: '1 jam yang lalu', likes: 5 }
@@ -1744,6 +1648,7 @@
                 },
 
                 async fetchSurahData(surahId) {
+                    this.mushaf.loading = true;
                     try {
                         const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahId}/quran-uthmani`);
                         const data = await res.json();
@@ -1756,63 +1661,36 @@
                             }));
                         }
                     } catch (e) { console.error('Surah API failed:', e); }
+                    finally { this.mushaf.loading = false; }
                     return [];
                 },
 
                 async fetchMushaf(resetPage = true) {
                     this.mushaf.loading = true;
+                    if (resetPage) this.mushaf.currentPage = 1;
                     try {
-                        if (this.mushaf.selectionMode === 'page') {
-                            this.mushaf.verses = await this.fetchPageData(this.mushaf.currentPage);
-                        } else if (this.mushaf.selectionMode === 'juz') {
+                        if (this.mushaf.selectionMode === 'juz') {
                             this.mushaf.verses = await this.fetchJuzData(this.mushaf.currentJuz);
-                            if (resetPage) this.mushaf.currentPage = 1;
                         } else {
                             this.mushaf.verses = await this.fetchSurahData(this.mushaf.currentSurah);
-                            if (resetPage) this.mushaf.currentPage = 1;
                         }
                     } catch (e) {
                         console.error('Mushaf Error:', e);
-                        alert('Gagal memuatkan Quran. Sila periksa internet.');
                     } finally {
                         this.mushaf.loading = false;
                         this.$nextTick(() => lucide.createIcons());
                     }
                 },
 
-                async fetchPageData(page) {
-                    try {
-                        const res = await fetch(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`);
-                        const data = await res.json();
-                        if (data.code === 200) {
-                            return data.data.verses.map(v => ({
-                                text: v.text,
-                                surah: { name: v.surah.name },
-                                numberInSurah: v.numberInSurah,
-                                number: v.number
-                            }));
-                        }
-                    } catch (e) { console.error('Page API failed:', e); }
-                    return [];
-                },
-
-                get filteredSurahs() {
-                    if (!this.mushaf.searchSurah) return this.mushaf.surahs;
-                    return this.mushaf.surahs.filter(s => 
-                        s.englishName.toLowerCase().includes(this.mushaf.searchSurah.toLowerCase()) ||
-                        s.name.includes(this.mushaf.searchSurah)
-                    );
-                },
-
                 get paginatedVerses() {
-                    if (this.mushaf.viewMode === 'list' || this.mushaf.selectionMode === 'page') return this.mushaf.verses;
+                    if (this.mushaf.viewMode === 'list') return this.mushaf.verses;
+                    // Standard Mushaf page has about 15 lines. For simplicity, we'll use 10 verses per page
                     const perPage = 10;
                     const start = (this.mushaf.currentPage - 1) * perPage;
                     return this.mushaf.verses.slice(start, start + perPage);
                 },
 
                 get totalMushafPages() {
-                    if (this.mushaf.selectionMode === 'page') return 604;
                     const perPage = 10;
                     return Math.ceil(this.mushaf.verses.length / perPage) || 1;
                 },
