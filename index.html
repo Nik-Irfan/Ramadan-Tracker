@@ -276,10 +276,10 @@
             <div class="flex gap-4">
                 <button @click="showUserMenu = !showUserMenu" class="relative group">
                     <div class="flex flex-col items-center">
-                        <div class="w-14 h-14 gradient-purple rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg relative transition-transform group-active:scale-95" style="box-shadow: -12px -12px 22px rgba(168, 85, 247, 0.12), -5px -5px 10px rgba(168, 85, 247, 0.10);">
+                        <div class="w-14 h-14 gradient-purple rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg relative transition-transform group-active:scale-95" style="box-shadow: -5px -5px 22px rgba(168, 85, 247, 0.12), -5px -5px 10px rgba(168, 85, 247, 0.10);">
                             <span x-text="getUserLevel().level"></span>
                         </div>
-                        <div class="-mt-0.5 bg-card px-2 py-0.5 rounded-full text-[8px] font-black text-purple-600 shadow-sm border border-purple-100 uppercase tracking-tighter">Level</div>
+                        <div class="-mt-0.1 bg-card px-1.5 py-0.5 rounded-full text-[7px] font-black text-purple-600 shadow-sm border border-purple-100/60 uppercase tracking-tighter">Level</div>
                     </div>
                 </button>
                 <div>
@@ -319,10 +319,9 @@
                     <span class="text-xs font-black text-orange-600 dark:text-orange-400" x-text="`${calculateStreak()} Day Streak`"></span>
                 </div>
 
-                <button x-show="prayer.enabled && (prayer.placement === 'tracker' || prayer.placement === 'both')" @click="showPrayerModal = true" class="bg-card px-3 py-2 rounded-2xl flex items-center gap-2 border border-theme custom-shadow text-left w-full">
-                    <i data-lucide="clock" class="w-4 h-4 text-accent"></i>
+                <button x-show="prayer.enabled && (prayer.placement === 'tracker' || prayer.placement === 'both')" @click="showPrayerModal = true" class="bg-orange-50 dark:bg-orange-900/10 px-3 py-2 rounded-2xl flex items-center gap-2 border border-orange-100/60 dark:border-orange-900/30 custom-shadow text-left w-full">
+                    <i data-lucide="clock" class="w-4 h-4 text-orange-500"></i>
                     <div>
-                        <p class="text-[8px] font-black text-muted uppercase tracking-widest" x-text="lang === 'en' ? 'Next Prayer' : 'Waktu Seterusnya'"></p>
                         <p class="text-[10px] font-black text-main" x-text="prayer.nextLabel || (lang === 'en' ? 'Loading...' : 'Memuat...')"></p>
                         <p class="text-[9px] font-bold text-muted" x-show="prayer.countdown" x-text="prayer.countdown"></p>
                     </div>
@@ -1926,7 +1925,7 @@
                 prayer: {
                     enabled: false,
                     placement: 'both',
-                    method: 11,
+                    zone: 'detecting', // will auto-detect on first enable
                     cacheKey: '',
                     dateKey: '',
                     timings: null,
@@ -3001,13 +3000,9 @@
                 },
 
                 prayerCacheKey() {
-                    const today = this.getTodayKey();
-                    const loc = this.community.userLocation;
-                    if (!loc) return '';
-                    const lat = Math.round(Number(loc.lat) * 1000) / 1000;
-                    const lng = Math.round(Number(loc.lng) * 1000) / 1000;
-                    const method = this.prayer.method || 11;
-                    return `${today}|${lat},${lng}|m${method}`;
+                    const zone = this.prayer.zone || 'WLY01';
+                    const today = new Date();
+                    return `${zone}-${today.getFullYear()}-${today.getMonth() + 1}`;
                 },
 
                 async ensurePrayerTimes() {
@@ -3015,40 +3010,90 @@
                     if (!this.community.userLocation) return;
 
                     const key = this.prayerCacheKey();
-                    const today = this.getTodayKey();
+                    const today = new Date();
                     if (!key) return;
 
-                    if (this.prayer.cacheKey === key && this.prayer.timings && this.prayer.dateKey === today) {
+                    if (this.prayer.cacheKey === key && this.prayer.timings && this.prayer.dateKey === today.toDateString()) {
                         this.updateNextPrayer();
                         return;
+                    }
+
+                    // Auto-detect zone if not set or if user wants refresh
+                    if (!this.prayer.zone || this.prayer.zone === 'detecting') {
+                        await this.detectAndSetZone();
                     }
 
                     await this.fetchPrayerTimes();
                 },
 
-                async fetchPrayerTimes() {
+                async detectAndSetZone() {
+                    const loc = this.community.userLocation;
+                    if (!loc) return;
                     try {
-                        const loc = this.community.userLocation;
-                        const method = this.prayer.method || 11;
-                        const today = this.getTodayKey();
-                        const key = this.prayerCacheKey();
-                        if (!loc || !key) return;
-
-                        const url = `https://api.aladhan.com/v1/timings?latitude=${encodeURIComponent(loc.lat)}&longitude=${encodeURIComponent(loc.lng)}&method=${encodeURIComponent(method)}`;
+                        const url = `https://api.waktusolat.app/zones/${loc.lat}/${loc.lng}`;
                         const res = await fetch(url);
-                        if (!res.ok) throw new Error('Prayer API failed');
-                        const json = await res.json();
-                        const timings = json?.data?.timings || null;
-                        if (!timings) throw new Error('No timings');
+                        if (!res.ok) throw new Error('Zone detection failed');
+                        const data = await res.json();
+                        if (data?.zone) {
+                            this.prayer.zone = data.zone;
+                            this.save();
+                        }
+                    } catch (e) {
+                        console.warn('Zone detection error:', e);
+                        // fallback to WLY01
+                        this.prayer.zone = 'WLY01';
+                        this.save();
+                    }
+                },
 
+                async fetchPrayerTimes() {
+                    const zone = this.prayer.zone || 'WLY01';
+                    const today = new Date();
+                    const y = today.getFullYear();
+                    const m = today.getMonth() + 1;
+                    const key = `${zone}-${y}-${m}`;
+                    if (this.prayer.cacheKey === key && this.prayer.timings && this.prayer.dateKey === today.toDateString()) {
+                        this.updateNextPrayer();
+                        return;
+                    }
+                    try {
+                        const url = `https://api.waktusolat.app/v2/solat/${zone}?year=${y}&month=${m}`;
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error('Waktu Solat API failed');
+                        const json = await res.json();
+                        const data = json?.data;
+                        if (!data || !data.prayers || !Array.isArray(data.prayers)) throw new Error('Invalid response');
+                        const dayOfMonth = today.getDate();
+                        const todayPrayer = data.prayers.find(p => p.day === dayOfMonth);
+                        if (!todayPrayer) throw new Error('No prayer data for today');
+                        const timings = {
+                            Fajr: this.tsToTime(todayPrayer.fajr),
+                            Sunrise: this.tsToTime(todayPrayer.syuruk),
+                            Dhuhr: this.tsToTime(todayPrayer.dhuhr),
+                            Asr: this.tsToTime(todayPrayer.asr),
+                            Maghrib: this.tsToTime(todayPrayer.maghrib),
+                            Isha: this.tsToTime(todayPrayer.isha)
+                        };
                         this.prayer.timings = timings;
                         this.prayer.cacheKey = key;
-                        this.prayer.dateKey = today;
+                        this.prayer.dateKey = today.toDateString();
                         this.updateNextPrayer();
                         this.save();
                     } catch (e) {
-                        console.warn('Prayer Times Error:', e);
+                        console.warn('Waktu Solat API Error:', e);
+                        // Clear timings to show error state
+                        this.prayer.timings = null;
+                        this.prayer.nextLabel = '';
+                        this.prayer.countdown = '';
+                        this.save();
                     }
+                },
+
+                tsToTime(ts) {
+                    const d = new Date(ts * 1000);
+                    const h = d.getHours().toString().padStart(2, '0');
+                    const m = d.getMinutes().toString().padStart(2, '0');
+                    return `${h}:${m}`;
                 },
 
                 parsePrayerTimeToDate(hhmm) {
@@ -3062,7 +3107,7 @@
                 updateNextPrayer() {
                     const t = this.prayer.timings;
                     if (!t) {
-                        this.prayer.nextLabel = '';
+                        this.prayer.nextLabel = this.lang === 'en' ? 'No data' : 'Tiada data';
                         this.prayer.countdown = '';
                         return;
                     }
@@ -3086,25 +3131,21 @@
                         }
                     }
 
-                    if (!next) {
-                        const it = order[0];
-                        const d = this.parsePrayerTimeToDate(t[it.k]);
-                        if (d) d.setDate(d.getDate() + 1);
-                        next = { ...it, time: t[it.k], date: d };
-                    }
-
-                    const name = this.lang === 'en' ? next.labelEn : next.labelMs;
-                    this.prayer.nextLabel = `${name} ${next.time}`;
-
-                    if (next.date) {
-                        const diffMs = Math.max(0, next.date.getTime() - now.getTime());
-                        const mins = Math.floor(diffMs / 60000);
-                        const h = Math.floor(mins / 60);
-                        const m = mins % 60;
-                        this.prayer.countdown = this.lang === 'en'
-                            ? `${h > 0 ? `${h}h ` : ''}${m}m` 
-                            : `${h > 0 ? `${h}j ` : ''}${m}m`;
+                    if (next) {
+                        this.prayer.nextLabel = this.lang === 'en' ? next.labelEn : next.labelMs;
+                        const diff = Math.floor((next.date.getTime() - now.getTime()) / 60000);
+                        if (diff > 0) {
+                            const h = Math.floor(diff / 60);
+                            const m = diff % 60;
+                            this.prayer.countdown = this.lang === 'en'
+                                ? `${h > 0 ? `${h}h ` : ''}${m}m`
+                                : `${h > 0 ? `${h}j ` : ''}${m}m`;
+                        } else {
+                            this.prayer.countdown = '';
+                        }
                     } else {
+                        // After Isha, show Fajr of next day
+                        this.prayer.nextLabel = this.lang === 'en' ? 'Fajr (tomorrow)' : 'Subuh (esok)';
                         this.prayer.countdown = '';
                     }
                 },
@@ -3256,7 +3297,7 @@
                         this.quiz.session.total++;
                     } catch (e) {
                         console.error('Quiz Error:', e);
-                        alert('Gagal memuatkan ayat. Sila periksa internet anda.');
+                        alert('Gagal memuatkan ayat. Sila periksa internet.');
                         this.quiz.active = false;
                     } finally {
                         this.quiz.loading = false;
@@ -3736,10 +3777,12 @@
                         prayer: {
                             enabled: this.prayer.enabled,
                             placement: this.prayer.placement,
-                            method: this.prayer.method,
+                            zone: this.prayer.zone,
                             cacheKey: this.prayer.cacheKey,
                             dateKey: this.prayer.dateKey,
-                            timings: this.prayer.timings
+                            timings: this.prayer.timings,
+                            nextLabel: this.prayer.nextLabel,
+                            countdown: this.prayer.countdown
                         },
                         joinedMosque: this.community.joinedMosque,
                         joinedMosqueLocation: this.community.joinedMosqueLocation,
