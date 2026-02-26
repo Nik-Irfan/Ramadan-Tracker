@@ -29,7 +29,7 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Lateef:wght@400;700&family=Harmattan:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Amiri:wght@400;700&family=Amiri+Quran&family=Scheherazade+New:wght@400;700&family=Lateef:wght@400;700&family=Harmattan:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Outfit', sans-serif; transition: background-color 0.3s, color 0.3s; min-height: 100vh; }
@@ -64,6 +64,21 @@
             width: calc(100% - 32px);
             max-width: 418px; /* 450px - 32px padding */
             z-index: 50;
+        }
+
+        .quran-card {
+            background: #FDFBF7;
+            border-radius: 2rem;
+            box-shadow: 0 10px 25px rgba(2, 6, 23, 0.06);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .quran-text {
+            font-family: 'Amiri Quran', 'Amiri Quran', serif;
+            direction: rtl;
+            text-align: center;
+            line-height: 2.2;
+            font-size: var(--quran-font-size, 2.2rem);
         }
         
         /* Theme Variables */
@@ -205,7 +220,7 @@
                 <h1 class="text-3xl font-black text-main mb-2 tracking-tighter">Ramadan Journey</h1>
                 <p class="text-muted font-medium">Mulakan pengembaraan ibadah anda</p>
                 <div class="mt-4">
-                    <span class="text-[8px] font-black bg-slate-100 dark:bg-slate-800 text-slate-400 px-3 py-1 rounded-full uppercase tracking-[0.3em]">v2.1.0 Stable</span>
+                    <span class="text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-[0.3em] bg-slate-900 text-slate-100 border border-slate-700 shadow-sm">Internal Release</span>
                 </div>
             </div>
 
@@ -225,7 +240,7 @@
                                 :class="onboarding.mode === mode ? 'border-accent accent-soft' : 'border-transparent bg-inset'">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="font-black text-xl uppercase tracking-tighter" 
-                                        :class="onboarding.mode === mode ? 'text-accent' : 'text-muted'" x-text="mode"></span>
+                                        :class="onboarding.mode === mode ? 'text-accent' : 'text-muted'" x-text="modeLabel(mode)"></span>
                                     <i data-lucide="shield-check" class="w-6 h-6 text-accent" x-show="onboarding.mode === mode"></i>
                                 </div>
                                 <p class="text-xs font-medium text-muted leading-relaxed pr-8" x-text="data.description"></p>
@@ -251,7 +266,7 @@
             </div>
         </div>
     </div>
-
+ 
     <!-- Page Wrapper for all main pages -->
     <div class="page-wrapper">
         <!-- Main Tracker Page -->
@@ -260,9 +275,11 @@
         <header class="flex justify-between items-start mb-4 relative">
             <div class="flex gap-4">
                 <button @click="showUserMenu = !showUserMenu" class="relative group">
-                    <div class="w-14 h-14 gradient-purple rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-purple-100 relative transition-transform group-active:scale-95">
-                        <span x-text="getUserLevel().level"></span>
-                        <div class="absolute -bottom-2 bg-card px-2 py-0.5 rounded-full text-[8px] font-black text-purple-600 shadow-sm border border-purple-100 uppercase tracking-tighter">Level</div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 gradient-purple rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg relative transition-transform group-active:scale-95" style="box-shadow: -12px -12px 22px rgba(168, 85, 247, 0.12), -5px -5px 10px rgba(168, 85, 247, 0.10);">
+                            <span x-text="getUserLevel().level"></span>
+                        </div>
+                        <div class="-mt-0.5 bg-card px-2 py-0.5 rounded-full text-[8px] font-black text-purple-600 shadow-sm border border-purple-100 uppercase tracking-tighter">Level</div>
                     </div>
                 </button>
                 <div>
@@ -297,15 +314,19 @@
                 </div>
             </div>
             <div class="flex flex-col items-end gap-2">
-                <button @click="editMode = !editMode" 
-                    class="p-2 rounded-xl transition-all"
-                    :class="editMode ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
-                    <i :data-lucide="editMode ? 'check' : 'edit-3'" class="w-4 h-4"></i>
-                </button>
                 <div class="bg-orange-50 dark:bg-orange-900/10 px-3 py-2 rounded-2xl flex items-center gap-2 border border-orange-100 dark:border-orange-900/30">
                     <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-current"></i>
                     <span class="text-xs font-black text-orange-600 dark:text-orange-400" x-text="`${calculateStreak()} Day Streak`"></span>
                 </div>
+
+                <button x-show="prayer.enabled && (prayer.placement === 'tracker' || prayer.placement === 'both')" @click="showPrayerModal = true" class="bg-card px-3 py-2 rounded-2xl flex items-center gap-2 border border-theme custom-shadow text-left w-full">
+                    <i data-lucide="clock" class="w-4 h-4 text-accent"></i>
+                    <div>
+                        <p class="text-[8px] font-black text-muted uppercase tracking-widest" x-text="lang === 'en' ? 'Next Prayer' : 'Waktu Seterusnya'"></p>
+                        <p class="text-[10px] font-black text-main" x-text="prayer.nextLabel || (lang === 'en' ? 'Loading...' : 'Memuat...')"></p>
+                        <p class="text-[9px] font-bold text-muted" x-show="prayer.countdown" x-text="prayer.countdown"></p>
+                    </div>
+                </button>
             </div>
         </header>
 
@@ -324,9 +345,13 @@
                     <template x-for="day in 30" :key="day">
                     <button @click="currentDay = day" :data-day="day"
                         class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 font-bold relative"
-                        :class="currentDay === day ? 'gradient-accent text-white shadow-accent scale-110' : 'bg-inset text-muted'"
+                        :class="[
+                            currentDay === day ? 'gradient-accent text-white shadow-accent scale-110' : 'bg-inset text-muted',
+                            isStreakDay(day) ? 'ring-2 ring-orange-300 ring-opacity-80' : ''
+                        ]"
                         x-text="day">
                         <div x-show="$data.calculateTotal(day) >= 50" class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"></div>
+                        <div x-show="isStreakDay(day)" class="absolute -bottom-1 -left-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
                     </button>
                 </template>
             </div>
@@ -342,7 +367,8 @@
                             class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative border p-1"
                             :class="[
                                 currentDay === day ? 'border-accent ring-2 ring-accent ring-opacity-20' : 'border-transparent bg-inset',
-                                calculateTotal(day) > 0 ? 'opacity-100' : 'opacity-60'
+                                calculateTotal(day) > 0 ? 'opacity-100' : 'opacity-60',
+                                isStreakDay(day) ? 'ring-2 ring-orange-300 ring-opacity-70' : ''
                             ]">
                             <span class="text-[10px] font-black leading-none mb-1" :class="currentDay === day ? 'text-accent' : 'text-main'" x-text="day"></span>
                             
@@ -352,6 +378,10 @@
                             <!-- Perfect Day Star -->
                             <div x-show="$data.calculateTotal(day) >= 50" class="absolute top-0.5 right-0.5">
                                 <i data-lucide="star" class="w-2 h-2 text-yellow-400 fill-current"></i>
+                            </div>
+
+                            <div x-show="isStreakDay(day)" class="absolute bottom-0.5 left-0.5">
+                                <i data-lucide="flame" class="w-2 h-2 text-orange-500 fill-current"></i>
                             </div>
                         </button>
                     </template>
@@ -445,6 +475,14 @@
                 Tambah Misi Baru
             </button>
         </div>
+
+        <div class="mt-6">
+            <button @click="editMode = !editMode" class="w-full py-4 rounded-[2rem] font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-3 border"
+                :class="editMode ? 'gradient-accent text-white border-transparent shadow-accent' : 'bg-card text-muted border-theme'">
+                <i :data-lucide="editMode ? 'check' : 'edit-3'" class="w-4 h-4"></i>
+                <span x-text="editMode ? 'Selesai Edit' : 'Edit'"></span>
+            </button>
+        </div>
         </div>
 
         <!-- Mushaf Page (Combined with Quiz) -->
@@ -506,7 +544,7 @@
                 <!-- Juz Selector (Grid Style) -->
                 <div x-show="mushaf.selectionMode === 'juz'" class="grid grid-cols-5 gap-3">
                     <template x-for="j in 30" :key="j">
-                        <button @click="mushaf.currentJuz = j; mushaf.currentPage = mushaf.juzPages[j]; fetchMushaf(); mushaf.showSelector = false;" 
+                        <button @click="mushaf.currentJuz = j; quiz.selectionMode = 'juz'; quiz.currentJuz = j; mushaf.currentPage = mushaf.juzPages[j]; fetchMushaf(); mushaf.showSelector = false;" 
                             class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2"
                             :class="mushaf.currentJuz === j ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted'">
                             <span class="font-black text-xs" x-text="j"></span>
@@ -524,7 +562,7 @@
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <template x-for="s in filteredSurahs" :key="s.number">
-                            <button @click="mushaf.currentSurah = s.number; fetchMushaf(); mushaf.showSelector = false;" 
+                            <button @click="mushaf.currentSurah = s.number; quiz.selectionMode = 'surah'; quiz.currentSurah = s.number; fetchMushaf(); mushaf.showSelector = false;" 
                                 class="p-3 rounded-xl flex items-center gap-3 transition-all border-2 text-left"
                                 :class="mushaf.currentSurah === s.number ? 'border-accent bg-accent/5' : 'border-transparent bg-inset'">
                                 <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[8px] font-black text-accent" x-text="s.number"></span>
@@ -540,7 +578,7 @@
                 <!-- Page Selector (Grid Style) -->
                 <div x-show="mushaf.selectionMode === 'page'" class="grid grid-cols-6 gap-2">
                     <template x-for="p in 604" :key="p">
-                        <button @click="mushaf.currentPage = p; fetchMushaf(false); mushaf.showSelector = false;" 
+                        <button @click="mushaf.currentPage = p; quiz.selectionMode = 'page'; quiz.currentPage = p; fetchMushaf(false); mushaf.showSelector = false;" 
                             class="aspect-square rounded-lg flex items-center justify-center text-[8px] font-black transition-all border"
                             :class="mushaf.currentPage === p ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted/50'"
                             x-text="p"></button>
@@ -551,45 +589,54 @@
 
         <!-- Quiz Section (Overlay when active) -->
         <div x-show="quiz.active" x-transition class="mb-6 space-y-4">
-            <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border-2 border-accent relative overflow-hidden">
+            <div class="relative overflow-visible">
                 <div x-show="quiz.loading" class="absolute inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center z-10">
                     <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
                 </div>
                 
-                <div class="flex justify-between items-start mb-6">
-                    <div class="flex flex-col gap-1">
-                        <span class="text-[9px] font-black text-accent bg-accent/10 px-3 py-1 rounded-full uppercase tracking-widest w-fit">Hafiz Quiz Mode</span>
-                        <div class="flex gap-2 mt-1">
-                            <span class="text-[8px] font-black text-green-500 uppercase" x-text="`Betul: ${quiz.session.correct}`"></span>
-                            <span class="text-[8px] font-black text-red-400 uppercase" x-text="`Salah: ${quiz.session.wrong}`"></span>
-                        </div>
+                <div class="flex flex-wrap justify-between items-start mb-6 gap-3">
+                    <div class="flex items-center gap-3 shrink-0">
+                        <span class="h-10 min-w-10 flex items-center justify-center text-[10px] font-black text-green-600 bg-green-50 px-3 rounded-xl border border-green-100" x-text="`${quiz.session.correct}`"></span>
+                        <span class="h-10 min-w-10 flex items-center justify-center text-[10px] font-black text-red-500 bg-red-50 px-3 rounded-xl border border-red-100" x-text="`${quiz.session.wrong}`"></span>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2 items-start justify-end">
+                        <div class="flex items-center gap-2">
+                            <select x-model="mushaf.fontFamily" class="h-10 bg-inset border border-theme rounded-2xl px-3 text-[10px] font-black text-main">
+                                <option>Amiri Quran</option>
+                                <option>Amiri</option>
+                                <option>Scheherazade New</option>
+                                <option>Lateef</option>
+                                <option>Harmattan</option>
+                                <option>Noto Naskh Arabic</option>
+                            </select>
+                            <div class="h-10 flex items-center gap-3 bg-inset px-3 rounded-2xl border border-theme">
+                                <button @click="mushaf.fontSize = Math.max(20, mushaf.fontSize - 4)" class="text-muted hover:text-accent"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                <span class="text-[10px] font-black text-main" x-text="`${mushaf.fontSize}px`"></span>
+                                <button @click="mushaf.fontSize = Math.min(60, mushaf.fontSize + 4)" class="text-muted hover:text-accent"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
                         <!-- Mode Toggle -->
-                        <div class="flex bg-inset p-1 rounded-xl border border-theme">
+                        <div class="h-10 flex bg-inset p-1 rounded-xl border border-theme">
                             <button @click="quiz.testMode = 'voice'; startQuiz()" 
-                                class="p-2.5 rounded-lg transition-all" :class="quiz.testMode === 'voice' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
+                                class="w-9 h-9 flex items-center justify-center rounded-lg transition-all" :class="quiz.testMode === 'voice' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
                                 <i data-lucide="mic" class="w-4 h-4"></i>
                             </button>
                             <button @click="quiz.testMode = 'mcq'; startQuiz()" 
-                                class="p-2.5 rounded-lg transition-all" :class="quiz.testMode === 'mcq' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
+                                class="w-9 h-9 flex items-center justify-center rounded-lg transition-all" :class="quiz.testMode === 'mcq' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
                                 <i data-lucide="list-checks" class="w-4 h-4"></i>
                             </button>
                         </div>
                         <button @click="randomizeAyat()" 
-                            class="p-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors" 
+                            class="w-10 h-10 flex items-center justify-center bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-100 transition-colors" 
                             title="Randomize Ayat">
                             <i data-lucide="shuffle" class="w-4 h-4"></i>
-                        </button>
-                        <button @click="quiz.active = false; quiz.session = {correct:0, wrong:0, total:0}" class="text-muted hover:text-red-500 transition-colors p-2">
-                            <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="text-center py-4">
                     <p class="text-muted text-[9px] font-black uppercase tracking-widest mb-4" x-text="quiz.testMode === 'voice' ? 'Sila Baca & Sambung Ayat Ini:' : 'Pilih Sambungan Ayat Yang Betul:'"></p>
-                    <div class="text-2xl font-bold text-main leading-relaxed dir-rtl font-arabic mb-8 flex flex-wrap justify-center gap-x-2 gap-y-1" :style="`font-family: '${mushaf.fontFamily}', serif;`" dir="rtl">
+                    <div class="quran-card quran-text text-main font-bold mb-8 px-4 py-6 flex flex-wrap justify-center gap-x-2 gap-y-1" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, ((quiz.verse?.text || '').length > 200 ? mushaf.fontSize - 6 : mushaf.fontSize))}px;`" dir="rtl">
                         <template x-for="word in quiz.verse?.text.split(' ')" :key="word + Math.random()">
                             <span :class="quiz.matchedWords.includes(word.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, '')) ? 'text-accent scale-110' : 'text-main'" 
                                   class="transition-all duration-300" x-text="word"></span>
@@ -616,20 +663,49 @@
                             <p class="text-[9px] font-black uppercase tracking-widest" :class="quiz.recording ? 'text-red-500 animate-pulse' : 'text-muted'" 
                                x-text="quiz.recording ? 'Sila Teruskan Membaca...' : 'Klik Mic Untuk Mula'"></p>
                             
-                            <!-- Real-time Transcript Display -->
-                            <div x-show="quiz.transcript" class="p-4 bg-inset/50 rounded-2xl border border-theme/50 min-h-[60px] flex items-center justify-center">
-                                <p class="text-sm font-bold text-main font-arabic leading-relaxed text-center" dir="rtl" x-text="quiz.transcript"></p>
+                            <div class="p-4 bg-inset/50 rounded-2xl border border-theme/50 space-y-3">
+                                <div>
+                                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Dikesan (segmen)</p>
+                                    <p class="text-sm font-bold text-main font-arabic leading-relaxed text-center" dir="rtl" x-text="quiz.detectedSegment || '...' "></p>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Bacaan anda (terkumpul)</p>
+                                    <p class="text-sm font-bold text-main font-arabic leading-relaxed text-center" dir="rtl" x-text="quiz.recitedText || '...' "></p>
+                                </div>
+                            </div>
+
+                            <div x-show="quiz.voiceStage === 'review'" class="grid grid-cols-2 gap-2">
+                                <button @click="quiz.voiceStage='recording'; startRecitation();" class="py-3 bg-card border border-theme rounded-xl text-[10px] font-black uppercase tracking-widest text-accent">Teruskan</button>
+                                <button @click="checkQuizAnswer(quiz.recitedText);" class="py-3 gradient-accent text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Semak</button>
+                            </div>
+
+                            <div x-show="quiz.voiceCompleted" class="p-3 bg-green-50 text-green-700 rounded-xl border border-green-200 text-[10px] font-black uppercase tracking-widest text-center">
+                                Complete
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <button @click="unlockHintWord()" class="py-3 bg-purple-50 text-purple-700 rounded-xl text-[10px] font-black uppercase tracking-widest">Unlock Hint</button>
+                                <button @click="stopRecitation()" class="py-3 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest">Selesai</button>
+                            </div>
+
+                            <div x-show="quiz.hintWordsUnlocked > 0" class="p-3 bg-card rounded-xl border border-theme">
+                                <p class="text-[9px] font-black text-muted uppercase tracking-widest mb-2">Hint sambungan</p>
+                                <p class="text-sm font-bold text-main font-arabic px-1 py-1 leading-relaxed" dir="rtl" x-text="(quiz.verse?.nextText || '').split(/\s+/).filter(Boolean).slice(0, quiz.hintWordsUnlocked).join(' ')"></p>
                             </div>
                         </div>
                     </div>
 
                     <!-- MCQ Mode UI -->
                     <div x-show="quiz.testMode === 'mcq'" class="space-y-3">
+                        <div class="p-4 bg-inset/50 rounded-2xl border border-theme/50" x-show="quiz.mcqBuiltText">
+                            <p class="text-[9px] font-black text-muted uppercase tracking-widest mb-2" x-text="`Fasa ${quiz.mcqPhase + 1}/3`"></p>
+                            <p class="text-sm font-bold text-main font-arabic leading-relaxed text-center" dir="rtl" x-text="quiz.mcqBuiltText"></p>
+                        </div>
                         <template x-for="(opt, idx) in quiz.mcqOptions" :key="idx">
                             <button @click="checkMcqAnswer(idx)" 
                                 class="w-full p-5 bg-inset hover:bg-accent/5 rounded-[1.5rem] border-2 border-transparent transition-all text-right font-arabic text-lg font-bold text-main flex justify-between items-center group"
                                 :class="quiz.status !== 'idle' ? (idx === quiz.mcqCorrectIndex ? 'border-green-500 bg-green-50' : (idx === quiz.selectedMcqIndex ? 'border-red-400 bg-red-50' : 'opacity-50')) : 'hover:border-accent'">
-                                <span class="w-6 h-6 rounded-full border border-theme flex items-center justify-center text-[10px] font-black text-muted group-hover:border-accent group-hover:text-accent" x-text="['A', 'B', 'C', 'D'][idx]"></span>
+                                <span class="w-6 h-6 rounded-full border border-theme flex items-center justify-center text-[10px] font-black text-muted group-hover:border-accent group-hover:text-accent" x-text="['A', 'B'][idx]"></span>
                                 <span dir="rtl" x-text="opt"></span>
                             </button>
                         </template>
@@ -663,21 +739,21 @@
                         <i data-lucide="book-open" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div class="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-theme custom-shadow">
-                    <button @click="mushaf.fontSize = Math.max(20, mushaf.fontSize - 4)" class="text-muted hover:text-accent"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                    <span class="text-[10px] font-black text-main" x-text="`${mushaf.fontSize}px`"></span >
-                    <button @click="mushaf.fontSize = Math.min(60, mushaf.fontSize + 4)" class="text-muted hover:text-accent"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                <div class="flex items-center gap-2">
+                    <select x-model="mushaf.fontFamily" class="bg-card border border-theme rounded-2xl px-4 py-2 text-[10px] font-black text-main custom-shadow">
+                        <option>Amiri Quran</option>
+                        <option>Amiri</option>
+                        <option>Scheherazade New</option>
+                        <option>Lateef</option>
+                        <option>Harmattan</option>
+                        <option>Noto Naskh Arabic</option>
+                    </select>
+                    <div class="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-theme custom-shadow">
+                        <button @click="mushaf.fontSize = Math.max(20, mushaf.fontSize - 4)" class="text-muted hover:text-accent"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                        <span class="text-[10px] font-black text-main" x-text="`${mushaf.fontSize}px`"></span >
+                        <button @click="mushaf.fontSize = Math.min(60, mushaf.fontSize + 4)" class="text-muted hover:text-accent"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Font Selector -->
-            <div class="bg-card rounded-2xl p-3 border border-theme flex gap-2 overflow-x-auto scrollbar-hide">
-                <template x-for="font in ['Amiri', 'Scheherazade New', 'Lateef', 'Harmattan', 'Noto Naskh Arabic']" :key="font">
-                    <button @click="mushaf.fontFamily = font" 
-                        class="px-4 py-2 rounded-xl text-[10px] font-black whitespace-nowrap transition-all"
-                        :class="mushaf.fontFamily === font ? 'bg-accent/10 text-accent' : 'text-muted'"
-                        x-text="font"></button>
-                </template>
             </div>
         </div>
 
@@ -703,8 +779,8 @@
             <div class="space-y-12" x-show="!mushaf.loading && mushaf.verses.length > 0 && mushaf.viewMode === 'list'">
                 <template x-for="v in mushaf.verses" :key="v.number">
                     <div class="text-right">
-                        <p class="font-bold text-main leading-[2.2] font-arabic mb-4" dir="rtl" 
-                           x-text="v.text" :style="`font-family: '${mushaf.fontFamily}', serif; font-size: ${mushaf.fontSize}px;`"></p>
+                        <p class="quran-text text-main font-bold mb-4" dir="rtl" 
+                           x-text="v.text" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, mushaf.fontSize)}px;`"></p>
                         <div class="flex justify-between items-center border-t border-theme pt-3">
                             <span class="text-[8px] font-black text-accent bg-accent/10 px-2 py-1 rounded-md" x-text="v.surah?.name ? `${v.surah.name} : ${v.numberInSurah}` : `Ayat ${v.numberInSurah}`"></span>
                             <div class="w-6 h-6 rounded-full border border-theme flex items-center justify-center text-[10px] font-black text-muted" x-text="v.numberInSurah"></div>
@@ -715,10 +791,10 @@
 
             <!-- Page/Continuous View -->
             <div x-show="!mushaf.loading && mushaf.verses.length > 0 && mushaf.viewMode === 'page'" class="flex flex-col h-full">
-                <div class="text-right leading-[3.5] font-arabic px-4 py-8 bg-[#fff9f0] dark:bg-[#1a140b] rounded-[2rem] border-4 border-[#e6d5b8] dark:border-[#3d301e] shadow-inner flex-1" dir="rtl">
+                <div class="quran-card quran-text text-main font-bold px-4 py-8 shadow-inner flex-1" dir="rtl" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, (mushaf.verses.map(v=>v.text).join(' ').length > 200 ? mushaf.fontSize - 6 : mushaf.fontSize))}px;`">
                     <template x-for="v in paginatedVerses" :key="v.number">
                         <span class="inline">
-                            <span :style="`font-family: '${mushaf.fontFamily}', serif; font-size: ${mushaf.fontSize}px;`" 
+                            <span :style="`font-family: '${mushaf.fontFamily}', serif;`" 
                                 class="text-main font-bold hover:bg-accent/5 transition-colors cursor-pointer" x-text="v.text"></span>
                             <span class="inline-flex w-8 h-8 rounded-full border-2 border-accent/30 items-center justify-center text-[10px] font-black text-accent mx-2 align-middle shadow-sm bg-white dark:bg-slate-800" x-text="v.numberInSurah"></span>
                         </span>
@@ -727,21 +803,21 @@
 
                 <!-- Pagination Controls -->
                 <div class="mt-8 flex items-center justify-between gap-4">
-                    <button @click="if(mushaf.currentPage > 1) mushaf.currentPage--" 
+                    <button @click="if(mushaf.currentPage > 1) { mushaf.currentPage--; if(mushaf.selectionMode === 'page') { quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; fetchMushaf(false); } }" 
                         class="p-4 bg-inset rounded-2xl text-muted hover:text-accent transition-all disabled:opacity-30" :disabled="mushaf.currentPage === 1">
                         <i data-lucide="chevron-left" class="w-6 h-6"></i>
                     </button>
                     
                     <div class="flex flex-col items-center">
                         <div class="flex items-center gap-2 mb-1">
-                            <input type="number" x-model.number="mushaf.currentPage" @change="mushaf.currentPage = Math.max(1, Math.min(mushaf.currentPage, totalMushafPages))"
+                            <input type="number" x-model.number="mushaf.currentPage" @change="mushaf.currentPage = Math.max(1, Math.min(mushaf.currentPage, totalMushafPages)); if(mushaf.selectionMode === 'page') { quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; fetchMushaf(false); }"
                                 class="w-12 p-2 bg-inset rounded-lg border-none text-center font-black text-xs text-accent">
                             <span class="text-[10px] font-black text-muted uppercase tracking-widest">/ <span x-text="totalMushafPages"></span></span>
                         </div>
                         <span class="text-[8px] font-bold text-muted uppercase tracking-[0.2em]">Halaman</span>
                     </div>
 
-                    <button @click="if(mushaf.currentPage < totalMushafPages) mushaf.currentPage++" 
+                    <button @click="if(mushaf.currentPage < totalMushafPages) { mushaf.currentPage++; if(mushaf.selectionMode === 'page') { quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; fetchMushaf(false); } }" 
                         class="p-4 bg-inset rounded-2xl text-muted hover:text-accent transition-all disabled:opacity-30" :disabled="mushaf.currentPage === totalMushafPages">
                         <i data-lucide="chevron-right" class="w-6 h-6"></i>
                     </button>
@@ -822,6 +898,57 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="p-5 bg-inset rounded-2xl border border-theme/50">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-black text-muted uppercase tracking-widest">Tetapan Qariah & Musafir</p>
+                            <p class="text-xs font-black text-main mt-1" x-text="community.homeQariahMosque ? `Qariah Rumah: ${community.homeQariahMosque.name}` : 'Qariah Rumah: belum ditetapkan'"></p>
+                            <p class="text-[10px] font-bold text-muted" x-text="community.homeLabel ? community.homeLabel : ''"></p>
+                            <p class="text-[10px] font-bold text-muted" x-show="community.homeLocation" x-text="community.homeLocation ? `GPS Rumah: ${community.homeLocation.lat.toFixed(5)}, ${community.homeLocation.lng.toFixed(5)}` : ''"></p>
+                            <p class="text-xs font-black text-main mt-3" x-text="community.currentQariahMosque ? `Qariah Semasa: ${community.currentQariahMosque.name}` : 'Qariah Semasa: mencari lokasi...'"></p>
+                            <p class="text-[10px] font-bold mt-1" :class="community.isMusafir ? 'text-purple-600' : 'text-green-600'" x-text="community.isMusafir === null ? '' : (community.isMusafir ? `Status: Musafir (≥ ${community.marhalahKm}km)` : 'Status: Bukan Musafir')"></p>
+                            <p class="text-[10px] font-bold text-muted" x-text="community.plannedMusafir === null ? '' : (community.plannedMusafir ? `Destinasi: Musafir (≥ ${community.marhalahKm}km)` : 'Destinasi: Tidak Musafir')"></p>
+                        </div>
+                        <div class="flex flex-col gap-2 w-40">
+                            <button @click="setHomeFromGps()" class="w-full px-3 py-2 font-black rounded-xl text-[9px] uppercase tracking-widest transition-all"
+                                :class="community.homeSetFlash ? 'bg-green-500 text-white scale-[1.03] shadow-lg shadow-green-200' : 'gradient-accent text-white'">Set Rumah (GPS)</button>
+                            <input type="text" x-model="community.homeLabel" placeholder="Alamat/Poskod (optional)" class="w-full px-3 py-2 bg-card border border-theme rounded-xl text-[10px] font-bold text-main">
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-t border-theme/50">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="text-left">
+                                <p class="text-[9px] font-black text-muted uppercase tracking-widest">Semak Jarak Musafir Anda</p>
+                                <p class="text-[10px] font-bold text-muted">Tekan GPS semasa untuk kira jarak dari rumah → lokasi anda sekarang.</p>
+                            </div>
+                            <button @click="semakMusafirSekarang()" class="px-4 py-2 bg-card border border-theme rounded-xl text-[9px] font-black uppercase tracking-widest text-accent">GPS Semasa</button>
+                        </div>
+
+                        <div class="mt-3 grid grid-cols-2 gap-2">
+                            <div class="p-3 bg-card rounded-xl border border-theme text-left">
+                                <p class="text-[8px] font-black text-muted uppercase tracking-widest">Jarak Rumah → Semasa</p>
+                                <p class="text-sm font-black text-main" x-text="community.musafirCheckDistanceKm === null ? '—' : `${community.musafirCheckDistanceKm} km`"></p>
+                            </div>
+                            <div class="p-3 bg-card rounded-xl border border-theme text-left">
+                                <p class="text-[8px] font-black text-muted uppercase tracking-widest">Status Musafir</p>
+                                <p class="text-sm font-black" :class="community.musafirCheckStatus ? 'text-purple-700' : 'text-green-700'" x-text="community.musafirCheckStatus === null ? '—' : (community.musafirCheckStatus ? 'Musafir' : 'Tidak')"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-1 gap-3">
+                        <p class="text-[9px] font-black text-muted uppercase tracking-widest">Destinasi Musafir (Optional)</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" step="0.000001" placeholder="Lat" x-model.number="community.destinationLocation.lat" @change="updateQariahStatus()" class="w-full px-3 py-2 bg-card border border-theme rounded-xl text-[10px] font-bold text-main">
+                            <input type="number" step="0.000001" placeholder="Lng" x-model.number="community.destinationLocation.lng" @change="updateQariahStatus()" class="w-full px-3 py-2 bg-card border border-theme rounded-xl text-[10px] font-bold text-main">
+                        </div>
+                        <input type="text" x-model="community.destinationLabel" placeholder="Label destinasi (optional)" class="w-full px-3 py-2 bg-card border border-theme rounded-xl text-[10px] font-bold text-main">
+                        <button @click="if(community.userLocation){ community.destinationLocation = { lat: community.userLocation.lat, lng: community.userLocation.lng }; updateQariahStatus(); }" class="w-full px-3 py-2 bg-card border border-theme rounded-xl text-[9px] font-black uppercase tracking-widest text-accent">Set Destinasi (GPS Semasa)</button>
+                        <button @click="community.destinationLocation = { lat: null, lng: null }; community.destinationLabel = ''; updateQariahStatus();" class="w-full px-3 py-2 bg-red-50 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest">Clear Destinasi</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -880,6 +1007,8 @@
                         Buka Maps
                     </a>
                 </div>
+
+
             </div>
 
             <!-- Admin Panel (Only for AJK) -->
@@ -1071,6 +1200,7 @@
                 </template>
             </div>
         </div>
+
     </div>
 
     <!-- Stats Page -->
@@ -1099,6 +1229,103 @@
                     <p class="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Best Score</p>
                 </div>
             </div>
+        </div>
+
+        <div x-show="prayer.enabled && (prayer.placement === 'profil' || prayer.placement === 'both')" class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme text-left">
+            <div class="absolute -top-4 -right-4 opacity-5">
+                <i data-lucide="clock" class="w-32 h-32 text-accent"></i>
+            </div>
+            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]" x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></h2>
+            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="lang === 'en' ? 'Tap for full list' : 'Tap untuk senarai penuh'"></p>
+
+            <button @click="showPrayerModal = true" class="w-full p-5 bg-inset rounded-2xl border border-theme">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="lang === 'en' ? 'Next' : 'Seterusnya'"></p>
+                        <p class="text-xl font-black text-main tracking-tighter" x-text="prayer.nextLabel || (lang === 'en' ? 'Loading...' : 'Memuat...')"></p>
+                        <p class="text-[10px] font-bold text-muted" x-show="prayer.countdown" x-text="prayer.countdown"></p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-muted"></i>
+                </div>
+            </button>
+
+            <div class="mt-5 grid grid-cols-2 gap-3">
+                <template x-for="row in prayerRows().slice(0, 4)" :key="row.k">
+                    <div class="p-4 bg-card rounded-2xl border border-theme">
+                        <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="row.label"></p>
+                        <p class="text-[12px] font-black text-main mt-1" x-text="row.time"></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme text-left">
+            <div class="absolute -top-4 -right-4 opacity-5">
+                <i data-lucide="egg" class="w-32 h-32 text-accent"></i>
+            </div>
+            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Companion</h2>
+            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6">Telur retro yang akan evolve ikut level</p>
+
+            <template x-if="!activeProfile?.pet || !activeProfile.pet.line">
+                <div class="space-y-4">
+                    <p class="text-xs font-bold text-main">Pilih jenis telur:</p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button @click="choosePetLine('flame')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                            <i data-lucide="flame" class="w-6 h-6 text-orange-500 mx-auto"></i>
+                            <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Flame</p>
+                        </button>
+                        <button @click="choosePetLine('ocean')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                            <i data-lucide="droplets" class="w-6 h-6 text-sky-500 mx-auto"></i>
+                            <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Ocean</p>
+                        </button>
+                        <button @click="choosePetLine('forest')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                            <i data-lucide="leaf" class="w-6 h-6 text-emerald-500 mx-auto"></i>
+                            <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Forest</p>
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="activeProfile?.pet && activeProfile.pet.line">
+                <div>
+                    <div class="flex items-center justify-between gap-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl flex items-center justify-center text-white shadow-accent"
+                                :class="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).bgClass">
+                                <i :data-lucide="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).icon" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="`Line: ${activeProfile.pet.line}`"></p>
+                                <p class="text-xl font-black text-main tracking-tighter" x-text="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).name"></p>
+                                <p class="text-[10px] font-bold text-muted" x-text="activeProfile.pet.hatched ? 'Hatched' : 'Belum menetas'" :class="activeProfile.pet.hatched ? 'text-green-600' : 'text-orange-600'"></p>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <p class="text-[9px] font-black text-muted uppercase tracking-widest">Stage</p>
+                            <p class="text-3xl font-black text-accent" x-text="getPetStage(getUserLevel().level) + 1"></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="flex justify-between text-[10px] font-black text-muted uppercase tracking-widest mb-2">
+                            <span x-text="'Progress Evolusi'"></span>
+                            <span x-text="petProgressLabel(getUserLevel().level)"></span>
+                        </div>
+                        <div class="h-3 bg-inset rounded-full overflow-hidden">
+                            <div class="h-full gradient-accent transition-all duration-700" :style="`width: ${petProgressPct(getUserLevel().level)}%`"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6" x-show="!activeProfile.pet.hatched">
+                        <button @click="hatchPet()" class="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border"
+                            :class="canHatchPet() ? 'gradient-accent text-white border-transparent shadow-accent' : 'bg-inset text-muted border-theme'"
+                            :disabled="!canHatchPet()">
+                            <span x-text="canHatchPet() ? 'Hatch Sekarang' : 'Capai LVL 3 untuk hatch'"></span>
+                        </button>
+                    </div>
+                </div>
+            </template>
         </div>
 
         <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
@@ -1134,6 +1361,34 @@
                 <i data-lucide="info" class="w-3 h-3 inline-block mr-1 -mt-0.5 opacity-50"></i>
                 Setiap juzu' akan 'unlocked' secara automatik mengikut rekod bacaan harian anda.
             </p>
+        </div>
+
+        <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
+            <div class="absolute -top-4 -right-4 opacity-5">
+                <i data-lucide="brain" class="w-32 h-32 text-accent"></i>
+            </div>
+            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Hafazan Tracker</h2>
+            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6">Heatmap ikut Juzu' (tap untuk detail)</p>
+
+            <div class="grid grid-cols-10 gap-1.5">
+                <template x-for="j in 30" :key="j">
+                    <button @click="selectedHafazanJuz = j" class="aspect-square rounded-md flex items-center justify-center text-[8px] font-black transition-all duration-300"
+                            :class="hafazanBoxClass(hafazanStatsForJuz(j).avg)"
+                            x-text="j">
+                    </button>
+                </template>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-3 text-left">
+                <div class="p-4 bg-inset rounded-2xl border border-theme">
+                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Cara Kiraan</p>
+                    <p class="text-[10px] font-bold text-muted mt-2">Purata % score dari ujian hafazan (voice/mcq) yang anda buat dalam Juz tersebut.</p>
+                </div>
+                <div class="p-4 bg-inset rounded-2xl border border-theme">
+                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Tip</p>
+                    <p class="text-[10px] font-bold text-muted mt-2">Buat ujian pada selection mode Juz untuk data paling kemas.</p>
+                </div>
+            </div>
         </div>
 
         <!-- Badge Showcase -->
@@ -1172,6 +1427,34 @@
                 </template>
             </div>
         </div>
+
+        <div class="mt-10 bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme text-left">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div>
+                    <p class="text-[9px] font-black text-muted uppercase tracking-[0.2em]" x-text="lang === 'en' ? 'Daily Reminder' : 'Peringatan Harian'"></p>
+                    <h2 class="text-lg font-black text-main tracking-tighter" x-text="lang === 'en' ? 'Islamic Quote' : 'Quote Islam'"></h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="copyIslamicQuote()" class="px-3 py-2 rounded-2xl bg-inset border border-theme text-[9px] font-black uppercase tracking-widest text-muted hover:text-accent transition-all flex items-center gap-2">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span x-text="lang === 'en' ? 'Copy' : 'Salin'"></span>
+                    </button>
+                    <button @click="randomizeIslamicQuote(true)" class="px-3 py-2 rounded-2xl bg-inset border border-theme text-[9px] font-black uppercase tracking-widest text-muted hover:text-accent transition-all flex items-center gap-2">
+                        <i data-lucide="shuffle" class="w-4 h-4"></i>
+                        <span x-text="lang === 'en' ? 'Random' : 'Rawak'"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-5 bg-inset rounded-2xl border border-theme">
+                <p class="text-sm font-bold text-main leading-relaxed" x-text="getIslamicQuote().text"></p>
+                <div class="mt-4 pt-4 border-t border-theme">
+                    <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="getIslamicQuote().source"></p>
+                    <p class="text-[10px] font-bold text-muted" x-text="getIslamicQuote().ref"></p>
+                </div>
+                <p class="text-[9px] font-black text-accent mt-4" x-show="quoteCopyStatus" x-text="quoteCopyStatus"></p>
+            </div>
+        </div>
     </div>
 
     <!-- Profile Selection Screen -->
@@ -1192,8 +1475,8 @@
                         <div class="text-left">
                             <p class="font-black text-xl text-main tracking-tighter" x-text="p.name"></p>
                             <div class="flex items-center gap-2">
-                                <span class="text-[9px] font-black text-white gradient-accent px-2 py-0.5 rounded-full uppercase" x-text="`LVL ${Math.floor((p.totalXP || 0) / 500) + 1}`"></span>
-                                <span class="text-[9px] font-bold text-muted uppercase tracking-widest" x-text="`${p.mode} MODE`"></span>
+                                <span class="text-[9px] font-black text-white gradient-accent px-2.5 py-1 rounded-full uppercase shadow-sm border border-white/10" x-text="`LVL ${Math.floor((p.totalXP || 0) / 500) + 1}`"></span>
+                                <span class="text-[9px] font-bold text-muted uppercase tracking-widest" x-text="modeLabel(p.mode)"></span>
                             </div>
                         </div>
                     </div>
@@ -1220,6 +1503,48 @@
         </header>
 
         <div class="space-y-6">
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
+                <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i data-lucide="clock" class="w-5 h-5 text-accent"></i>
+                    <span x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></span>
+                </h2>
+
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-main" x-text="lang === 'en' ? 'Enable' : 'Aktifkan'"></span>
+                        <button @click="prayer.enabled = !prayer.enabled; if(prayer.enabled) ensurePrayerTimes(); save();" 
+                                class="w-12 h-6 rounded-full transition-colors relative"
+                                :class="prayer.enabled ? 'gradient-accent' : 'bg-slate-200 dark:bg-slate-700'">
+                            <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform"
+                                 :class="prayer.enabled ? 'translate-x-6' : ''"></div>
+                        </button>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3" x-text="lang === 'en' ? 'Placement' : 'Lokasi Paparan'"></span>
+                        <select x-model="prayer.placement" @change="save();" class="w-full p-4 bg-inset rounded-2xl border border-theme text-[10px] font-black text-main">
+                            <option value="tracker" x-text="lang === 'en' ? 'Tracker' : 'Tracker'"></option>
+                            <option value="profil" x-text="lang === 'en' ? 'Profile (Profil)' : 'Profil'"></option>
+                            <option value="both" x-text="lang === 'en' ? 'Both' : 'Dua-dua'"></option>
+                        </select>
+                    </div>
+
+                    <p class="text-[10px] font-bold text-muted" x-text="lang === 'en' ? 'Uses your GPS location. Tap the card to view today\'s full list.' : 'Guna lokasi GPS. Tap kad untuk lihat senarai penuh hari ini.'"></p>
+                </div>
+            </div>
+
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
+                <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i data-lucide="languages" class="w-5 h-5 text-accent"></i>
+                    Bahasa
+                </h2>
+                <div class="flex gap-3">
+                    <button @click="lang = 'ms'; save();" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border transition-all"
+                        :class="lang === 'ms' ? 'gradient-accent text-white border-transparent shadow-accent' : 'bg-inset text-muted border-theme'">BM</button>
+                    <button @click="lang = 'en'; save();" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border transition-all"
+                        :class="lang === 'en' ? 'gradient-accent text-white border-transparent shadow-accent' : 'bg-inset text-muted border-theme'">EN</button>
+                </div>
+            </div>
             <!-- Theme Settings -->
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
                 <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
@@ -1388,33 +1713,114 @@
             </div>
         </div>
     </div>
+
+    <!-- Hafazan Juz Detail Modal -->
+    <div x-show="selectedHafazanJuz" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
+        <div @click="selectedHafazanJuz = null" class="absolute inset-0 modal-backdrop"></div>
+        <div class="bg-card w-full max-w-sm rounded-[3rem] p-8 relative z-10 custom-shadow border border-theme">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div class="text-left">
+                    <p class="text-[9px] font-black text-muted uppercase tracking-[0.2em]">Hafazan Detail</p>
+                    <h3 class="text-2xl font-black text-main tracking-tighter" x-text="`Juz ${selectedHafazanJuz}`"></h3>
+                </div>
+                <button @click="selectedHafazanJuz = null" class="p-2 rounded-xl bg-inset text-muted hover:text-red-500">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="p-4 bg-inset rounded-2xl border border-theme mb-4 text-left">
+                <template x-if="hafazanStatsForJuz(selectedHafazanJuz).count === 0">
+                    <p class="text-[10px] font-bold text-muted">Belum ada rekod ujian untuk Juz ini.</p>
+                </template>
+                <template x-if="hafazanStatsForJuz(selectedHafazanJuz).count > 0">
+                    <div class="space-y-1">
+                        <p class="text-[10px] font-black text-main" x-text="`Purata: ${hafazanStatsForJuz(selectedHafazanJuz).avg}%`"></p>
+                        <p class="text-[10px] font-bold text-muted" x-text="`Success Rate: ${hafazanStatsForJuz(selectedHafazanJuz).successRate}%`"></p>
+                        <p class="text-[10px] font-bold text-muted" x-text="`Jumlah attempt: ${hafazanStatsForJuz(selectedHafazanJuz).count}`"></p>
+                    </div>
+                </template>
+            </div>
+
+            <div class="max-h-60 overflow-y-auto space-y-2 text-left">
+                <template x-for="h in (activeProfile?.hafazanHistory || []).filter(x => x && x.juz === selectedHafazanJuz).slice(0, 30)" :key="h.ts">
+                    <div class="p-3 rounded-2xl border border-theme flex items-center justify-between" :class="h.success ? 'bg-green-50' : 'bg-red-50'">
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest" :class="h.success ? 'text-green-700' : 'text-red-700'" x-text="h.success ? 'Success' : 'Try Again'"></p>
+                            <p class="text-[10px] font-bold text-muted" x-text="`${new Date(h.ts).toLocaleString()}`"></p>
+                            <p class="text-[10px] font-bold text-muted" x-text="`Mode: ${h.mode}`"></p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xl font-black" :class="h.success ? 'text-green-700' : 'text-red-700'" x-text="`${h.score || 0}%`"></p>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <button @click="selectedHafazanJuz = null" class="w-full py-4 gradient-accent text-white font-black rounded-2xl shadow-accent mt-6">Tutup</button>
+        </div>
+    </div>
+
+    <div x-show="showPrayerModal" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
+        <div @click="showPrayerModal = false" class="absolute inset-0 modal-backdrop"></div>
+        <div class="bg-card w-full max-w-sm rounded-[3rem] p-8 relative z-10 custom-shadow border border-theme">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div class="text-left">
+                    <p class="text-[9px] font-black text-muted uppercase tracking-[0.2em]" x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></p>
+                    <h3 class="text-2xl font-black text-main tracking-tighter" x-text="getMasihiDate(currentDay)"></h3>
+                </div>
+                <button @click="showPrayerModal = false" class="p-2 rounded-xl bg-inset text-muted hover:text-red-500">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2 text-left">
+                <template x-if="!prayer.timings">
+                    <div class="p-4 bg-inset rounded-2xl border border-theme">
+                        <p class="text-[10px] font-bold text-muted" x-text="lang === 'en' ? 'Loading timings...' : 'Memuat waktu solat...'"></p>
+                    </div>
+                </template>
+                <template x-if="prayer.timings">
+                    <div class="space-y-2">
+                        <template x-for="row in prayerRows()" :key="row.k">
+                            <div class="p-4 bg-inset rounded-2xl border border-theme flex items-center justify-between">
+                                <p class="text-[10px] font-black text-main" x-text="row.label"></p>
+                                <p class="text-[10px] font-black text-accent" x-text="row.time"></p>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            <button @click="showPrayerModal = false" class="w-full py-4 gradient-accent text-white font-black rounded-2xl shadow-accent mt-6" x-text="lang === 'en' ? 'Close' : 'Tutup'"></button>
+        </div>
+    </div>
     </div> <!-- Close page-wrapper -->
 
     <!-- Bottom Nav -->
     <nav x-show="view !== 'onboarding'" class="nav-fixed bg-card/90 backdrop-blur-2xl rounded-[3rem] p-4 custom-shadow flex justify-around items-center border border-theme">
         <button @click="view = 'tracker'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'tracker' ? 'nav-active' : 'text-muted'">
-            <i data-lucide="layout-grid" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter">Tracker</span>
+            <i data-lucide="list-checks" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_amalan')"></span>
         </button>
         <button @click="view = 'mushaf'; fetchMushaf()" class="flex flex-col items-center gap-1 transition-all" :class="view === 'mushaf' ? 'nav-active' : 'text-muted'">
             <i data-lucide="book-open" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter">Al-Quran</span>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_quran')"></span>
         </button>
         <button @click="view = 'stats'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'stats' ? 'nav-active' : 'text-muted'">
-            <i data-lucide="trophy" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter">Stats</span>
+            <i data-lucide="user" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_karakter')"></span>
         </button>
         <button @click="view = 'community'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'community' ? 'nav-active' : 'text-muted'">
             <i data-lucide="users-2" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter">Komuniti</span>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_komuniti')"></span>
         </button>
         <button @click="view = 'profiles'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'profiles' ? 'nav-active' : 'text-muted'">
             <i data-lucide="swords" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter">Arena</span>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_arena')"></span>
         </button>
         <button @click="view = 'settings'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'settings' ? 'nav-active' : 'text-muted'">
             <i data-lucide="settings-2" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter">Config</span>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_tetapan')"></span>
         </button>
     </nav>
 
@@ -1430,7 +1836,7 @@
         function trackerApp() {
             const templates = {
                 'EASY': {
-                    description: 'Tahajud (0, 1), Sahur (0, 1), Sunat Subuh (0, 2), Subuh (0, 1, 2), Al-Kahfi (0, 1), Dhuha (0, 1), Zohor (0, 1, 2), Asar (0, 1, 2), Doa Iftar (0, 1), Maghrib (0, 1, 2), Isyak (0, 1, 2), Tarawih (0, 1), Witir (0, 1, 2), Quran (0, 1), Sedekah (0, 1), Istighfar (0, 1).',
+                    description: 'Mode untuk mula konsisten dengan mengutamakan amalan utama.',
                     list: [
                         { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}] },
                         { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
@@ -1515,6 +1921,63 @@
                 currentDay: 1,
                 activeProfileId: null,
                 allProfiles: [],
+                lang: 'ms',
+                showPrayerModal: false,
+                prayer: {
+                    enabled: false,
+                    placement: 'both',
+                    method: 11,
+                    cacheKey: '',
+                    dateKey: '',
+                    timings: null,
+                    nextLabel: '',
+                    countdown: ''
+                },
+                islamicQuoteIndex: 0,
+                islamicQuoteDateKey: '',
+                quoteCopyStatus: '',
+                islamicQuotes: [
+                    {
+                        text: {
+                            ms: '“Sesungguhnya dengan mengingati Allah hati menjadi tenang.”',
+                            en: '“Surely in the remembrance of Allah do hearts find comfort.”'
+                        },
+                        source: 'Quran',
+                        ref: 'Surah Ar-Ra\u2019d 13:28'
+                    },
+                    {
+                        text: {
+                            ms: '“Dan bersabarlah; sesungguhnya Allah bersama orang-orang yang sabar.”',
+                            en: '“And be patient. Indeed, Allah is with the patient.”'
+                        },
+                        source: 'Quran',
+                        ref: 'Surah Al-Anfal 8:46'
+                    },
+                    {
+                        text: {
+                            ms: '“Amalan yang paling dicintai Allah ialah amalan yang berterusan walaupun sedikit.”',
+                            en: '“The most beloved deeds to Allah are those that are consistent, even if small.”'
+                        },
+                        source: 'Hadith (Sahih)',
+                        ref: 'Sahih al-Bukhari & Sahih Muslim (meaning)'
+                    },
+                    {
+                        text: {
+                            ms: '“Sesiapa yang beriman kepada Allah dan Hari Akhirat, hendaklah dia berkata baik atau diam.”',
+                            en: '“Whoever believes in Allah and the Last Day should speak good or remain silent.”'
+                        },
+                        source: 'Hadith (Sahih)',
+                        ref: 'Sahih al-Bukhari & Sahih Muslim (meaning)'
+                    },
+                    {
+                        text: {
+                            ms: '“Wahai orang-orang yang beriman, bertakwalah kepada Allah dan lihatlah apa yang telah kamu sediakan untuk hari esok.”',
+                            en: '“O believers, be mindful of Allah and let every soul look to what it has sent forth for tomorrow.”'
+                        },
+                        source: 'Quran',
+                        ref: 'Surah Al-Hashr 59:18'
+                    }
+                ],
                 templates: templates,
                 badgeDefinitions: badgeDefinitions,
                 onboarding: { name: '', mode: 'NORMAL' },
@@ -1522,19 +1985,20 @@
                 darkMode: false,
                 theme: 'emerald',
                 selectedBadge: null,
+                selectedHafazanJuz: null,
                 showCalendar: false,
                 editMode: false,
                 showUserMenu: false,
                 mushaf: {
                     loading: false,
-                    selectionMode: 'juz', // 'juz', 'surah', or 'page'
+                    selectionMode: 'page', // 'juz', 'surah', or 'page'
                     currentJuz: 1,
                     currentSurah: 1,
                     currentPage: 1,
                     verses: [],
                     surahs: [],
                     fontSize: 32,
-                    fontFamily: 'Amiri',
+                    fontFamily: 'Amiri Quran',
                     viewMode: 'page',
                     searchSurah: '',
                     showSelector: false,
@@ -1577,32 +2041,51 @@
                 quiz: {
                     active: false,
                     loading: false,
-                    testMode: 'voice',
+                    testMode: 'mcq',
                     selectionMode: 'juz',
                     currentJuz: 1,
                     currentSurah: 1,
                     currentPage: 1,
                     verse: null,
+                    targetContinuationText: '',
                     recording: false,
                     transcript: '',
+                    detectedSegment: '',
+                    recitedText: '',
+                    voiceStage: 'idle',
+                    voiceProgress: 0,
+                    voiceCompleted: false,
+                    hintWordsUnlocked: 0,
                     status: 'idle',
                     feedback: '',
                     session: { correct: 0, wrong: 0, total: 0 },
                     matchedWords: [],
                     idleTimer: null,
                     mcqOptions: [],
-                    mcqCorrectIndex: -1
+                    mcqCorrectIndex: -1,
+                    mcqPhase: 0,
+                    mcqBuiltText: '',
+                    mcqPhases: []
                 },
                 community: {
                     joinedMosque: null,
                     searchQuery: '',
                     showSearchResults: false,
                     joinedMosqueLocation: null,
-                    qariahMode: 'travel',
                     homeLocation: null,
-                    qariahMosque: null,
+                    homeLabel: '',
+                    homeSetFlash: false,
+                    musafirCheckDistanceKm: null,
+                    musafirCheckStatus: null,
+                    destinationLocation: { lat: null, lng: null },
+                    destinationLabel: '',
+                    homeQariahMosque: null,
+                    currentQariahMosque: null,
                     qariahRadiusKm: 3,
-                    inQariah: null,
+                    marhalahKm: 81,
+                    inCurrentQariah: null,
+                    isMusafir: null,
+                    plannedMusafir: null,
                     newQuestion: '',
                     newPostContent: '',
                     userLocation: null,
@@ -1612,12 +2095,12 @@
                     activeTab: 'feed',
                     pendingPosts: [],
                     availableMosques: [
-                        { id: 'masjid_muaz', name: 'Masjid Muaz Bin Jabal', location: 'Setiawangsa, KL', distance: 0.5, distanceText: '0.5 km', prayerTime: 'Solat 8:15 PM' },
-                        { id: 'masjid_negara', name: 'Masjid Negara', location: 'Jalan Persekutuan, KL', distance: 2.3, distanceText: '2.3 km', prayerTime: 'Solat 8:20 PM' },
-                        { id: 'masjid_sultan', name: 'Masjid Sultan Abdul Samad', location: 'Jalan Raja, KL', distance: 3.1, distanceText: '3.1 km', prayerTime: 'Solat 8:25 PM' },
-                        { id: 'masjid_wilayah', name: 'Masjid Wilayah Persekutuan', location: 'Jalan Duta, KL', distance: 4.2, distanceText: '4.2 km', prayerTime: 'Solat 8:30 PM' },
-                        { id: 'masjid_aman', name: 'Masjid Al-Aman', location: 'Taman Melawati, KL', distance: 5.8, distanceText: '5.8 km', prayerTime: 'Solat 8:35 PM' },
-                        { id: 'masjid_jamek', name: 'Masjid Jamek', location: 'Jalan Tun Perak, KL', distance: 6.5, distanceText: '6.5 km', prayerTime: 'Solat 8:40 PM' }
+                        { id: 'masjid_muaz', name: 'Masjid Muaz Bin Jabal', location: 'Setiawangsa, KL', distance: 0.5, distanceText: '0.5 km', prayerTime: 'Solat 8:15 PM', coords: { lat: 3.1761, lng: 101.7428 } },
+                        { id: 'masjid_negara', name: 'Masjid Negara', location: 'Jalan Persekutuan, KL', distance: 2.3, distanceText: '2.3 km', prayerTime: 'Solat 8:20 PM', coords: { lat: 3.1418, lng: 101.6917 } },
+                        { id: 'masjid_sultan', name: 'Masjid Sultan Abdul Samad', location: 'Jalan Raja, KL', distance: 3.1, distanceText: '3.1 km', prayerTime: 'Solat 8:25 PM', coords: { lat: 3.1488, lng: 101.6937 } },
+                        { id: 'masjid_wilayah', name: 'Masjid Wilayah Persekutuan', location: 'Jalan Duta, KL', distance: 4.2, distanceText: '4.2 km', prayerTime: 'Solat 8:30 PM', coords: { lat: 3.1736, lng: 101.6677 } },
+                        { id: 'masjid_aman', name: 'Masjid Al-Aman', location: 'Taman Melawati, KL', distance: 5.8, distanceText: '5.8 km', prayerTime: 'Solat 8:35 PM', coords: { lat: 3.2240, lng: 101.7430 } },
+                        { id: 'masjid_jamek', name: 'Masjid Jamek', location: 'Jalan Tun Perak, KL', distance: 6.5, distanceText: '6.5 km', prayerTime: 'Solat 8:40 PM', coords: { lat: 3.1487, lng: 101.6960 } }
                     ],
                     dummyMosque: {
                         id: 'masjid_muaz',
@@ -1643,17 +2126,50 @@
                         this.activeProfileId = data.activeId;
                         this.darkMode = data.darkMode || false;
                         this.theme = data.theme || 'emerald';
+                        this.lang = data.lang || 'ms';
+                        this.islamicQuoteIndex = Number.isFinite(data.islamicQuoteIndex) ? data.islamicQuoteIndex : 0;
+                        this.islamicQuoteDateKey = data.islamicQuoteDateKey || '';
+                        if (Number.isFinite(data.mushafFontSize)) {
+                            this.mushaf.fontSize = Math.max(20, Math.min(60, Number(data.mushafFontSize)));
+                        }
+                        if (typeof data.mushafFontFamily === 'string' && data.mushafFontFamily.trim()) {
+                            this.mushaf.fontFamily = data.mushafFontFamily;
+                        }
+                        if (data.prayer && typeof data.prayer === 'object') {
+                            this.prayer.enabled = !!data.prayer.enabled;
+                            this.prayer.placement = typeof data.prayer.placement === 'string' ? data.prayer.placement : 'both';
+                            this.prayer.method = Number.isFinite(data.prayer.method) ? data.prayer.method : 11;
+                            this.prayer.cacheKey = data.prayer.cacheKey || '';
+                            this.prayer.dateKey = data.prayer.dateKey || '';
+                            this.prayer.timings = data.prayer.timings || null;
+                        }
                         this.community.joinedMosque = data.joinedMosque || null;
                         this.community.joinedMosqueLocation = data.joinedMosqueLocation || null;
-                        this.community.qariahMode = data.qariahMode || 'travel';
                         this.community.homeLocation = data.homeLocation || null;
-                        this.community.qariahMosque = data.qariahMosque || null;
                         this.community.qariahRadiusKm = data.qariahRadiusKm || 3;
+                        this.community.homeLabel = data.homeLabel || '';
+                        this.community.destinationLocation = data.destinationLocation || { lat: null, lng: null };
+                        if (!this.community.destinationLocation || typeof this.community.destinationLocation !== 'object') {
+                            this.community.destinationLocation = { lat: null, lng: null };
+                        }
+                        this.community.destinationLabel = data.destinationLabel || '';
+                        this.community.homeQariahMosque = data.homeQariahMosque || null;
+                        this.community.currentQariahMosque = data.currentQariahMosque || null;
+                        this.community.marhalahKm = data.marhalahKm || 81;
                         if (this.activeProfileId) this.view = 'tracker';
                     }
+
+                    (this.allProfiles || []).forEach(p => this.ensurePet(p));
+
+                    this.ensureDailyIslamicQuote();
+
+                    this.$nextTick(() => {
+                        setInterval(() => this.updateNextPrayer(), 30000);
+                    });
                     
                     this.fetchSurahList();
                     this.startLocationTracking();
+                    this.fetchMushaf(false);
                     
                     // Auto-sync Ramadan Date
                     // Ramadan 2026 starts around Feb 18
@@ -1711,7 +2227,13 @@
                     this.$watch('currentDay', () => this.$nextTick(() => { lucide.createIcons(); this.scrollToCurrentDay(); }));
                     this.$watch('darkMode', () => this.saveGlobal());
                     this.$watch('theme', () => this.saveGlobal());
+                    this.$watch('lang', () => this.saveGlobal());
+                    this.$watch('mushaf.fontSize', () => this.saveGlobal());
+                    this.$watch('mushaf.fontFamily', () => this.saveGlobal());
+                    this.$watch('prayer.enabled', () => { if (this.prayer.enabled) this.ensurePrayerTimes(); this.saveGlobal(); });
+                    this.$watch('prayer.placement', () => this.saveGlobal());
                     this.$watch('selectedBadge', () => this.$nextTick(() => lucide.createIcons()));
+                    this.$watch('selectedHafazanJuz', () => this.$nextTick(() => lucide.createIcons()));
 
                     // Run Self-Tests on startup
                     this.runTests();
@@ -1719,6 +2241,243 @@
 
                 get activeProfile() {
                     return this.allProfiles.find(p => p.id === this.activeProfileId);
+                },
+
+                randomizeIslamicQuote(persistForToday = false) {
+                    const len = (this.islamicQuotes || []).length;
+                    if (!len) {
+                        this.islamicQuoteIndex = 0;
+                        return;
+                    }
+                    this.islamicQuoteIndex = Math.floor(Math.random() * len);
+                    if (persistForToday) {
+                        this.islamicQuoteDateKey = this.getTodayKey();
+                        this.save();
+                    }
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                getTodayKey() {
+                    const d = new Date();
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}`;
+                },
+
+                ensureDailyIslamicQuote() {
+                    const today = this.getTodayKey();
+                    const len = (this.islamicQuotes || []).length;
+                    if (!len) {
+                        this.islamicQuoteDateKey = today;
+                        this.islamicQuoteIndex = 0;
+                        return;
+                    }
+                    if (this.islamicQuoteDateKey !== today || !Number.isFinite(this.islamicQuoteIndex) || this.islamicQuoteIndex < 0 || this.islamicQuoteIndex >= len) {
+                        this.islamicQuoteIndex = Math.floor(Math.random() * len);
+                        this.islamicQuoteDateKey = today;
+                        this.save();
+                    }
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                async copyIslamicQuote() {
+                    const q = this.getIslamicQuote();
+                    const text = `${q.text}\n\n${q.source}\n${q.ref}`.trim();
+                    const setStatus = (msg) => {
+                        this.quoteCopyStatus = msg;
+                        setTimeout(() => { this.quoteCopyStatus = ''; }, 1400);
+                    };
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(text);
+                            setStatus(this.lang === 'en' ? 'Copied!' : 'Disalin!');
+                            return;
+                        }
+                    } catch (e) {}
+
+                    try {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.setAttribute('readonly', '');
+                        ta.style.position = 'fixed';
+                        ta.style.left = '-9999px';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        setStatus(this.lang === 'en' ? 'Copied!' : 'Disalin!');
+                    } catch (e) {
+                        setStatus(this.lang === 'en' ? 'Copy failed' : 'Gagal salin');
+                    }
+                },
+
+                getIslamicQuote() {
+                    const q = (this.islamicQuotes || [])[this.islamicQuoteIndex] || (this.islamicQuotes || [])[0] || null;
+                    if (!q) return { text: '', source: '', ref: '' };
+                    const textObj = q.text || {};
+                    const text = (this.lang === 'en' ? (textObj.en || textObj.ms) : (textObj.ms || textObj.en)) || '';
+                    return { text, source: q.source || '', ref: q.ref || '' };
+                },
+
+                t(key) {
+                    const dict = {
+                        ms: {
+                            nav_amalan: 'Amalan',
+                            nav_quran: 'Al-Quran',
+                            nav_karakter: 'Profil',
+                            nav_komuniti: 'Komuniti',
+                            nav_arena: 'Karakter',
+                            nav_tetapan: 'Tetapan'
+                        },
+                        en: {
+                            nav_amalan: 'Tracker',
+                            nav_quran: 'Quran',
+                            nav_karakter: 'Profile',
+                            nav_komuniti: 'Community',
+                            nav_arena: 'Character',
+                            nav_tetapan: 'Settings'
+                        }
+                    };
+                    const lang = this.lang || 'ms';
+                    return (dict[lang] && dict[lang][key]) ? dict[lang][key] : key;
+                },
+
+                ensurePet(p) {
+                    if (!p) return;
+                    if (!p.pet || typeof p.pet !== 'object') {
+                        p.pet = { line: '', hatched: false, ts: null };
+                    }
+                    if (typeof p.pet.line !== 'string') p.pet.line = '';
+                    if (typeof p.pet.hatched !== 'boolean') p.pet.hatched = false;
+                },
+
+                choosePetLine(line) {
+                    const p = this.activeProfile;
+                    if (!p) return;
+                    this.ensurePet(p);
+                    p.pet.line = line;
+                    p.pet.hatched = false;
+                    p.pet.ts = Date.now();
+                    this.save();
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                canHatchPet() {
+                    const p = this.activeProfile;
+                    if (!p) return false;
+                    this.ensurePet(p);
+                    const lvl = this.getUserLevel().level || 1;
+                    return !!p.pet.line && lvl >= 3;
+                },
+
+                hatchPet() {
+                    const p = this.activeProfile;
+                    if (!p) return;
+                    this.ensurePet(p);
+                    if (!this.canHatchPet()) return;
+                    p.pet.hatched = true;
+                    p.pet.hatchedAt = Date.now();
+                    this.save();
+                },
+
+                getPetStage(level) {
+                    const lvl = Number(level || 1);
+                    if (lvl >= 12) return 4;
+                    if (lvl >= 8) return 3;
+                    if (lvl >= 5) return 2;
+                    if (lvl >= 3) return 1;
+                    return 0;
+                },
+
+                getPetMeta(line, stage) {
+                    const l = (line || '').toString();
+                    const s = Number(stage || 0);
+                    const base = {
+                        flame: {
+                            bg: 'gradient-red',
+                            stages: [
+                                { name: 'Telur Bara', icon: 'egg' },
+                                { name: 'Retak Api', icon: 'egg' },
+                                { name: 'Pyro Cub', icon: 'flame' },
+                                { name: 'Inferno Rogue', icon: 'swords' },
+                                { name: 'Phoenix Lord', icon: 'crown' }
+                            ]
+                        },
+                        ocean: {
+                            bg: 'gradient-blue',
+                            stages: [
+                                { name: 'Telur Ombak', icon: 'egg' },
+                                { name: 'Retak Air', icon: 'egg' },
+                                { name: 'Aqua Sprite', icon: 'droplets' },
+                                { name: 'Tidal Knight', icon: 'shield' },
+                                { name: 'Leviathan', icon: 'award' }
+                            ]
+                        },
+                        forest: {
+                            bg: 'gradient-green',
+                            stages: [
+                                { name: 'Telur Rimba', icon: 'egg' },
+                                { name: 'Retak Daun', icon: 'egg' },
+                                { name: 'Mossling', icon: 'leaf' },
+                                { name: 'Wild Ranger', icon: 'target' },
+                                { name: 'Ancient Guardian', icon: 'shield-check' }
+                            ]
+                        }
+                    };
+                    const picked = base[l] || base.forest;
+                    const meta = picked.stages[Math.min(Math.max(s, 0), 4)];
+                    return { name: meta.name, icon: meta.icon, bgClass: picked.bg };
+                },
+
+                petProgressPct(level) {
+                    const lvl = Number(level || 1);
+                    const bands = [1, 3, 5, 8, 12];
+                    const s = this.getPetStage(lvl);
+                    const start = bands[s] || 1;
+                    const end = bands[s + 1] || (start + 1);
+                    const pct = Math.max(0, Math.min(1, (lvl - start) / (end - start)));
+                    return Math.round(pct * 100);
+                },
+
+                petProgressLabel(level) {
+                    const lvl = Number(level || 1);
+                    const s = this.getPetStage(lvl);
+                    const nextReq = [3, 5, 8, 12, null][s];
+                    if (!nextReq) return 'MAX';
+                    return `LVL ${lvl} / ${nextReq}`;
+                },
+
+                isStreakDay(day) {
+                    const d = Number(day);
+                    const scores = this.activeProfile?.scores || {};
+                    const startDay = (() => {
+                        let anchor = this.currentDay;
+                        if (!scores[anchor] || Object.keys(scores[anchor] || {}).length === 0) {
+                            anchor = Math.max(1, anchor - 1);
+                        }
+                        const len = this.calculateStreak();
+                        return Math.max(1, anchor - len + 1);
+                    })();
+                    const endDay = (() => {
+                        let anchor = this.currentDay;
+                        if (!scores[anchor] || Object.keys(scores[anchor] || {}).length === 0) {
+                            anchor = Math.max(1, anchor - 1);
+                        }
+                        return anchor;
+                    })();
+                    if (!Number.isFinite(d)) return false;
+                    return d >= startDay && d <= endDay && (this.getDailyPct(d) > 0);
+                },
+
+                modeLabel(mode) {
+                    const m = (mode || '').toString().toUpperCase();
+                    const labels = {
+                        ms: { EASY: 'Permulaan', NORMAL: 'Biasa', HARD: 'Intensif' },
+                        en: { EASY: 'Beginner', NORMAL: 'Standard', HARD: 'Intensive' }
+                    };
+                    const lang = this.lang || 'ms';
+                    return (labels[lang] && labels[lang][m]) ? labels[lang][m] : m;
                 },
 
                 createProfile() {
@@ -1733,6 +2492,7 @@
                         ibadahList: JSON.parse(JSON.stringify(this.templates[this.onboarding.mode].list)),
                         scores: {},
                         totalXP: 0,
+                        pet: { line: '', hatched: false, ts: null },
                         badges: []
                     };
                     this.allProfiles.push(newProfile);
@@ -1740,6 +2500,23 @@
                     this.onboarding = { name: '', mode: 'NORMAL' };
                     this.view = 'tracker';
                     this.save();
+                },
+
+                setHomeFromGps() {
+                    if (!this.community.userLocation) return;
+                    this.community.homeLocation = { lat: this.community.userLocation.lat, lng: this.community.userLocation.lng };
+                    this.community.homeSetFlash = true;
+                    setTimeout(() => { this.community.homeSetFlash = false; }, 1200);
+                    this.updateQariahStatus();
+                },
+
+                semakMusafirSekarang() {
+                    const origin = (this.community.homeQariahMosque && this.community.homeQariahMosque.coords) ? this.community.homeQariahMosque.coords : this.community.homeLocation;
+                    if (!origin || !this.community.userLocation) return;
+                    const d = this.haversineKm(origin.lat, origin.lng, this.community.userLocation.lat, this.community.userLocation.lng);
+                    this.community.musafirCheckDistanceKm = Number.isFinite(d) ? Number(d.toFixed(2)) : null;
+                    const marhalah = this.community.marhalahKm || 81;
+                    this.community.musafirCheckStatus = this.community.musafirCheckDistanceKm === null ? null : (this.community.musafirCheckDistanceKm >= marhalah);
                 },
 
                 switchProfile(id) {
@@ -1932,6 +2709,26 @@
                     return Math.min(totalJuz, 30);
                 },
 
+                hafazanStatsForJuz(juzNum) {
+                    const history = this.activeProfile?.hafazanHistory || [];
+                    const entries = history.filter(h => h && h.juz === juzNum);
+                    if (entries.length === 0) return { count: 0, avg: 0, last: null, successRate: 0 };
+
+                    const avg = Math.round(entries.reduce((a, e) => a + (e.score || 0), 0) / entries.length);
+                    const successCount = entries.filter(e => e.success).length;
+                    const last = entries[0];
+                    const successRate = Math.round((successCount / entries.length) * 100);
+                    return { count: entries.length, avg, last, successRate };
+                },
+
+                hafazanBoxClass(avg) {
+                    if (avg >= 80) return 'bg-green-500 text-white shadow-sm scale-105';
+                    if (avg >= 60) return 'bg-emerald-400 text-white';
+                    if (avg >= 40) return 'bg-yellow-400 text-white';
+                    if (avg > 0) return 'bg-red-400 text-white';
+                    return 'bg-inset text-muted/30';
+                },
+
                 calculatePartAverage(part) {
                     let totalPct = 0;
                     let count = 0;
@@ -2115,8 +2912,39 @@
                 },
 
                 async fetchPageData(page) {
+                    const fetchWithTimeout = async (url, options = {}, timeout = 15000) => {
+                        const controller = new AbortController();
+                        const id = setTimeout(() => controller.abort(), timeout);
+                        try {
+                            const response = await fetch(url, { ...options, signal: controller.signal });
+                            clearTimeout(id);
+                            return response;
+                        } catch (err) {
+                            clearTimeout(id);
+                            throw err;
+                        }
+                    };
+
+                    // Source 1: Quran.com API (Primary)
                     try {
-                        const res = await fetch(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`);
+                        const res = await fetchWithTimeout(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.verses && data.verses.length > 0) {
+                                return data.verses.map(v => ({
+                                    text: v.text_uthmani,
+                                    surah: { name: 'Surah ' + v.verse_key.split(':')[0] },
+                                    numberInSurah: v.verse_key.split(':')[1],
+                                    number: v.id
+                                }));
+                            }
+                        }
+                    } catch (e) { console.warn('Quran.com Page API failed, trying AlQuran.cloud...'); }
+
+                    // Source 2: AlQuran.cloud (Fallback)
+                    try {
+                        const res = await fetchWithTimeout(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`);
+                        if (!res.ok) throw new Error('Bad response');
                         const data = await res.json();
                         if (data.code === 200) {
                             return data.data.verses.map(v => ({
@@ -2127,7 +2955,8 @@
                             }));
                         }
                     } catch (e) { console.error('Page API failed:', e); }
-                    return [];
+
+                    throw new Error('Semua sumber API gagal dicapai.');
                 },
 
                 get filteredSurahs() {
@@ -2161,11 +2990,137 @@
                                 };
                                 this.calculateMosqueDistance();
                                 this.updateQariahStatus();
+                                if (this.prayer.enabled) {
+                                    this.ensurePrayerTimes();
+                                }
                             },
                             (err) => console.warn('Geolocation error:', err),
                             { enableHighAccuracy: true }
                         );
                     }
+                },
+
+                prayerCacheKey() {
+                    const today = this.getTodayKey();
+                    const loc = this.community.userLocation;
+                    if (!loc) return '';
+                    const lat = Math.round(Number(loc.lat) * 1000) / 1000;
+                    const lng = Math.round(Number(loc.lng) * 1000) / 1000;
+                    const method = this.prayer.method || 11;
+                    return `${today}|${lat},${lng}|m${method}`;
+                },
+
+                async ensurePrayerTimes() {
+                    if (!this.prayer.enabled) return;
+                    if (!this.community.userLocation) return;
+
+                    const key = this.prayerCacheKey();
+                    const today = this.getTodayKey();
+                    if (!key) return;
+
+                    if (this.prayer.cacheKey === key && this.prayer.timings && this.prayer.dateKey === today) {
+                        this.updateNextPrayer();
+                        return;
+                    }
+
+                    await this.fetchPrayerTimes();
+                },
+
+                async fetchPrayerTimes() {
+                    try {
+                        const loc = this.community.userLocation;
+                        const method = this.prayer.method || 11;
+                        const today = this.getTodayKey();
+                        const key = this.prayerCacheKey();
+                        if (!loc || !key) return;
+
+                        const url = `https://api.aladhan.com/v1/timings?latitude=${encodeURIComponent(loc.lat)}&longitude=${encodeURIComponent(loc.lng)}&method=${encodeURIComponent(method)}`;
+                        const res = await fetch(url);
+                        if (!res.ok) throw new Error('Prayer API failed');
+                        const json = await res.json();
+                        const timings = json?.data?.timings || null;
+                        if (!timings) throw new Error('No timings');
+
+                        this.prayer.timings = timings;
+                        this.prayer.cacheKey = key;
+                        this.prayer.dateKey = today;
+                        this.updateNextPrayer();
+                        this.save();
+                    } catch (e) {
+                        console.warn('Prayer Times Error:', e);
+                    }
+                },
+
+                parsePrayerTimeToDate(hhmm) {
+                    const m = (hhmm || '').match(/^(\d{1,2}):(\d{2})/);
+                    if (!m) return null;
+                    const d = new Date();
+                    d.setHours(Number(m[1]), Number(m[2]), 0, 0);
+                    return d;
+                },
+
+                updateNextPrayer() {
+                    const t = this.prayer.timings;
+                    if (!t) {
+                        this.prayer.nextLabel = '';
+                        this.prayer.countdown = '';
+                        return;
+                    }
+
+                    const order = [
+                        { k: 'Fajr', labelMs: 'Subuh', labelEn: 'Fajr' },
+                        { k: 'Dhuhr', labelMs: 'Zohor', labelEn: 'Dhuhr' },
+                        { k: 'Asr', labelMs: 'Asar', labelEn: 'Asr' },
+                        { k: 'Maghrib', labelMs: 'Maghrib', labelEn: 'Maghrib' },
+                        { k: 'Isha', labelMs: 'Isyak', labelEn: 'Isha' }
+                    ];
+
+                    const now = new Date();
+                    let next = null;
+
+                    for (const it of order) {
+                        const d = this.parsePrayerTimeToDate(t[it.k]);
+                        if (d && d.getTime() > now.getTime()) {
+                            next = { ...it, time: t[it.k], date: d };
+                            break;
+                        }
+                    }
+
+                    if (!next) {
+                        const it = order[0];
+                        const d = this.parsePrayerTimeToDate(t[it.k]);
+                        if (d) d.setDate(d.getDate() + 1);
+                        next = { ...it, time: t[it.k], date: d };
+                    }
+
+                    const name = this.lang === 'en' ? next.labelEn : next.labelMs;
+                    this.prayer.nextLabel = `${name} ${next.time}`;
+
+                    if (next.date) {
+                        const diffMs = Math.max(0, next.date.getTime() - now.getTime());
+                        const mins = Math.floor(diffMs / 60000);
+                        const h = Math.floor(mins / 60);
+                        const m = mins % 60;
+                        this.prayer.countdown = this.lang === 'en'
+                            ? `${h > 0 ? `${h}h ` : ''}${m}m` 
+                            : `${h > 0 ? `${h}j ` : ''}${m}m`;
+                    } else {
+                        this.prayer.countdown = '';
+                    }
+                },
+
+                prayerRows() {
+                    const t = this.prayer.timings || {};
+                    const tr = (ms, en) => (this.lang === 'en' ? en : ms);
+                    const rows = [
+                        { k: 'Fajr', label: tr('Subuh', 'Fajr') },
+                        { k: 'Sunrise', label: tr('Syuruk', 'Sunrise') },
+                        { k: 'Dhuhr', label: tr('Zohor', 'Dhuhr') },
+                        { k: 'Asr', label: tr('Asar', 'Asr') },
+                        { k: 'Maghrib', label: tr('Maghrib', 'Maghrib') },
+                        { k: 'Isha', label: tr('Isyak', 'Isha') }
+                    ];
+                    return rows.map(r => ({ ...r, time: (t[r.k] || '--:--').toString().trim() }));
                 },
 
                 haversineKm(lat1, lon1, lat2, lon2) {
@@ -2180,35 +3135,53 @@
                 },
 
                 updateQariahStatus() {
-                    const base = this.community.qariahMode === 'home' ? this.community.homeLocation : this.community.userLocation;
-                    if (!base) return;
-
                     const mosquesWithCoords = this.community.availableMosques.filter(m => m.coords && typeof m.coords.lat === 'number' && typeof m.coords.lng === 'number');
                     if (mosquesWithCoords.length === 0) return;
 
-                    let nearest = null;
-                    let nearestD = Infinity;
-                    for (const m of mosquesWithCoords) {
-                        const d = this.haversineKm(base.lat, base.lng, m.coords.lat, m.coords.lng);
-                        if (d < nearestD) {
-                            nearestD = d;
-                            nearest = m;
+                    const findNearest = (pt) => {
+                        if (!pt) return { mosque: null, distanceKm: null };
+                        let nearest = null;
+                        let nearestD = Infinity;
+                        for (const m of mosquesWithCoords) {
+                            const d = this.haversineKm(pt.lat, pt.lng, m.coords.lat, m.coords.lng);
+                            if (d < nearestD) {
+                                nearestD = d;
+                                nearest = m;
+                            }
                         }
+                        return { mosque: nearest ? { id: nearest.id, name: nearest.name, location: nearest.location, coords: nearest.coords } : null, distanceKm: Number.isFinite(nearestD) ? nearestD : null };
+                    };
+
+                    const homeNearest = findNearest(this.community.homeLocation);
+                    this.community.homeQariahMosque = homeNearest.mosque;
+
+                    const currentNearest = findNearest(this.community.userLocation);
+                    const prevInCurrent = this.community.inCurrentQariah;
+                    this.community.currentQariahMosque = currentNearest.mosque;
+                    this.community.inCurrentQariah = currentNearest.distanceKm === null ? null : (currentNearest.distanceKm <= (this.community.qariahRadiusKm || 3));
+
+                    const marhalah = this.community.marhalahKm || 81;
+                    const origin = (this.community.homeQariahMosque && this.community.homeQariahMosque.coords) ? this.community.homeQariahMosque.coords : this.community.homeLocation;
+                    if (origin && this.community.userLocation) {
+                        const dFromHome = this.haversineKm(origin.lat, origin.lng, this.community.userLocation.lat, this.community.userLocation.lng);
+                        const musafir = dFromHome >= marhalah;
+                        this.community.isMusafir = this.community.inCurrentQariah ? false : musafir;
+                    } else {
+                        this.community.isMusafir = null;
                     }
 
-                    if (!nearest) return;
-
-                    if (!this.community.qariahMosque || this.community.qariahMosque.id !== nearest.id) {
-                        this.community.qariahMosque = { id: nearest.id, name: nearest.name, location: nearest.location, coords: nearest.coords };
+                    const destLat = Number(this.community.destinationLocation?.lat);
+                    const destLng = Number(this.community.destinationLocation?.lng);
+                    if (origin && Number.isFinite(destLat) && Number.isFinite(destLng)) {
+                        const dPlan = this.haversineKm(origin.lat, origin.lng, destLat, destLng);
+                        this.community.plannedMusafir = dPlan >= marhalah;
+                    } else {
+                        this.community.plannedMusafir = null;
                     }
 
-                    const previousInQariah = this.community.inQariah;
-                    const inside = nearestD <= (this.community.qariahRadiusKm || 3);
-                    this.community.inQariah = inside;
-
-                    if (previousInQariah === true && inside === false) {
-                        if (this.community.notificationsOn) {
-                            alert(`Anda telah keluar dari qariah ${this.community.qariahMosque?.name}.`);
+                    if (prevInCurrent === true && this.community.inCurrentQariah === false) {
+                        if (this.community.notificationsOn && this.community.currentQariahMosque?.name) {
+                            alert(`Anda telah keluar dari qariah ${this.community.currentQariahMosque.name}.`);
                         }
                     }
 
@@ -2237,9 +3210,19 @@
                     this.quiz.active = true;
                     this.quiz.status = 'idle';
                     this.quiz.transcript = '';
+                    this.quiz.detectedSegment = '';
+                    this.quiz.recitedText = '';
+                    this.quiz.voiceStage = 'idle';
+                    this.quiz.voiceProgress = 0;
+                    this.quiz.voiceCompleted = false;
+                    this.quiz.hintWordsUnlocked = 0;
                     this.quiz.matchedWords = [];
+                    this.quiz.targetContinuationText = '';
                     this.quiz.loading = true;
                     this.quiz.selectedMcqIndex = -1;
+                    this.quiz.mcqPhase = 0;
+                    this.quiz.mcqBuiltText = '';
+                    this.quiz.mcqPhases = [];
                     
                     try {
                         let verses;
@@ -2262,12 +3245,13 @@
                             text: verse.text,
                             nextText: nextVerse.text,
                             surah: verse.surah.name,
-                            numberInSurah: verse.numberInSurah
+                            numberInSurah: verse.numberInSurah,
+                            juz: verse.juz || this.quiz.currentJuz || null
                         };
 
-                        if (this.quiz.testMode === 'mcq') {
-                            this.generateMcqOptions(verses, idx + 1);
-                        }
+                        this.quiz.targetContinuationText = this.buildContinuationTarget(verses, idx, 200, 20);
+
+                        if (this.quiz.testMode === 'mcq') this.generateMcqPhases(verses, idx + 1);
 
                         this.quiz.session.total++;
                     } catch (e) {
@@ -2280,30 +3264,92 @@
                     }
                 },
 
-                generateMcqOptions(verses, correctIdx) {
-                    const options = [verses[correctIdx].text];
-                    const others = verses.filter((_, i) => i !== correctIdx);
-                    
-                    while (options.length < 4) {
-                        const randomVerse = others[Math.floor(Math.random() * others.length)].text;
-                        if (!options.includes(randomVerse)) options.push(randomVerse);
+                generateMcqPhases(verses, correctIdx) {
+                    const correctFull = verses[correctIdx].text;
+                    const words = (correctFull || '').split(/\s+/).filter(Boolean);
+                    const targetMaxChars = 200;
+                    const chunks = [];
+
+                    const pushChunk = (w) => {
+                        if (!w || w.length === 0) return;
+                        chunks.push(w.join(' '));
+                    };
+
+                    const chunkCount = 3;
+                    const perChunk = Math.max(1, Math.ceil(words.length / chunkCount));
+                    for (let i = 0; i < chunkCount; i++) {
+                        pushChunk(words.slice(i * perChunk, (i + 1) * perChunk));
                     }
 
-                    // Shuffle
-                    for (let i = options.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [options[i], options[j]] = [options[j], options[i]];
+                    const trimmedChunks = [];
+                    let running = '';
+                    for (const c of chunks) {
+                        if (!c) continue;
+                        const next = (running ? (running + ' ' + c) : c);
+                        if (next.length > targetMaxChars) break;
+                        trimmedChunks.push(c);
+                        running = next;
+                        if (trimmedChunks.length === 3) break;
                     }
 
-                    this.quiz.mcqOptions = options;
-                    this.quiz.mcqCorrectIndex = options.indexOf(verses[correctIdx].text);
+                    while (trimmedChunks.length < 3 && trimmedChunks.length > 0) trimmedChunks.push('');
+                    if (trimmedChunks.length === 0) {
+                        trimmedChunks.push(correctFull.slice(0, Math.min(correctFull.length, targetMaxChars)));
+                        while (trimmedChunks.length < 3) trimmedChunks.push('');
+                    }
+
+                    const distractorPool = verses
+                        .filter((_, i) => i !== correctIdx)
+                        .map(v => v.text)
+                        .filter(Boolean);
+
+                    const phases = trimmedChunks.map((correctText) => {
+                        let wrongText = '';
+                        if (distractorPool.length > 0) {
+                            const src = distractorPool[Math.floor(Math.random() * distractorPool.length)];
+                            const srcWords = src.split(/\s+/).filter(Boolean);
+                            const take = Math.max(2, (correctText || '').split(/\s+/).filter(Boolean).length);
+                            wrongText = srcWords.slice(0, take).join(' ');
+                            if (!wrongText) wrongText = src.slice(0, Math.min(src.length, 60));
+                        }
+                        const options = [correctText, wrongText].filter(v => v !== '');
+                        if (options.length === 1) options.push(options[0]);
+                        if (Math.random() > 0.5) [options[0], options[1]] = [options[1], options[0]];
+                        return {
+                            correctText,
+                            options,
+                            correctIndex: options.indexOf(correctText)
+                        };
+                    });
+
+                    this.quiz.mcqPhases = phases;
+                    this.quiz.mcqPhase = 0;
+                    this.quiz.mcqOptions = phases[0]?.options || [];
+                    this.quiz.mcqCorrectIndex = phases[0]?.correctIndex ?? -1;
+                    this.quiz.mcqBuiltText = '';
                 },
 
                 checkMcqAnswer(index) {
                     if (this.quiz.status !== 'idle') return;
                     
                     this.quiz.selectedMcqIndex = index;
-                    if (index === this.quiz.mcqCorrectIndex) {
+                    const phase = this.quiz.mcqPhases[this.quiz.mcqPhase];
+                    if (!phase) return;
+
+                    if (index === phase.correctIndex) {
+                        if (phase.correctText) {
+                            this.quiz.mcqBuiltText = (this.quiz.mcqBuiltText ? (this.quiz.mcqBuiltText + ' ') : '') + phase.correctText;
+                        }
+
+                        if (this.quiz.mcqPhase < 2) {
+                            this.quiz.mcqPhase++;
+                            const next = this.quiz.mcqPhases[this.quiz.mcqPhase];
+                            this.quiz.mcqOptions = next?.options || [];
+                            this.quiz.mcqCorrectIndex = next?.correctIndex ?? -1;
+                            this.quiz.selectedMcqIndex = -1;
+                            return;
+                        }
+
                         this.quiz.status = 'success';
                         this.quiz.feedback = 'Masha Allah! Jawapan anda tepat.';
                         this.quiz.session.correct++;
@@ -2313,8 +3359,92 @@
                         this.quiz.feedback = 'Jawapan kurang tepat. Sila cuba lagi.';
                         this.quiz.session.wrong++;
                     }
+
                     this.save();
                     this.$nextTick(() => lucide.createIcons());
+                },
+
+                unlockHintWord() {
+                    const target = (this.quiz.targetContinuationText || '').trim();
+                    if (!target) return;
+                    const displayed = (this.quiz.verse?.text || '').trim();
+                    const continuation = target.startsWith(displayed) ? target.slice(displayed.length).trim() : target;
+                    const words = continuation.split(/\s+/).filter(Boolean);
+                    this.quiz.hintWordsUnlocked = Math.min(words.length, (this.quiz.hintWordsUnlocked || 0) + 1);
+                },
+
+                buildContinuationTarget(verses, startIdx, targetChars = 200, finishAyahThreshold = 20) {
+                    const parts = [];
+                    let running = '';
+
+                    for (let i = startIdx; i < verses.length; i++) {
+                        const t = (verses[i]?.text || '').trim();
+                        if (!t) continue;
+                        const next = running ? (running + ' ' + t) : t;
+
+                        if (next.length <= targetChars) {
+                            parts.push(t);
+                            running = next;
+                            continue;
+                        }
+
+                        const remaining = next.length - targetChars;
+                        if (remaining <= finishAyahThreshold) {
+                            parts.push(t);
+                            running = next;
+                        }
+                        break;
+                    }
+
+                    return parts.join(' ').trim();
+                },
+
+                normalizeArabic(str) {
+                    return (str || '')
+                        .replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "")
+                        .replace(/[إأآا]/g, "ا")
+                        .replace(/ة/g, "ه")
+                        .replace(/ى/g, "ي")
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                },
+
+                computeOrderedMatchScore(userText, targetText) {
+                    const u = this.normalizeArabic(userText).split(/\s+/).filter(Boolean);
+                    const t = this.normalizeArabic(targetText).split(/\s+/).filter(Boolean);
+                    if (t.length === 0) return { score: 0, matched: 0, total: 0 };
+
+                    let ti = 0;
+                    let matched = 0;
+                    for (const w of u) {
+                        while (ti < t.length) {
+                            const tw = t[ti];
+                            if (tw.includes(w) || w.includes(tw)) {
+                                matched++;
+                                ti++;
+                                break;
+                            }
+                            ti++;
+                        }
+                        if (ti >= t.length) break;
+                    }
+
+                    return { score: matched / t.length, matched, total: t.length };
+                },
+
+                recordHafazanAttempt(success, score) {
+                    const p = this.activeProfile;
+                    if (!p) return;
+                    if (!p.hafazanHistory) p.hafazanHistory = [];
+                    p.hafazanHistory.unshift({
+                        ts: Date.now(),
+                        juz: this.quiz.selectionMode === 'juz' ? this.quiz.currentJuz : (this.quiz.verse?.juz || null),
+                        mode: this.quiz.testMode,
+                        success: !!success,
+                        score: Math.round((score || 0) * 100)
+                    });
+                    p.hafazanHistory = p.hafazanHistory.slice(0, 500);
+                    this.save();
                 },
 
                 randomizeAyat() {
@@ -2354,12 +3484,13 @@
                             text: verse.text,
                             nextText: nextVerse.text,
                             surah: verse.surah?.name,
-                            numberInSurah: verse.numberInSurah
+                            numberInSurah: verse.numberInSurah,
+                            juz: verse.juz || this.quiz.currentJuz || null
                         };
 
-                        if (this.quiz.testMode === 'mcq') {
-                            this.generateMcqOptions(verses, idx + 1);
-                        }
+                        this.quiz.targetContinuationText = this.buildContinuationTarget(verses, idx, 200, 20);
+
+                        if (this.quiz.testMode === 'mcq') this.generateMcqPhases(verses, idx + 1);
                     } catch (e) {
                         console.error('Randomize Ayat Error:', e);
                         alert('Gagal memuatkan ayat. Sila periksa internet anda.');
@@ -2397,12 +3528,12 @@
                             this.mediaRecorder.onstop = async () => {
                                 const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
                                 await this.transcribeWithWhisper(audioBlob);
-                                await this.analyzeWithTarteel(audioBlob);
                                 stream.getTracks().forEach(track => track.stop());
                             };
                             
                             this.mediaRecorder.start();
                             this.quiz.recording = true;
+                            this.quiz.voiceStage = 'recording';
                             this.quiz.status = 'idle';
                             this.quiz.transcript = '';
                             this.resetQuizIdleTimer();
@@ -2429,6 +3560,12 @@
                     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
                         this.mediaRecorder.stop();
                     }
+
+                    if (this.quiz.recitedText && this.quiz.recitedText.trim()) {
+                        this.quiz.voiceStage = 'review';
+                    } else {
+                        this.quiz.voiceStage = 'idle';
+                    }
                 },
 
                 async transcribeWithWhisper(audioBlob) {
@@ -2454,15 +3591,26 @@
                         }
                         
                         const result = await response.json();
-                        this.quiz.transcript = result.text;
+                        const seg = (result.text || '').trim();
+                        this.quiz.detectedSegment = seg;
+                        this.quiz.transcript = seg;
+
+                        if (seg) {
+                            this.quiz.recitedText = (this.quiz.recitedText ? (this.quiz.recitedText + ' ') : '') + seg;
+                        }
+
+                        this.quiz.voiceStage = 'review';
                         
-                        // Update matched words based on transcription
-                        const currentWords = this.quiz.transcript.split(/\s+/);
-                        const targetWords = this.quiz.verse.text.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "").split(/\s+/);
-                        
-                        this.quiz.matchedWords = currentWords.filter(w => 
-                            targetWords.some(tw => tw.includes(w) || w.includes(tw))
-                        );
+                        const target = this.quiz.targetContinuationText || this.quiz.verse?.text || '';
+                        const scoreObj = this.computeOrderedMatchScore(this.quiz.recitedText, target);
+                        this.quiz.voiceProgress = Math.min(1, scoreObj.score);
+
+                        const recitedLen = (this.quiz.recitedText || '').trim().length;
+                        const targetLen = (target || '').trim().length;
+                        const remaining = Math.max(0, targetLen - recitedLen);
+                        const charHit = recitedLen >= 200;
+                        const nearEnd = remaining > 0 && remaining <= 20;
+                        this.quiz.voiceCompleted = !!(charHit || nearEnd || scoreObj.score >= 0.72);
                         
                     } catch (error) {
                         console.error('Whisper API Error:', error);
@@ -2528,51 +3676,23 @@
                 },
 
                 checkQuizAnswer(userText) {
-                    const displayedText = this.quiz.verse.text;
-                    const targetNextText = this.quiz.verse.nextText;
-                    
-                    const normalize = (str) => {
-                        return str
-                            .replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "") 
-                            .replace(/[إأآا]/g, "ا")
-                            .replace(/ة/g, "ه")
-                            .replace(/ى/g, "ي")
-                            .trim();
-                    };
-                    
-                    const cleanUser = normalize(userText);
-                    const cleanTargetDisplay = normalize(displayedText);
-                    const cleanTargetNext = normalize(targetNextText);
+                    const target = (this.quiz.targetContinuationText || this.quiz.verse?.text || '').trim();
+                    const scoreObj = this.computeOrderedMatchScore(userText, target);
 
-                    // Logic: Must match words from BOTH displayed verse AND next verse
-                    const userWords = cleanUser.split(/\s+/).filter(w => w.length > 1);
-                    const displayWords = cleanTargetDisplay.split(/\s+/).filter(w => w.length > 1);
-                    const nextWords = cleanTargetNext.split(/\s+/).filter(w => w.length > 1);
-                    
-                    let displayMatches = 0;
-                    let nextMatches = 0;
-
-                    userWords.forEach(w => {
-                        if (displayWords.some(tw => tw.includes(w) || w.includes(tw))) displayMatches++;
-                        if (nextWords.some(tw => tw.includes(w) || w.includes(tw))) nextMatches++;
-                    });
-
-                    const displayAccuracy = (displayMatches / displayWords.length) * 100;
-                    const nextAccuracy = (nextMatches / nextWords.length) * 100;
-
-                    // Success if at least 30% of BOTH verses matched (flexible for breathing/errors)
-                    if (displayAccuracy > 30 && nextAccuracy > 20) {
+                    if (scoreObj.score >= 0.72) {
                         this.quiz.status = 'success';
                         this.quiz.feedback = `Masha Allah! Hafalan mantap.`;
                         this.quiz.session.correct++;
                         this.activeProfile.totalXP += 10;
+                        this.recordHafazanAttempt(true, scoreObj.score);
                         this.save();
                     } else {
                         this.quiz.status = 'error';
-                        this.quiz.feedback = `Hampir tepat! Sila pastikan anda membaca ayat paparan dan menyambung ayat seterusnya.`;
+                        this.quiz.feedback = `Hampir tepat! Cuba sambung lagi sebelum semak.`;
                         this.quiz.session.wrong++;
+                        this.recordHafazanAttempt(false, scoreObj.score);
                     }
-                    
+
                     this.$nextTick(() => lucide.createIcons());
                 },
 
@@ -2608,12 +3728,30 @@
                         profiles: this.allProfiles,
                         darkMode: this.darkMode,
                         theme: this.theme,
+                        lang: this.lang,
+                        islamicQuoteIndex: this.islamicQuoteIndex,
+                        islamicQuoteDateKey: this.islamicQuoteDateKey,
+                        mushafFontSize: this.mushaf?.fontSize,
+                        mushafFontFamily: this.mushaf?.fontFamily,
+                        prayer: {
+                            enabled: this.prayer.enabled,
+                            placement: this.prayer.placement,
+                            method: this.prayer.method,
+                            cacheKey: this.prayer.cacheKey,
+                            dateKey: this.prayer.dateKey,
+                            timings: this.prayer.timings
+                        },
                         joinedMosque: this.community.joinedMosque,
                         joinedMosqueLocation: this.community.joinedMosqueLocation,
-                        qariahMode: this.community.qariahMode,
                         homeLocation: this.community.homeLocation,
-                        qariahMosque: this.community.qariahMosque,
-                        qariahRadiusKm: this.community.qariahRadiusKm
+                        homeLabel: this.community.homeLabel,
+                        destinationLocation: this.community.destinationLocation,
+                        destinationLabel: this.community.destinationLabel,
+                        homeQariahMosque: this.community.homeQariahMosque,
+                        currentQariahMosque: this.community.currentQariahMosque,
+                        qariahRadiusKm: this.community.qariahRadiusKm,
+                        marhalahKm: this.community.marhalahKm,
+                        plannedMusafir: this.community.plannedMusafir
                     }));
                 }
             }
