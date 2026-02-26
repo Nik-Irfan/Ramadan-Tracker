@@ -32,7 +32,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Lateef:wght@400;700&family=Harmattan:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Outfit', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        body { font-family: 'Outfit', sans-serif; transition: background-color 0.3s, color 0.3s; min-height: 100vh; }
+        
+        /* Layout Fix for Responsive Center */
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
+            background-color: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        body {
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .dark body {
+            background-color: #020617;
+        }
+
+        /* Fixed Navigation Center Fix */
+        .nav-fixed {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 418px; /* 450px - 32px padding */
+            z-index: 50;
+        }
         
         /* Theme Variables */
         :root {
@@ -93,6 +125,13 @@
             --accent-shadow: rgba(217, 119, 6, 0.2);
         }
 
+        .theme-navy {
+            --accent-gradient: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            --accent-soft: #eff6ff;
+            --accent-color: #1e3a8a;
+            --accent-shadow: rgba(30, 58, 138, 0.2);
+        }
+
         body { background-color: var(--bg-main); color: var(--text-main); }
         .bg-card { background-color: var(--bg-card); }
         .bg-inset { background-color: var(--bg-inset); }
@@ -128,12 +167,36 @@
             background-color: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
         }
+
+        /* Page Management Fixes */
+        .app-container {
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .page-wrapper {
+            position: relative;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
+        
+        .page-view {
+            overflow-y: auto;
+            padding: 1rem 1rem 10rem;
+            width: 100%;
+            height: 100%;
+        }
+        
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="antialiased" x-data="trackerApp()" x-init="init()" :class="{ 'dark': darkMode, 'theme-rose': theme === 'rose', 'theme-ocean': theme === 'ocean', 'theme-purple': theme === 'purple', 'theme-pink': theme === 'pink', 'theme-gold': theme === 'gold' }">
+<body class="antialiased" x-data="trackerApp()" x-init="init()" :class="{ 'dark': darkMode, 'theme-rose': theme === 'rose', 'theme-ocean': theme === 'ocean', 'theme-purple': theme === 'purple', 'theme-pink': theme === 'pink', 'theme-gold': theme === 'gold', 'theme-navy': theme === 'navy' }">
     
-    <!-- Onboarding Screen -->
-    <div x-show="view === 'onboarding'" x-cloak class="fixed inset-0 z-[100] bg-card overflow-y-auto px-6 py-12">
+    <div class="app-container">
+        <!-- Onboarding Screen -->
+    <div x-show="view === 'onboarding'" x-cloak class="fixed inset-0 z-[100] bg-card overflow-y-auto px-6 py-12 max-w-[450px] mx-auto">
         <div class="max-w-md mx-auto">
             <div class="text-center mb-12">
                 <div class="w-20 h-20 gradient-accent rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-accent animate-float">
@@ -189,30 +252,56 @@
         </div>
     </div>
 
-    <!-- Main Tracker Page -->
-    <div x-show="view === 'tracker'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8">
+    <!-- Page Wrapper for all main pages -->
+    <div class="page-wrapper">
+        <!-- Main Tracker Page -->
+        <div id="view-tracker" x-show="view === 'tracker'" x-cloak class="page-view">
         <!-- Gamified Header -->
-        <header class="flex justify-between items-start mb-8">
+        <header class="flex justify-between items-start mb-4 relative">
             <div class="flex gap-4">
-                <div class="w-14 h-14 gradient-purple rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-purple-100 relative">
-                    <span x-text="getUserLevel().level"></span>
-                    <div class="absolute -bottom-2 bg-card px-2 py-0.5 rounded-full text-[8px] font-black text-purple-600 shadow-sm border border-purple-100 uppercase tracking-tighter">Level</div>
-                </div>
+                <button @click="showUserMenu = !showUserMenu" class="relative group">
+                    <div class="w-14 h-14 gradient-purple rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-purple-100 relative transition-transform group-active:scale-95">
+                        <span x-text="getUserLevel().level"></span>
+                        <div class="absolute -bottom-2 bg-card px-2 py-0.5 rounded-full text-[8px] font-black text-purple-600 shadow-sm border border-purple-100 uppercase tracking-tighter">Level</div>
+                    </div>
+                </button>
                 <div>
-                    <h1 class="text-xl font-black text-main tracking-tighter" x-text="activeProfile?.name"></h1>
+                    <h1 class="text-xl font-black text-main tracking-tighter flex items-center gap-2">
+                        <span x-text="activeProfile?.name"></span>
+                        <button @click="showUserMenu = !showUserMenu" class="p-1 rounded-lg hover:bg-inset transition-all">
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+                        </button>
+                    </h1>
                     <div class="flex items-center gap-2 mt-1">
                         <div class="w-24 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div class="h-full gradient-purple transition-all duration-1000" :style="`width: ${getUserLevel().progress}%`"></div>
                         </div>
                         <span class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="`XP: ${activeProfile?.totalXP || 0}`"></span>
                     </div>
-                    <!-- New Version Indicator -->
-                    <div class="mt-2">
-                        <span class="text-[7px] font-black bg-slate-100 dark:bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-widest">v2.1.0-themed</span>
+                    <!-- User Menu Dropdown -->
+                    <div x-show="showUserMenu" @click.away="showUserMenu = false" x-transition 
+                        class="absolute top-12 left-0 w-48 bg-card rounded-2xl shadow-xl border border-theme z-[100] p-2 mt-1">
+                        <button @click="view = 'profiles'; showUserMenu = false" class="w-full text-left p-3 hover:bg-inset rounded-xl transition-all flex items-center gap-3">
+                            <i data-lucide="users" class="w-4 h-4 text-accent"></i>
+                            <span class="text-xs font-bold text-main">Tukar Akaun</span>
+                        </button>
+                        <button @click="view = 'onboarding'; showUserMenu = false" class="w-full text-left p-3 hover:bg-inset rounded-xl transition-all flex items-center gap-3">
+                            <i data-lucide="user-plus" class="w-4 h-4 text-blue-500"></i>
+                            <span class="text-xs font-bold text-main">Tambah Akaun</span>
+                        </button>
+                        <button @click="logout(); showUserMenu = false" class="w-full text-left p-3 hover:bg-red-50 text-red-500 rounded-xl transition-all flex items-center gap-3">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span class="text-xs font-bold">Log Keluar</span>
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="flex flex-col items-end gap-2">
+                <button @click="editMode = !editMode" 
+                    class="p-2 rounded-xl transition-all"
+                    :class="editMode ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
+                    <i :data-lucide="editMode ? 'check' : 'edit-3'" class="w-4 h-4"></i>
+                </button>
                 <div class="bg-orange-50 dark:bg-orange-900/10 px-3 py-2 rounded-2xl flex items-center gap-2 border border-orange-100 dark:border-orange-900/30">
                     <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-current"></i>
                     <span class="text-xs font-black text-orange-600 dark:text-orange-400" x-text="`${calculateStreak()} Day Streak`"></span>
@@ -221,8 +310,8 @@
         </header>
 
         <!-- Day Selector -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-4 px-2">
+        <div class="mb-2">
+            <div class="flex justify-between items-center mb-2 px-2">
                 <h3 class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pilih Tarikh</h3>
                 <button @click="showCalendar = !showCalendar" class="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-widest bg-card px-3 py-1.5 rounded-full border border-theme shadow-sm">
                     <i :data-lucide="showCalendar ? 'list' : 'calendar'" class="w-3 h-3"></i>
@@ -232,12 +321,12 @@
 
             <!-- List View (Default) -->
             <div x-show="!showCalendar" x-transition:enter class="flex items-center bg-card rounded-[2rem] p-3 custom-shadow overflow-x-auto whitespace-nowrap gap-3 scrollbar-hide border border-theme">
-                <template x-for="day in 30" :key="day">
+                    <template x-for="day in 30" :key="day">
                     <button @click="currentDay = day" :data-day="day"
                         class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 font-bold relative"
                         :class="currentDay === day ? 'gradient-accent text-white shadow-accent scale-110' : 'bg-inset text-muted'"
                         x-text="day">
-                        <div x-show="calculateTotal(day) >= 50" class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"></div>
+                        <div x-show="$data.calculateTotal(day) >= 50" class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"></div>
                     </button>
                 </template>
             </div>
@@ -261,7 +350,7 @@
                             <span class="text-[8px] font-black leading-none" :class="getDailyPct(day) > 0 ? (getDailyPct(day) >= 80 ? 'text-green-500' : (getDailyPct(day) >= 40 ? 'text-yellow-500' : 'text-red-500')) : 'text-muted/30'" x-text="`${getDailyPct(day)}%`"></span>
                             
                             <!-- Perfect Day Star -->
-                            <div x-show="calculateTotal(day) >= 50" class="absolute top-0.5 right-0.5">
+                            <div x-show="$data.calculateTotal(day) >= 50" class="absolute top-0.5 right-0.5">
                                 <i data-lucide="star" class="w-2 h-2 text-yellow-400 fill-current"></i>
                             </div>
                         </button>
@@ -276,7 +365,7 @@
         </div>
 
         <!-- Progress Card -->
-        <div class="bg-card rounded-[2.5rem] p-8 custom-shadow mb-8 relative overflow-hidden border border-theme">
+        <div class="bg-card rounded-[2.5rem] p-8 custom-shadow mb-2 relative overflow-hidden border border-theme">
             <div class="flex justify-between items-end mb-6">
                 <div>
                     <span class="accent-soft text-accent text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest" x-text="`Ramadan Day ${currentDay}`"></span>
@@ -313,8 +402,20 @@
 
         <!-- Ibadah List -->
         <div class="grid grid-cols-1 gap-4">
-            <template x-for="item in activeProfile?.ibadahList" :key="item.id">
-                <div class="bg-card rounded-[2rem] p-5 custom-shadow transition-all border border-theme" :class="getScore(item.id) > 0 ? 'ring-2 ring-accent ring-opacity-10' : ''">
+            <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
+                <div class="bg-card rounded-[2rem] p-5 custom-shadow transition-all border border-theme relative group" :class="getScore(item.id) > 0 ? 'ring-2 ring-accent ring-opacity-10' : ''">
+                    <!-- Edit Mode Controls -->
+                    <div x-show="editMode" class="absolute -top-2 -right-2 flex gap-2 z-10">
+                        <button @click="const newName = prompt('Nama baru:', item.name); if(newName) item.name = newName; save();" 
+                            class="w-8 h-8 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center">
+                            <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button @click="if(confirm('Padam misi ini?')) { activeProfile.ibadahList.splice(index, 1); save(); }" 
+                            class="w-8 h-8 bg-red-500 text-white rounded-full shadow-lg flex items-center justify-center">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
                             <div class="p-2 rounded-xl accent-soft">
@@ -336,11 +437,18 @@
                     </div>
                 </div>
             </template>
-        </div>
-    </div>
 
-    <!-- Mushaf Page (Combined with Quiz) -->
-    <div x-show="view === 'mushaf'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8">
+            <!-- Add New Ibadah (Only in Edit Mode) -->
+            <button x-show="editMode" @click="view = 'settings'; $nextTick(() => { document.querySelector('[x-model=\'newItem.name\']').scrollIntoView({behavior: 'smooth'}) })" 
+                class="w-full py-8 border-4 border-dashed border-accent/20 rounded-[2rem] text-accent/40 font-black text-sm hover:border-accent hover:text-accent transition-all flex flex-col items-center justify-center gap-2">
+                <i data-lucide="plus-circle" class="w-8 h-8"></i>
+                Tambah Misi Baru
+            </button>
+        </div>
+        </div>
+
+        <!-- Mushaf Page (Combined with Quiz) -->
+        <div id="view-mushaf" x-show="view === 'mushaf'" x-cloak class="page-view">
         <header class="mb-6">
             <h1 class="text-3xl font-black text-main tracking-tighter">Al-Quran</h1>
             <p class="text-muted font-medium text-xs">Mushaf & Ujian Hafazan</p>
@@ -362,38 +470,83 @@
             </button>
         </div>
 
-        <!-- Selection Mode Toggle (Juz vs Surah) -->
+        <!-- Selection Mode Toggle (Juz vs Surah vs Page) -->
         <div class="flex gap-2 mb-6">
-            <button @click="mushaf.selectionMode = 'juz'; quiz.selectionMode = 'juz'; if(quiz.active) startQuiz(); else fetchMushaf()" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                :class="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'juz' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
-                Pilih Juz
+            <button @click="mushaf.selectionMode = 'juz'; quiz.selectionMode = 'juz'; quiz.currentJuz = mushaf.currentJuz; mushaf.showSelector = true;" 
+                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                :class="mushaf.selectionMode === 'juz' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
+                <i data-lucide="grid" class="w-3 h-3"></i>
+                Juz <span x-text="mushaf.currentJuz"></span>
             </button>
-            <button @click="mushaf.selectionMode = 'surah'; quiz.selectionMode = 'surah'; if(quiz.active) startQuiz(); else fetchMushaf()" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                :class="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'surah' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
-                Pilih Surah
+            <button @click="mushaf.selectionMode = 'surah'; quiz.selectionMode = 'surah'; quiz.currentSurah = mushaf.currentSurah; mushaf.showSelector = true;" 
+                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                :class="mushaf.selectionMode === 'surah' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
+                <i data-lucide="list" class="w-3 h-3"></i>
+                <span x-text="mushaf.surahNamesMalay[mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName] || 'Surah'"></span>
+            </button>
+            <button @click="mushaf.selectionMode = 'page'; quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; mushaf.showSelector = true;" 
+                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                :class="mushaf.selectionMode === 'page' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
+                <i data-lucide="book" class="w-3 h-3"></i>
+                Page <span x-text="mushaf.currentPage"></span>
             </button>
         </div>
 
-        <!-- Juz Selector -->
-        <div x-show="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'juz'" class="bg-card rounded-[2.5rem] p-5 custom-shadow border border-theme mb-6 overflow-x-auto scrollbar-hide flex gap-3 whitespace-nowrap">
-            <template x-for="j in 30" :key="j">
-                <button @click="mushaf.currentJuz = j; quiz.currentJuz = j; if(quiz.active) startQuiz(); else fetchMushaf()" 
-                    class="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-black transition-all text-xs"
-                    :class="(quiz.active ? quiz.currentJuz : mushaf.currentJuz) === j ? 'gradient-accent text-white shadow-accent' : 'bg-inset text-muted'"
-                    x-text="j"></button>
-            </template>
-        </div>
+        <!-- Selection Overlay -->
+        <div x-show="mushaf.showSelector" x-cloak class="fixed inset-0 z-[100] flex items-end justify-center max-w-[450px] mx-auto">
+            <div @click="mushaf.showSelector = false" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+            <div class="bg-card w-full max-w-md rounded-t-[3rem] p-8 relative z-10 shadow-2xl border-t border-theme animate-slide-up max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-sm font-black text-main uppercase tracking-widest" x-text="`Pilih ${mushaf.selectionMode}`"></h3>
+                    <button @click="mushaf.showSelector = false" class="p-2 text-muted hover:text-main">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
 
-        <!-- Surah Selector -->
-        <div x-show="(quiz.active ? quiz.selectionMode : mushaf.selectionMode) === 'surah'" class="bg-card rounded-[2.5rem] p-5 custom-shadow border border-theme mb-6 overflow-x-auto scrollbar-hide flex gap-3 whitespace-nowrap">
-            <template x-for="s in mushaf.surahs" :key="s.number">
-                <button @click="mushaf.currentSurah = s.number; quiz.currentSurah = s.number; if(quiz.active) startQuiz(); else fetchMushaf()" 
-                    class="px-4 h-10 rounded-xl flex-shrink-0 flex items-center justify-center font-black transition-all text-[10px] uppercase tracking-tighter"
-                    :class="(quiz.active ? quiz.currentSurah : mushaf.currentSurah) === s.number ? 'gradient-accent text-white shadow-accent' : 'bg-inset text-muted'"
-                    x-text="s.englishName"></button>
-            </template>
+                <!-- Juz Selector (Grid Style) -->
+                <div x-show="mushaf.selectionMode === 'juz'" class="grid grid-cols-5 gap-3">
+                    <template x-for="j in 30" :key="j">
+                        <button @click="mushaf.currentJuz = j; mushaf.currentPage = mushaf.juzPages[j]; fetchMushaf(); mushaf.showSelector = false;" 
+                            class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2"
+                            :class="mushaf.currentJuz === j ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted'">
+                            <span class="font-black text-xs" x-text="j"></span>
+                            <span class="text-[7px] font-bold opacity-50" x-text="`P. ${mushaf.juzPages[j]}`"></span>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Surah Selector (Grid with Search) -->
+                <div x-show="mushaf.selectionMode === 'surah'">
+                    <div class="mb-4 relative">
+                        <input type="text" x-model="mushaf.searchSurah" placeholder="Cari surah (e.g. Yasin)..." 
+                            class="w-full p-4 bg-inset rounded-xl border-none text-[10px] font-bold text-main focus:ring-2 ring-accent ring-opacity-10 transition-all">
+                        <i data-lucide="search" class="absolute right-4 top-3.5 w-4 h-4 text-muted"></i>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <template x-for="s in filteredSurahs" :key="s.number">
+                            <button @click="mushaf.currentSurah = s.number; fetchMushaf(); mushaf.showSelector = false;" 
+                                class="p-3 rounded-xl flex items-center gap-3 transition-all border-2 text-left"
+                                :class="mushaf.currentSurah === s.number ? 'border-accent bg-accent/5' : 'border-transparent bg-inset'">
+                                <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[8px] font-black text-accent" x-text="s.number"></span>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] font-black text-main truncate uppercase" x-text="mushaf.surahNamesMalay[s.englishName] || s.englishName"></p>
+                                    <p class="text-[8px] font-bold text-muted truncate" x-text="s.name"></p>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Page Selector (Grid Style) -->
+                <div x-show="mushaf.selectionMode === 'page'" class="grid grid-cols-6 gap-2">
+                    <template x-for="p in 604" :key="p">
+                        <button @click="mushaf.currentPage = p; fetchMushaf(false); mushaf.showSelector = false;" 
+                            class="aspect-square rounded-lg flex items-center justify-center text-[8px] font-black transition-all border"
+                            :class="mushaf.currentPage === p ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted/50'"
+                            x-text="p"></button>
+                    </template>
+                </div>
+            </div>
         </div>
 
         <!-- Quiz Section (Overlay when active) -->
@@ -415,14 +568,19 @@
                         <!-- Mode Toggle -->
                         <div class="flex bg-inset p-1 rounded-xl border border-theme">
                             <button @click="quiz.testMode = 'voice'; startQuiz()" 
-                                class="p-1.5 rounded-lg transition-all" :class="quiz.testMode === 'voice' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
-                                <i data-lucide="mic" class="w-3 h-3"></i>
+                                class="p-2.5 rounded-lg transition-all" :class="quiz.testMode === 'voice' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
+                                <i data-lucide="mic" class="w-4 h-4"></i>
                             </button>
                             <button @click="quiz.testMode = 'mcq'; startQuiz()" 
-                                class="p-1.5 rounded-lg transition-all" :class="quiz.testMode === 'mcq' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
-                                <i data-lucide="list-checks" class="w-3 h-3"></i>
+                                class="p-2.5 rounded-lg transition-all" :class="quiz.testMode === 'mcq' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
+                                <i data-lucide="list-checks" class="w-4 h-4"></i>
                             </button>
                         </div>
+                        <button @click="randomizeAyat()" 
+                            class="p-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors" 
+                            title="Randomize Ayat">
+                            <i data-lucide="shuffle" class="w-4 h-4"></i>
+                        </button>
                         <button @click="quiz.active = false; quiz.session = {correct:0, wrong:0, total:0}" class="text-muted hover:text-red-500 transition-colors p-2">
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
@@ -591,16 +749,17 @@
 
                 <!-- Mushaf Page Footer -->
                 <div class="mt-8 pt-6 border-t border-[#e6d5b8] dark:border-[#3d301e] flex justify-between items-center opacity-40">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-accent" x-text="mushaf.selectionMode === 'juz' ? `Juz ${mushaf.currentJuz}` : mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName"></span>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-accent" x-text="mushaf.selectionMode === 'juz' ? `Juz ${mushaf.currentJuz}` : mushaf.surahNamesMalay[mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName] || mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName"></span>
                     <div class="w-2 h-2 rounded-full bg-accent"></div>
                     <span class="text-[10px] font-black uppercase tracking-widest text-accent">Ramadan Mushaf</span>
                 </div>
             </div>
         </div>
     </div>
+    </template>
 
     <!-- Community Page -->
-    <div x-show="view === 'community'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8">
+    <div x-show="view === 'community'" x-cloak class="page-view">
         <header class="mb-8">
             <h1 class="text-3xl font-black text-main tracking-tighter">Komuniti Masjid</h1>
             <p class="text-muted font-medium text-xs">Informasi & Interaksi Bersama Jemaah</p>
@@ -618,7 +777,7 @@
             
             <div class="space-y-4">
                 <div class="p-5 bg-inset rounded-2xl border-2 border-accent/20 flex items-center justify-between group hover:border-accent transition-all cursor-pointer"
-                    @click="community.joinedMosque = community.dummyMosque.name; save();">
+                    @click="community.joinedMosque = community.dummyMosque.name; community.joinedMosqueLocation = community.dummyMosque.location; save();">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 gradient-accent rounded-xl flex items-center justify-center text-white shadow-accent">
                             <i data-lucide="map-pin" class="w-6 h-6"></i>
@@ -632,10 +791,36 @@
                 </div>
 
                 <div class="relative">
-                    <input type="text" x-model="community.searchQuery" placeholder="Cari masjid lain..." 
+                    <input type="text" x-model="community.searchQuery" @input="community.showSearchResults = community.searchQuery.length > 0" placeholder="Cari masjid lain..." 
                         class="w-full p-5 bg-inset rounded-2xl border-none font-bold text-main focus:ring-4 ring-accent ring-opacity-10 transition-all">
-                    <button @click="if(community.searchQuery) { community.joinedMosque = community.searchQuery; save(); }" 
+                    <button @click="if(community.searchQuery) { const found = community.availableMosques.find(m => m.name.toLowerCase() === community.searchQuery.toLowerCase()); community.joinedMosque = community.searchQuery; community.joinedMosqueLocation = found ? found.location : null; community.showSearchResults = false; save(); }" 
                         class="absolute right-2 top-2 bottom-2 px-6 gradient-accent text-white font-black rounded-xl text-[10px] uppercase">Cari</button>
+                    
+                    <!-- Search Results Dropdown -->
+                    <div x-show="community.showSearchResults" x-transition class="absolute top-full left-0 right-0 mt-2 bg-card rounded-2xl shadow-xl border border-theme z-[200] max-h-60 overflow-y-auto">
+                        <template x-for="mosque in community.availableMosques.filter(m => m.name.toLowerCase().includes(community.searchQuery.toLowerCase())).sort((a, b) => a.distance - b.distance)" :key="mosque.id">
+                            <div @click="community.joinedMosque = mosque.name; community.joinedMosqueLocation = mosque.location; community.showSearchResults = false; community.searchQuery = ''; save();" 
+                                class="p-4 hover:bg-inset cursor-pointer transition-all border-b border-theme last:border-b-0">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-sm font-black text-main" x-text="mosque.name"></h4>
+                                        <p class="text-xs text-muted" x-text="mosque.location"></p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="flex items-center gap-1 text-accent">
+                                            <i data-lucide="navigation" class="w-3 h-3"></i>
+                                            <span class="text-xs font-black" x-text="mosque.distanceText"></span>
+                                        </div>
+                                        <span class="text-[8px] text-muted" x-text="mosque.prayerTime"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="community.availableMosques.filter(m => m.name.toLowerCase().includes(community.searchQuery.toLowerCase())).length === 0" 
+                            class="p-4 text-center text-muted text-xs">
+                            Tiada masjid dijumpai
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -652,17 +837,30 @@
                             <i data-lucide="building-2" class="w-8 h-8"></i>
                         </div>
                         <div>
-                            <h2 class="text-xl font-black text-main tracking-tighter" x-text="community.joinedMosque"></h2>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-xl font-black text-main tracking-tighter" x-text="community.joinedMosque"></h2>
+                                <i data-lucide="check-circle" class="w-4 h-4 text-blue-500 fill-current text-white"></i>
+                            </div>
                             <div class="flex items-center gap-2 mt-1">
                                 <i data-lucide="map-pin" class="w-3 h-3 text-accent"></i>
-                                <span class="text-[10px] font-bold text-muted uppercase tracking-wider" x-text="community.dummyMosque.location"></span>
+                                <span class="text-[10px] font-bold text-muted uppercase tracking-wider" x-text="community.joinedMosqueLocation || community.dummyMosque.location"></span>
                             </div>
                         </div>
                     </div>
-                    <button @click="if(confirm('Tinggalkan komuniti ini?')) { community.joinedMosque = null; save(); }" 
-                        class="p-3 bg-inset rounded-xl text-muted hover:text-red-500 transition-all">
-                        <i data-lucide="more-horizontal" class="w-5 h-5"></i>
-                    </button>
+                    <div class="flex gap-2">
+                        <button @click="community.notificationsOn = !community.notificationsOn" 
+                            class="p-3 rounded-xl transition-all relative z-10 cursor-pointer" :class="community.notificationsOn ? 'bg-yellow-400 text-white shadow-lg shadow-yellow-100' : 'bg-inset text-muted'">
+                            <i :data-lucide="community.notificationsOn ? 'bell' : 'bell-off'" class="w-5 h-5"></i>
+                        </button>
+                        <button @click="community.isAdmin = !community.isAdmin" 
+                            class="p-3 rounded-xl transition-all relative z-10 cursor-pointer" :class="community.isAdmin ? 'bg-accent text-white shadow-accent' : 'bg-inset text-muted'">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i>
+                        </button>
+                        <button @click="community.joinedMosque = null; community.joinedMosqueLocation = null; community.searchQuery = ''; save();" 
+                            class="p-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-all relative z-10 cursor-pointer">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Real-time Distance Tracking -->
@@ -684,6 +882,33 @@
                 </div>
             </div>
 
+            <!-- Admin Panel (Only for AJK) -->
+            <div x-show="community.isAdmin" x-transition class="bg-blue-50 dark:bg-blue-900/20 rounded-[2.5rem] p-6 border-2 border-blue-200 dark:border-blue-800">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="settings" class="w-4 h-4"></i> Panel Admin AJK
+                    </h3>
+                    <span class="text-[8px] font-black bg-blue-600 text-white px-2 py-1 rounded-full uppercase">Verified Batch</span>
+                </div>
+                
+                <!-- Admin Panel - Only visible in admin mode -->
+                <div x-show="community.isAdmin && community.pendingPosts.length > 0" class="space-y-4">
+                    <p class="text-[10px] font-bold text-blue-400 uppercase tracking-widest" x-text="`Persetujuan Post (${community.pendingPosts.length})`"></p>
+                    <template x-for="post in community.pendingPosts" :key="post.id">
+                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-blue-100">
+                            <p class="text-[9px] font-black text-main mb-1" x-text="post.user"></p>
+                            <p class="text-xs text-muted mb-3" x-text="post.content"></p>
+                            <div class="flex gap-2">
+                                <button @click="post.status = 'approved'; community.updates.unshift(post); community.pendingPosts = community.pendingPosts.filter(p => p.id !== post.id);" 
+                                    class="flex-1 py-2 bg-green-500 text-white text-[9px] font-black rounded-lg uppercase">Approve</button>
+                                <button @click="community.pendingPosts = community.pendingPosts.filter(p => p.id !== post.id);" 
+                                    class="flex-1 py-2 bg-red-100 text-red-500 text-[9px] font-black rounded-lg uppercase">Reject</button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
             <!-- Social Feed Tab Switcher -->
             <div class="flex p-1.5 bg-inset rounded-2xl border border-theme">
                 <button @click="community.activeTab = 'feed'" 
@@ -700,30 +925,81 @@
 
             <!-- Feed Section -->
             <div x-show="!community.activeTab || community.activeTab === 'feed'" class="space-y-4">
+                <!-- Create Post (Social Style) -->
+                <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-inset rounded-full flex items-center justify-center font-black text-xs text-accent" x-text="activeProfile.name[0]"></div>
+                        <p class="text-xs font-black text-main">Apa khabar jemaah?</p>
+                    </div>
+                    <textarea x-model="community.newPostContent" placeholder="Kongsi sesuatu dengan komuniti..." 
+                        class="w-full p-4 bg-inset rounded-2xl border-none text-xs font-medium text-main focus:ring-2 ring-accent ring-opacity-10 min-h-[80px] mb-3"></textarea>
+                    <button @click="if(community.newPostContent) { 
+                        const newPost = { id: Date.now(), mosque: community.joinedMosque, title: 'Kiriman Jemaah', content: community.newPostContent, time: 'Baru sahaja', likes: 0, comments: 0, isAJK: community.isAdmin, status: community.isAdmin ? 'approved' : 'pending', user: activeProfile.name };
+                        if(community.isAdmin) { community.updates.unshift(newPost); } else { community.pendingPosts.unshift(newPost); alert('Post anda telah dihantar untuk kelulusan AJK.'); }
+                        community.newPostContent = ''; 
+                    }" 
+                        class="w-full py-4 gradient-accent text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-accent">
+                        Hantar Post
+                    </button>
+                </div>
+
                 <template x-for="update in community.updates" :key="update.id">
-                    <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 gradient-accent rounded-full flex items-center justify-center text-white font-black text-xs">M</div>
-                            <div>
-                                <p class="text-xs font-black text-main" x-text="update.mosque"></p>
-                                <p class="text-[9px] text-muted font-bold" x-text="update.time"></p>
+                    <div class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme" x-show="update.status === 'approved'">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 gradient-accent rounded-full flex items-center justify-center text-white font-black text-xs" x-text="update.isAJK ? 'M' : update.user[0]"></div>
+                                <div>
+                                    <div class="flex items-center gap-1">
+                                        <p class="text-xs font-black text-main" x-text="update.isAJK ? (update.mosque || community.joinedMosque) : update.user"></p>
+                                        <i x-show="update.isAJK" data-lucide="check-circle" class="w-3 h-3 text-blue-500 fill-current text-white"></i>
+                                    </div>
+                                    <p class="text-[9px] text-muted font-bold" x-text="update.time"></p>
+                                </div>
                             </div>
+                            <span x-show="update.isAJK" class="text-[7px] font-black bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full uppercase">Official AJK</span>
                         </div>
                         <h4 class="font-black text-main text-sm mb-2" x-text="update.title"></h4>
                         <p class="text-xs text-muted mb-4 leading-relaxed" x-text="update.content"></p>
                         
                         <div class="flex items-center gap-6 pt-4 border-t border-theme">
-                            <button class="flex items-center gap-2 text-muted hover:text-accent transition-all">
-                                <i data-lucide="heart" class="w-4 h-4"></i>
+                            <button @click="update.liked = !update.liked; update.likes += update.liked ? 1 : -1" 
+                                class="flex items-center gap-2 transition-all" :class="update.liked ? 'text-red-500' : 'text-muted hover:text-accent'">
+                                <i :data-lucide="update.liked ? 'heart' : 'heart'" class="w-4 h-4" :class="update.liked ? 'fill-current' : ''"></i>
                                 <span class="text-[10px] font-black" x-text="update.likes"></span>
                             </button>
-                            <button class="flex items-center gap-2 text-muted hover:text-accent transition-all">
+                            <button @click="update.showComments = !update.showComments" 
+                                class="flex items-center gap-2 text-muted hover:text-accent transition-all">
                                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                                 <span class="text-[10px] font-black" x-text="update.comments"></span>
                             </button>
-                            <button class="flex items-center gap-2 text-muted hover:text-accent transition-all ml-auto">
+                            <button @click="if(navigator.share) { navigator.share({title: update.title, text: update.content}); } else { alert('Kongsi: ' + update.title); }" 
+                                class="flex items-center gap-2 text-muted hover:text-accent transition-all ml-auto">
                                 <i data-lucide="share-2" class="w-4 h-4"></i>
                             </button>
+                        </div>
+                        <!-- Comments Section -->
+                        <div x-show="update.showComments" x-transition class="mt-4 p-4 bg-inset rounded-2xl">
+                            <div class="space-y-3 mb-3">
+                                <template x-for="comment in (update.commentsList || [])" :key="comment.id">
+                                    <div class="flex gap-3">
+                                        <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-black text-xs">
+                                            <span x-text="comment.user[0]"></span>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-xs font-black text-main" x-text="comment.user"></p>
+                                            <p class="text-xs text-muted" x-text="comment.text"></p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" x-model="update.newComment" placeholder="Tambah komen..." 
+                                    class="flex-1 p-2 bg-card rounded-xl border border-theme text-xs font-medium text-main focus:ring-2 ring-accent ring-opacity-10">
+                                <button @click="if(update.newComment) { update.commentsList = update.commentsList || []; update.commentsList.push({id: Date.now(), user: activeProfile.name, text: update.newComment}); update.comments++; update.newComment = ''; }" 
+                                    class="px-3 py-2 bg-accent text-white rounded-xl text-xs font-black transition-all">
+                                    Hantar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </template>
@@ -762,14 +1038,33 @@
                             <p class="text-[11px] text-muted italic leading-relaxed" x-text="q.answer"></p>
                         </div>
 
+                        <!-- Admin Answer Section -->
+                        <div x-show="community.isAdmin && !q.answer" class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl border border-yellow-200 dark:border-yellow-800">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i data-lucide="edit-3" class="w-3 h-3 text-yellow-600"></i>
+                                <span class="text-[9px] text-yellow-600 font-black uppercase tracking-widest">Jawab Sebagai Admin</span>
+                            </div>
+                            <textarea x-model="q.adminAnswer" placeholder="Tulis jawapan anda..." 
+                                class="w-full p-3 bg-card rounded-xl border border-yellow-200 text-xs font-medium text-main focus:ring-2 ring-yellow-400 ring-opacity-10 min-h-[80px] mb-2"></textarea>
+                            <button @click="if(q.adminAnswer) { q.answer = q.adminAnswer; q.adminAnswer = ''; }" 
+                                class="w-full py-2 bg-yellow-500 text-white text-[9px] font-black rounded-lg uppercase transition-all">
+                                Hantar Jawapan
+                            </button>
+                        </div>
+
                         <div class="flex items-center gap-4 pt-4 border-t border-theme">
-                            <button class="flex items-center gap-2 text-muted hover:text-accent transition-all">
-                                <i data-lucide="arrow-up-circle" class="w-4 h-4"></i>
+                            <button @click="q.liked = !q.liked; q.likes += q.liked ? 1 : -1" 
+                                class="flex items-center gap-2 transition-all" :class="q.liked ? 'text-accent' : 'text-muted hover:text-accent'">
+                                <i :data-lucide="q.liked ? 'arrow-up-circle' : 'arrow-up-circle'" class="w-4 h-4" :class="q.liked ? 'fill-current' : ''"></i>
                                 <span class="text-[10px] font-black" x-text="q.likes"></span>
                             </button>
-                            <span x-show="!q.answer" class="text-[8px] font-bold text-muted uppercase tracking-widest ml-auto flex items-center gap-2">
+                            <span x-show="!q.answer && !community.isAdmin" class="text-[8px] font-bold text-muted uppercase tracking-widest ml-auto flex items-center gap-2">
                                 <div class="w-1 h-1 rounded-full bg-yellow-400 animate-pulse"></div>
                                 Menunggu jawapan
+                            </span>
+                            <span x-show="!q.answer && community.isAdmin" class="text-[8px] font-bold text-yellow-600 uppercase tracking-widest ml-auto flex items-center gap-2">
+                                <div class="w-1 h-1 rounded-full bg-yellow-400 animate-pulse"></div>
+                                Jawaban Diperlukan
                             </span>
                         </div>
                     </div>
@@ -779,7 +1074,7 @@
     </div>
 
     <!-- Stats Page -->
-    <div x-show="view === 'stats'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8 text-center">
+    <div x-show="view === 'stats'" x-cloak class="page-view text-center">
         <header class="mb-12 text-left">
             <h1 class="text-3xl font-black text-main tracking-tighter">Achievement</h1>
             <p class="text-muted font-medium">Rekod kehebatan <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
@@ -879,8 +1174,8 @@
         </div>
     </div>
 
-    <!-- Profiles Page -->
-    <div x-show="view === 'profiles'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8">
+    <!-- Profile Selection Screen -->
+    <div x-show="view === 'profiles'" x-cloak class="page-view">
         <header class="mb-12">
             <h1 class="text-3xl font-black text-main tracking-tighter">Arena Keluarga</h1>
             <p class="text-muted font-medium">Pilih karakter untuk teruskan misi</p>
@@ -917,8 +1212,8 @@
         </button>
     </div>
 
-    <!-- Settings Page -->
-    <div x-show="view === 'settings'" x-cloak class="max-w-md mx-auto min-h-screen pb-32 px-4 pt-8">
+    <!-- Config Page -->
+    <div x-show="view === 'settings'" x-cloak class="page-view">
         <header class="mb-12">
             <h1 class="text-3xl font-black text-main tracking-tighter">Tetapan</h1>
             <p class="text-muted font-medium">Urus ibadah & profil anda</p>
@@ -945,6 +1240,7 @@
                         <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3">Warna Tema</span>
                         <div class="flex flex-wrap gap-4">
                             <button @click="theme = 'emerald'" class="w-10 h-10 rounded-full bg-emerald-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'emerald' ? 'ring-emerald-200 scale-110' : ''"></button>
+                            <button @click="theme = 'navy'" class="w-10 h-10 rounded-full bg-[#1e3a8a] ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'navy' ? 'ring-blue-200 scale-110' : ''"></button>
                             <button @click="theme = 'rose'" class="w-10 h-10 rounded-full bg-rose-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'rose' ? 'ring-rose-200 scale-110' : ''"></button>
                             <button @click="theme = 'ocean'" class="w-10 h-10 rounded-full bg-sky-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'ocean' ? 'ring-sky-200 scale-110' : ''"></button>
                             <button @click="theme = 'purple'" class="w-10 h-10 rounded-full bg-purple-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'purple' ? 'ring-purple-200 scale-110' : ''"></button>
@@ -1070,7 +1366,7 @@
     </div>
 
     <!-- Badge Description Modal -->
-    <div x-show="selectedBadge" x-cloak class="fixed inset-0 z-[200] flex items-center justify-center p-6">
+    <div x-show="selectedBadge" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
         <div @click="selectedBadge = null" class="absolute inset-0 modal-backdrop"></div>
         <div class="bg-card w-full max-w-sm rounded-[3rem] p-8 relative z-10 custom-shadow border border-theme animate-float">
             <div class="text-center">
@@ -1092,9 +1388,10 @@
             </div>
         </div>
     </div>
+    </div> <!-- Close page-wrapper -->
 
     <!-- Bottom Nav -->
-    <nav class="fixed bottom-6 left-2 right-2 max-w-lg mx-auto bg-card/90 backdrop-blur-2xl rounded-[3rem] p-4 custom-shadow flex justify-around items-center border border-theme z-50">
+    <nav x-show="view !== 'onboarding'" class="nav-fixed bg-card/90 backdrop-blur-2xl rounded-[3rem] p-4 custom-shadow flex justify-around items-center border border-theme">
         <button @click="view = 'tracker'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'tracker' ? 'nav-active' : 'text-muted'">
             <i data-lucide="layout-grid" class="w-5 h-5"></i>
             <span class="text-[8px] font-black uppercase tracking-tighter">Tracker</span>
@@ -1120,6 +1417,8 @@
             <span class="text-[8px] font-black uppercase tracking-tighter">Config</span>
         </button>
     </nav>
+
+    </div>
 
     <script>
         if ('serviceWorker' in navigator) {
@@ -1224,29 +1523,69 @@
                 theme: 'emerald',
                 selectedBadge: null,
                 showCalendar: false,
+                editMode: false,
+                showUserMenu: false,
                 mushaf: {
                     loading: false,
-                    selectionMode: 'juz', // 'juz' or 'surah'
+                    selectionMode: 'juz', // 'juz', 'surah', or 'page'
                     currentJuz: 1,
                     currentSurah: 1,
                     currentPage: 1,
                     verses: [],
-                    surahs: [], // List of 114 surahs
+                    surahs: [],
                     fontSize: 32,
                     fontFamily: 'Amiri',
-                    viewMode: 'page' // 'list' or 'page'
+                    viewMode: 'page',
+                    searchSurah: '',
+                    showSelector: false,
+                    juzPages: {
+                        1: 1, 2: 22, 3: 42, 4: 62, 5: 82, 6: 102, 7: 122, 8: 142, 9: 162, 10: 182,
+                        11: 202, 12: 222, 13: 242, 14: 262, 15: 282, 16: 302, 17: 322, 18: 342, 19: 362, 20: 382,
+                        21: 402, 22: 422, 23: 442, 24: 462, 25: 482, 26: 502, 27: 522, 28: 542, 29: 562, 30: 582
+                    },
+                    surahNamesMalay: {
+                        'Al-Faatiha': 'Al-Fatihah', 'Al-Baqara': 'Al-Baqarah', 'Aal-i-Imraan': 'Ali \'Imran', 'An-Nisaa': 'An-Nisa\'',
+                        'Al-Maaida': 'Al-Ma\'idah', 'Al-An\'aam': 'Al-An\'am', 'Al-A\'raaf': 'Al-A\'raf', 'Al-Anfaal': 'Al-Anfal',
+                        'At-Tawba': 'At-Taubah', 'Yunus': 'Yunus', 'Hud': 'Hud', 'Yusuf': 'Yusuf', 'Ar-Ra\'d': 'Ar-Ra\'d',
+                        'Ibrahim': 'Ibrahim', 'Al-Hijr': 'Al-Hijr', 'An-Nahl': 'An-Nahl', 'Al-Israa': 'Al-Isra\'',
+                        'Al-Kahf': 'Al-Kahf', 'Maryam': 'Maryam', 'Ta-Ha': 'Taha', 'Al-Anbiyaa': 'Al-Anbiya\'',
+                        'Al-Hajj': 'Al-Hajj', 'Al-Mu\'minoon': 'Al-Mu\'minun', 'An-Noor': 'An-Nur', 'Al-Furqaan': 'Al-Furqan',
+                        'Ash-Shu\'araa': 'Asy-Syu\'ara\'', 'An-Naml': 'An-Naml', 'Al-Qasas': 'Al-Qasas', 'Al-Ankaboot': 'Al-\'Ankabut',
+                        'Ar-Room': 'Ar-Rum', 'Luqman': 'Luqman', 'As-Sajda': 'As-Sajdah', 'Al-Ahzaab': 'Al-Ahzab',
+                        'Saba': 'Saba\'', 'Faatir': 'Fatir', 'Ya-Seen': 'Yasin', 'As-Saaffaat': 'As-Saffat', 'Saad': 'Sad',
+                        'Az-Zumar': 'Az-Zumar', 'Ghafir': 'Ghafir', 'Fussilat': 'Fussilat', 'Ash-Shura': 'Asy-Syura',
+                        'Az-Zukhruf': 'Az-Zukhruf', 'Ad-Dukhaan': 'Ad-Dukhan', 'Al-Jaathiya': 'Al-Jatsiyah', 'Al-Ahqaaf': 'Al-Ahqaf',
+                        'Muhammad': 'Muhammad', 'Al-Fath': 'Al-Fath', 'Al-Hujuraat': 'Al-Hujurat', 'Qaaf': 'Qaf',
+                        'Adh-Dhaariyat': 'Adz-Dzariyat', 'At-Toor': 'At-Tur', 'An-Najm': 'An-Najm', 'Al-Qamar': 'Al-Qamar',
+                        'Ar-Rahmaan': 'Ar-Rahman', 'Al-Waaqi\'a': 'Al-Waqi\'ah', 'Al-Hadeed': 'Al-Hadid', 'Al-Mujaadila': 'Al-Mujadilah',
+                        'Al-Hashr': 'Al-Hasyr', 'Al-Mumtahina': 'Al-Mumtahanah', 'As-Saff': 'As-Saff', 'Al-Jumu\'a': 'Al-Jumu\'ah',
+                        'Al-Munaafiqoon': 'Al-Munafiqun', 'At-Taghaabun': 'At-Taghabun', 'At-Talaaq': 'At-Talaq', 'At-Tahreem': 'At-Tahrim',
+                        'Al-Mulk': 'Al-Mulk', 'Al-Qalam': 'Al-Qalam', 'Al-Haaqqa': 'Al-Haqqah', 'Al-Ma\'aarij': 'Al-Ma\'arij',
+                        'Nooh': 'Nuh', 'Al-Jinn': 'Al-Jinn', 'Al-Muzzammil': 'Al-Muzzammil', 'Al-Muddaththir': 'Al-Muddatsir',
+                        'Al-Qiyaama': 'Al-Qiyamah', 'Al-Insaan': 'Al-Insan', 'Al-Mursalaat': 'Al-Mursalat', 'An-Naba': 'An-Naba\'',
+                        'An-Naazi\'aat': 'An-Nazi\'at', 'Abasa': 'Abasa', 'At-Takweer': 'At-Takwir', 'Al-Infitaar': 'Al-Infitar',
+                        'Al-Mutaffifeen': 'Al-Mutaffifin', 'Al-Inshiqaaq': 'Al-Insyiqaq', 'Al-Burooj': 'Al-Buruj', 'At-Taariq': 'At-Tariq',
+                        'Al-A\'laa': 'Al-A\'la', 'Al-Gaashiya': 'Al-Ghasyiyah', 'Al-Fajr': 'Al-Fajr', 'Al-Balad': 'Al-Balad',
+                        'Ash-Shams': 'Asy-Syams', 'Al-Layl': 'Al-Lail', 'Ad-Duhaa': 'Ad-Duha', 'Ash-Sharh': 'Asy-Syarh',
+                        'At-Teen': 'At-Tin', 'Al-Alaq': 'Al-\'Alaq', 'Al-Qadr': 'Al-Qadr', 'Al-Bayyina': 'Al-Bayyinah',
+                        'Az-Zalzala': 'Az-Zalzalah', 'Al-Aadiyaat': 'Al-\'Adiyat', 'Al-Qaari\'a': 'Al-Qari\'ah', 'At-Takaathur': 'At-Takatsur',
+                        'Al-Asr': 'Al-\'Asr', 'Al-Humaza': 'Al-Humazah', 'Al-Feel': 'Al-Fil', 'Quraish': 'Quraisy',
+                        'Al-Maa\'oon': 'Al-Ma\'un', 'Al-Kawthar': 'Al-Kautsar', 'Al-Kaafiroon': 'Al-Kafirun', 'An-Nasr': 'An-Nasr',
+                        'Al-Masad': 'Al-Masad', 'Al-Ikhlaas': 'Al-Ikhlas', 'Al-Falaq': 'Al-Falaq', 'An-Naas': 'An-Nas'
+                    }
                 },
                 quiz: {
                     active: false,
                     loading: false,
-                    testMode: 'voice', // 'voice' or 'mcq'
-                    selectionMode: 'juz', // 'juz' or 'surah'
+                    testMode: 'voice',
+                    selectionMode: 'juz',
                     currentJuz: 1,
                     currentSurah: 1,
+                    currentPage: 1,
                     verse: null,
                     recording: false,
                     transcript: '',
-                    status: 'idle', // idle, success, error
+                    status: 'idle',
                     feedback: '',
                     session: { correct: 0, wrong: 0, total: 0 },
                     matchedWords: [],
@@ -1257,19 +1596,39 @@
                 community: {
                     joinedMosque: null,
                     searchQuery: '',
+                    showSearchResults: false,
+                    joinedMosqueLocation: null,
+                    qariahMode: 'travel',
+                    homeLocation: null,
+                    qariahMosque: null,
+                    qariahRadiusKm: 3,
+                    inQariah: null,
                     newQuestion: '',
+                    newPostContent: '',
                     userLocation: null,
                     mosqueDistance: null,
+                    isAdmin: false,
+                    notificationsOn: false,
+                    activeTab: 'feed',
+                    pendingPosts: [],
+                    availableMosques: [
+                        { id: 'masjid_muaz', name: 'Masjid Muaz Bin Jabal', location: 'Setiawangsa, KL', distance: 0.5, distanceText: '0.5 km', prayerTime: 'Solat 8:15 PM' },
+                        { id: 'masjid_negara', name: 'Masjid Negara', location: 'Jalan Persekutuan, KL', distance: 2.3, distanceText: '2.3 km', prayerTime: 'Solat 8:20 PM' },
+                        { id: 'masjid_sultan', name: 'Masjid Sultan Abdul Samad', location: 'Jalan Raja, KL', distance: 3.1, distanceText: '3.1 km', prayerTime: 'Solat 8:25 PM' },
+                        { id: 'masjid_wilayah', name: 'Masjid Wilayah Persekutuan', location: 'Jalan Duta, KL', distance: 4.2, distanceText: '4.2 km', prayerTime: 'Solat 8:30 PM' },
+                        { id: 'masjid_aman', name: 'Masjid Al-Aman', location: 'Taman Melawati, KL', distance: 5.8, distanceText: '5.8 km', prayerTime: 'Solat 8:35 PM' },
+                        { id: 'masjid_jamek', name: 'Masjid Jamek', location: 'Jalan Tun Perak, KL', distance: 6.5, distanceText: '6.5 km', prayerTime: 'Solat 8:40 PM' }
+                    ],
                     dummyMosque: {
                         id: 'masjid_muaz',
                         name: 'Masjid Muaz Bin Jabal',
                         location: 'Setiawangsa, KL',
-                        coords: { lat: 3.1761, lng: 101.7428 }, // Setiawangsa area
-                        pinUrl: 'https://maps.app.goo.gl/uR5CunX42Yj8x8mN7'
+                        coords: { lat: 3.1761, lng: 101.7428 },
+                        pinUrl: 'https://maps.app.goo.gl/QG3rpD2hxa6pTDZN6'
                     },
                     updates: [
-                        { id: 1, mosque: 'Masjid Muaz Bin Jabal', title: 'Kuliah Maghrib Perdana', content: 'Jemput hadir ke kuliah Maghrib malam ini bersama Ustaz Badli Shah.', time: '2 jam yang lalu', likes: 12, comments: 3 },
-                        { id: 2, mosque: 'Masjid Muaz Bin Jabal', title: 'Agihan Bubur Lambuk', content: 'Agihan akan bermula jam 5:00 petang di perkarangan masjid. Sila bawa bekas sendiri.', time: '5 jam yang lalu', likes: 45, comments: 8 }
+                        { id: 1, mosque: null, title: 'Kuliah Maghrib Perdana', content: 'Jemput hadir ke kuliah Maghrib malam ini bersama Ustaz Badli Shah.', time: '2 jam yang lalu', likes: 12, comments: 3, isAJK: true, status: 'approved' },
+                        { id: 2, mosque: null, title: 'Agihan Bubur Lambuk', content: 'Agihan akan bermula jam 5:00 petang di perkarangan masjid. Sila bawa bekas sendiri.', time: '5 jam yang lalu', likes: 45, comments: 8, isAJK: true, status: 'approved' }
                     ],
                     questions: [
                         { id: 1, user: 'Ahmad', text: 'Adakah batal puasa jika menggunakan inhaler?', answer: 'Tidak batal mengikut fatwa kebangsaan...', time: '1 jam yang lalu', likes: 5 }
@@ -1285,6 +1644,11 @@
                         this.darkMode = data.darkMode || false;
                         this.theme = data.theme || 'emerald';
                         this.community.joinedMosque = data.joinedMosque || null;
+                        this.community.joinedMosqueLocation = data.joinedMosqueLocation || null;
+                        this.community.qariahMode = data.qariahMode || 'travel';
+                        this.community.homeLocation = data.homeLocation || null;
+                        this.community.qariahMosque = data.qariahMosque || null;
+                        this.community.qariahRadiusKm = data.qariahRadiusKm || 3;
                         if (this.activeProfileId) this.view = 'tracker';
                     }
                     
@@ -1304,8 +1668,46 @@
                     this.$nextTick(() => {
                         lucide.createIcons();
                         this.scrollToCurrentDay();
+                        // #region agent log
+                        try {
+                            const trackerEl = document.getElementById('view-tracker');
+                            const mushafEl = document.getElementById('view-mushaf');
+                            console.log('[DEBUG:init_nextTick]', {
+                                view: this.view,
+                                scrollY: window.scrollY,
+                                innerHeight: window.innerHeight,
+                                docHeight: document.documentElement.scrollHeight,
+                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
+                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null
+                            });
+                        } catch (e) {}
+                        // #endregion
                     });
-                    this.$watch('view', () => this.$nextTick(() => lucide.createIcons()));
+                    this.$watch('view', (newView, oldView) => this.$nextTick(() => {
+                        lucide.createIcons();
+                        // #region agent log
+                        try {
+                            const trackerEl = document.getElementById('view-tracker');
+                            const mushafEl = document.getElementById('view-mushaf');
+                            console.log('[DEBUG:view_watch]', {
+                                oldView,
+                                newView,
+                                scrollY: window.scrollY,
+                                innerHeight: window.innerHeight,
+                                docHeight: document.documentElement.scrollHeight,
+                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
+                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null,
+                                trackerInnerLength: trackerEl ? trackerEl.innerHTML.length : null,
+                                hasActiveProfile: !!this.activeProfile,
+                                ibadahCount: this.activeProfile?.ibadahList?.length ?? null
+                            });
+                        } catch (e) {}
+                        // #endregion
+                        // Always reset scroll position when switching "pages"
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        document.documentElement.scrollTop = 0;
+                        document.body.scrollTop = 0;
+                    }));
                     this.$watch('currentDay', () => this.$nextTick(() => { lucide.createIcons(); this.scrollToCurrentDay(); }));
                     this.$watch('darkMode', () => this.saveGlobal());
                     this.$watch('theme', () => this.saveGlobal());
@@ -1648,9 +2050,36 @@
                 },
 
                 async fetchSurahData(surahId) {
-                    this.mushaf.loading = true;
+                    const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
+                        const controller = new AbortController();
+                        const id = setTimeout(() => controller.abort(), timeout);
+                        try {
+                            const response = await fetch(url, { ...options, signal: controller.signal });
+                            clearTimeout(id);
+                            return response;
+                        } catch (err) {
+                            clearTimeout(id);
+                            throw err;
+                        }
+                    };
+
+                    // Source 1: Quran.com API (Primary)
                     try {
-                        const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahId}/quran-uthmani`);
+                        const res = await fetchWithTimeout(`https://api.quran.com/api/v4/quran/verses/uthmani?chapter_number=${surahId}`);
+                        const data = await res.json();
+                        if (data.verses && data.verses.length > 0) {
+                            return data.verses.map(v => ({
+                                text: v.text_uthmani,
+                                surah: { name: 'Surah ' + surahId },
+                                numberInSurah: v.verse_key.split(':')[1],
+                                number: v.id
+                            }));
+                        }
+                    } catch (e) { console.warn('Quran.com Surah API failed, trying AlQuran.cloud...'); }
+
+                    // Source 2: AlQuran.cloud (Fallback)
+                    try {
+                        const res = await fetchWithTimeout(`https://api.alquran.cloud/v1/surah/${surahId}/quran-uthmani`);
                         const data = await res.json();
                         if (data.code === 200) {
                             return data.data.verses.map(v => ({
@@ -1661,36 +2090,63 @@
                             }));
                         }
                     } catch (e) { console.error('Surah API failed:', e); }
-                    finally { this.mushaf.loading = false; }
                     return [];
                 },
 
                 async fetchMushaf(resetPage = true) {
                     this.mushaf.loading = true;
-                    if (resetPage) this.mushaf.currentPage = 1;
                     try {
-                        if (this.mushaf.selectionMode === 'juz') {
+                        if (this.mushaf.selectionMode === 'page') {
+                            this.mushaf.verses = await this.fetchPageData(this.mushaf.currentPage);
+                        } else if (this.mushaf.selectionMode === 'juz') {
                             this.mushaf.verses = await this.fetchJuzData(this.mushaf.currentJuz);
+                            if (resetPage) this.mushaf.currentPage = 1;
                         } else {
                             this.mushaf.verses = await this.fetchSurahData(this.mushaf.currentSurah);
+                            if (resetPage) this.mushaf.currentPage = 1;
                         }
                     } catch (e) {
                         console.error('Mushaf Error:', e);
+                        alert('Gagal memuatkan Quran. Sila periksa internet.');
                     } finally {
                         this.mushaf.loading = false;
                         this.$nextTick(() => lucide.createIcons());
                     }
                 },
 
+                async fetchPageData(page) {
+                    try {
+                        const res = await fetch(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`);
+                        const data = await res.json();
+                        if (data.code === 200) {
+                            return data.data.verses.map(v => ({
+                                text: v.text,
+                                surah: { name: v.surah.name },
+                                numberInSurah: v.numberInSurah,
+                                number: v.number
+                            }));
+                        }
+                    } catch (e) { console.error('Page API failed:', e); }
+                    return [];
+                },
+
+                get filteredSurahs() {
+                    if (!this.mushaf.searchSurah) return this.mushaf.surahs;
+                    return this.mushaf.surahs.filter(s => 
+                        s.englishName.toLowerCase().includes(this.mushaf.searchSurah.toLowerCase()) ||
+                        s.name.includes(this.mushaf.searchSurah)
+                    );
+                },
+
                 get paginatedVerses() {
-                    if (this.mushaf.viewMode === 'list') return this.mushaf.verses;
-                    // Standard Mushaf page has about 15 lines. For simplicity, we'll use 10 verses per page
+                    if (this.mushaf.viewMode === 'list' || this.mushaf.selectionMode === 'page') return this.mushaf.verses;
                     const perPage = 10;
                     const start = (this.mushaf.currentPage - 1) * perPage;
                     return this.mushaf.verses.slice(start, start + perPage);
                 },
 
                 get totalMushafPages() {
+                    if (this.mushaf.selectionMode === 'page') return 604;
                     const perPage = 10;
                     return Math.ceil(this.mushaf.verses.length / perPage) || 1;
                 },
@@ -1704,11 +2160,59 @@
                                     lng: pos.coords.longitude
                                 };
                                 this.calculateMosqueDistance();
+                                this.updateQariahStatus();
                             },
                             (err) => console.warn('Geolocation error:', err),
                             { enableHighAccuracy: true }
                         );
                     }
+                },
+
+                haversineKm(lat1, lon1, lat2, lon2) {
+                    const R = 6371;
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lon2 - lon1) * Math.PI / 180;
+                    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    return R * c;
+                },
+
+                updateQariahStatus() {
+                    const base = this.community.qariahMode === 'home' ? this.community.homeLocation : this.community.userLocation;
+                    if (!base) return;
+
+                    const mosquesWithCoords = this.community.availableMosques.filter(m => m.coords && typeof m.coords.lat === 'number' && typeof m.coords.lng === 'number');
+                    if (mosquesWithCoords.length === 0) return;
+
+                    let nearest = null;
+                    let nearestD = Infinity;
+                    for (const m of mosquesWithCoords) {
+                        const d = this.haversineKm(base.lat, base.lng, m.coords.lat, m.coords.lng);
+                        if (d < nearestD) {
+                            nearestD = d;
+                            nearest = m;
+                        }
+                    }
+
+                    if (!nearest) return;
+
+                    if (!this.community.qariahMosque || this.community.qariahMosque.id !== nearest.id) {
+                        this.community.qariahMosque = { id: nearest.id, name: nearest.name, location: nearest.location, coords: nearest.coords };
+                    }
+
+                    const previousInQariah = this.community.inQariah;
+                    const inside = nearestD <= (this.community.qariahRadiusKm || 3);
+                    this.community.inQariah = inside;
+
+                    if (previousInQariah === true && inside === false) {
+                        if (this.community.notificationsOn) {
+                            alert(`Anda telah keluar dari qariah ${this.community.qariahMosque?.name}.`);
+                        }
+                    }
+
+                    this.save();
                 },
 
                 calculateMosqueDistance() {
@@ -1739,7 +2243,10 @@
                     
                     try {
                         let verses;
-                        if (this.quiz.selectionMode === 'juz') {
+                        if (this.quiz.selectionMode === 'page') {
+                            const page = this.quiz.currentPage || this.mushaf.currentPage;
+                            verses = await this.fetchPageData(page);
+                        } else if (this.quiz.selectionMode === 'juz') {
                             verses = await this.fetchJuzData(this.quiz.currentJuz);
                         } else {
                             verses = await this.fetchSurahData(this.quiz.currentSurah);
@@ -1810,6 +2317,58 @@
                     this.$nextTick(() => lucide.createIcons());
                 },
 
+                randomizeAyat() {
+                    this.randomizeAyatWithinScope();
+                },
+
+                async randomizeAyatWithinScope() {
+                    this.quiz.status = 'idle';
+                    this.quiz.transcript = '';
+                    this.quiz.matchedWords = [];
+                    this.quiz.selectedMcqIndex = -1;
+                    this.quiz.loading = true;
+
+                    try {
+                        let verses;
+
+                        if (this.mushaf.selectionMode === 'page') {
+                            verses = await this.fetchPageData(this.mushaf.currentPage);
+                            this.quiz.selectionMode = 'page';
+                        } else if (this.mushaf.selectionMode === 'juz') {
+                            verses = await this.fetchJuzData(this.mushaf.currentJuz);
+                            this.quiz.selectionMode = 'juz';
+                            this.quiz.currentJuz = this.mushaf.currentJuz;
+                        } else {
+                            verses = await this.fetchSurahData(this.mushaf.currentSurah);
+                            this.quiz.selectionMode = 'surah';
+                            this.quiz.currentSurah = this.mushaf.currentSurah;
+                        }
+
+                        if (!verses || verses.length < 2) throw new Error('Not enough verses');
+
+                        const idx = Math.floor(Math.random() * (verses.length - 1));
+                        const verse = verses[idx];
+                        const nextVerse = verses[idx + 1];
+
+                        this.quiz.verse = {
+                            text: verse.text,
+                            nextText: nextVerse.text,
+                            surah: verse.surah?.name,
+                            numberInSurah: verse.numberInSurah
+                        };
+
+                        if (this.quiz.testMode === 'mcq') {
+                            this.generateMcqOptions(verses, idx + 1);
+                        }
+                    } catch (e) {
+                        console.error('Randomize Ayat Error:', e);
+                        alert('Gagal memuatkan ayat. Sila periksa internet anda.');
+                    } finally {
+                        this.quiz.loading = false;
+                        this.$nextTick(() => lucide.createIcons());
+                    }
+                },
+
                 toggleRecitation() {
                     if (this.quiz.recording) {
                         this.stopRecitation();
@@ -1819,61 +2378,39 @@
                 },
 
                 startRecitation() {
-                    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                        alert('Maaf, pelayar anda tidak menyokong pengecaman suara. Sila gunakan Chrome atau Edge.');
+                    // Check for MediaRecorder support
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        alert('Maaf, pelayar anda tidak menyokong rakaman audio. Sila gunakan Chrome atau Edge.');
                         return;
                     }
 
-                    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    this.recognition = new Recognition();
-                    this.recognition.lang = 'ar-SA';
-                    this.recognition.continuous = true; // Stay active during breaths
-                    this.recognition.interimResults = true; // Show words as they are spoken
-
-                    this.recognition.onstart = () => {
-                        this.quiz.recording = true;
-                        this.quiz.status = 'idle';
-                        this.quiz.transcript = '';
-                        this.resetQuizIdleTimer();
-                    };
-
-                    this.recognition.onresult = (event) => {
-                        this.resetQuizIdleTimer();
-                        let interimTranscript = '';
-                        for (let i = event.resultIndex; i < event.results.length; ++i) {
-                            if (event.results[i].isFinal) {
-                                this.quiz.transcript += event.results[i][0].transcript + ' ';
-                            } else {
-                                interimTranscript += event.results[i][0].transcript;
-                            }
-                        }
-                        
-                        // Live Highlighting
-                        const currentWords = (this.quiz.transcript + interimTranscript).split(/\s+/);
-                        const targetWords = this.quiz.verse.text.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "").split(/\s+/);
-                        
-                        this.quiz.matchedWords = currentWords.filter(w => 
-                            targetWords.some(tw => tw.includes(w) || w.includes(tw))
-                        );
-                    };
-
-                    this.recognition.onerror = (event) => {
-                        if (event.error !== 'no-speech') {
-                            console.error(event.error);
-                            this.quiz.recording = false;
-                            this.quiz.status = 'error';
-                            this.quiz.feedback = 'Ralat pengecaman. Sila cuba lagi.';
-                        }
-                    };
-
-                    this.recognition.onend = () => {
-                        if (this.quiz.recording) {
-                            // Recognition might auto-stop, restart if we're still in recording mode
-                            this.recognition.start();
-                        }
-                    };
-
-                    this.recognition.start();
+                    // Start audio recording
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            this.mediaRecorder = new MediaRecorder(stream);
+                            this.audioChunks = [];
+                            
+                            this.mediaRecorder.ondataavailable = (event) => {
+                                this.audioChunks.push(event.data);
+                            };
+                            
+                            this.mediaRecorder.onstop = async () => {
+                                const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                                await this.transcribeWithWhisper(audioBlob);
+                                await this.analyzeWithTarteel(audioBlob);
+                                stream.getTracks().forEach(track => track.stop());
+                            };
+                            
+                            this.mediaRecorder.start();
+                            this.quiz.recording = true;
+                            this.quiz.status = 'idle';
+                            this.quiz.transcript = '';
+                            this.resetQuizIdleTimer();
+                        })
+                        .catch(error => {
+                            console.error('Error accessing microphone:', error);
+                            alert('Tidak dapat mengakses mikrofon. Sila periksa kebenaran mikrofon.');
+                        });
                 },
 
                 resetQuizIdleTimer() {
@@ -1888,10 +2425,106 @@
                 stopRecitation() {
                     if (this.quiz.idleTimer) clearTimeout(this.quiz.idleTimer);
                     this.quiz.recording = false;
-                    if (this.recognition) {
-                        this.recognition.stop();
+                    
+                    if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+                        this.mediaRecorder.stop();
                     }
-                    this.checkQuizAnswer(this.quiz.transcript);
+                },
+
+                async transcribeWithWhisper(audioBlob) {
+                    try {
+                        this.quiz.loading = true;
+                        
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob, 'recording.webm');
+                        formData.append('model', 'whisper-large-v3-turbo');
+                        formData.append('language', 'ar');
+                        formData.append('response_format', 'json');
+                        
+                        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer YOUR_OPENAI_API_KEY' // Replace with actual API key
+                            },
+                            body: formData
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Whisper API request failed');
+                        }
+                        
+                        const result = await response.json();
+                        this.quiz.transcript = result.text;
+                        
+                        // Update matched words based on transcription
+                        const currentWords = this.quiz.transcript.split(/\s+/);
+                        const targetWords = this.quiz.verse.text.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, "").split(/\s+/);
+                        
+                        this.quiz.matchedWords = currentWords.filter(w => 
+                            targetWords.some(tw => tw.includes(w) || w.includes(tw))
+                        );
+                        
+                    } catch (error) {
+                        console.error('Whisper API Error:', error);
+                        this.quiz.status = 'error';
+                        this.quiz.feedback = 'Ralat transkripsi. Sila cuba lagi.';
+                    } finally {
+                        this.quiz.loading = false;
+                    }
+                },
+
+                async analyzeWithTarteel(audioBlob) {
+                    try {
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob, 'recording.webm');
+                        formData.append('reference_text', this.quiz.verse.text);
+                        
+                        const response = await fetch('https://api.tarteel.ai/v1/analyze', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer YOUR_TARTEEL_API_KEY', // Replace with actual API key
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                audio: await this.blobToBase64(audioBlob),
+                                reference_text: this.quiz.verse.text,
+                                analysis_type: 'recitation_errors'
+                            })
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Tarteel API request failed');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        // Process Tarteel analysis results
+                        if (result.errors && result.errors.length > 0) {
+                            this.quiz.feedback = `Ditemui ${result.errors.length} ralat bacaan. Sila perbaiki: ${result.errors.slice(0, 3).join(', ')}`;
+                            this.quiz.status = 'warning';
+                        } else {
+                            this.quiz.feedback = 'Masha Allah! Bacaan anda tepat.';
+                            this.quiz.status = 'success';
+                            this.quiz.session.correct++;
+                            this.activeProfile.totalXP += 5;
+                        }
+                        
+                        this.save();
+                        
+                    } catch (error) {
+                        console.error('Tarteel API Error:', error);
+                        // Fallback to basic text comparison if Tarteel fails
+                        this.checkQuizAnswer(this.quiz.transcript);
+                    }
+                },
+
+                blobToBase64(blob) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
                 },
 
                 checkQuizAnswer(userText) {
@@ -1975,7 +2608,12 @@
                         profiles: this.allProfiles,
                         darkMode: this.darkMode,
                         theme: this.theme,
-                        joinedMosque: this.community.joinedMosque
+                        joinedMosque: this.community.joinedMosque,
+                        joinedMosqueLocation: this.community.joinedMosqueLocation,
+                        qariahMode: this.community.qariahMode,
+                        homeLocation: this.community.homeLocation,
+                        qariahMosque: this.community.qariahMosque,
+                        qariahRadiusKm: this.community.qariahRadiusKm
                     }));
                 }
             }
