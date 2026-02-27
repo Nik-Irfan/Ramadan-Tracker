@@ -179,6 +179,18 @@
         .nav-active i { transform: translateY(-4px); transition: transform 0.3s; }
         @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
         .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
 
         /* Modal Backdrop */
         .modal-backdrop {
@@ -210,9 +222,18 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="antialiased" x-data="trackerApp()" x-init="init()" :class="{ 'dark': darkMode, 'theme-rose': theme === 'rose', 'theme-ocean': theme === 'ocean', 'theme-purple': theme === 'purple', 'theme-pink': theme === 'pink', 'theme-gold': theme === 'gold', 'theme-navy': theme === 'navy' }">
+<body class="antialiased" x-data="trackerApp()" x-init="init(); setTimeout(() => { if (!this.initialized) { this.initialized = true; } }, 1000)" :class="{ 'dark': darkMode, 'theme-rose': theme === 'rose', 'theme-ocean': theme === 'ocean', 'theme-purple': theme === 'purple', 'theme-pink': theme === 'pink', 'theme-gold': theme === 'gold', 'theme-navy': theme === 'navy' }">
     
-    <div class="app-container">
+    <!-- Loading Screen -->
+    <div x-show="!initialized" x-cloak class="fixed inset-0 z-[300] bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-white/20 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 class="text-white text-2xl font-black mb-2">Ramadan Ibadah Tracker</h2>
+            <p class="text-white/80 text-sm">Sedang memuatkan...</p>
+        </div>
+    </div>
+    
+    <div class="app-container" x-show="initialized" style="min-height: 100vh;">
         <!-- Onboarding Screen -->
     <div x-show="view === 'onboarding'" x-cloak class="fixed inset-0 z-[100] bg-card overflow-y-auto px-6 py-12 max-w-[450px] mx-auto">
         <div class="max-w-md mx-auto">
@@ -231,7 +252,10 @@
                 <div>
                     <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-3 ml-2">Nama Hero</label>
                     <input type="text" x-model="onboarding.name" placeholder="Contoh: Ayah / Ibu / Ahmad" 
-                        class="w-full p-5 bg-inset rounded-[2rem] border-none focus:ring-4 ring-accent font-bold text-lg transition-all text-main focus:ring-opacity-20">
+                        class="w-full p-5 bg-inset rounded-[2rem] border-none focus:ring-4 ring-accent font-bold text-lg transition-all text-main focus:ring-opacity-20"
+                        :class="onboardingError ? 'ring-4 ring-red-500 ring-opacity-50' : ''"
+                        id="heroNameInput">
+                    <p x-show="onboardingError" class="text-red-500 text-[9px] font-bold mt-2 ml-2" x-text="onboardingError"></p>
                 </div>
 
                 <div>
@@ -296,7 +320,7 @@
                         <div class="w-24 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div class="h-full gradient-purple transition-all duration-1000" :style="`width: ${getUserLevel().progress}%`"></div>
                         </div>
-                        <span class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="`XP: ${activeProfile?.totalXP || 0}`"></span>
+                        <span class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="getUserLevel().isMaxLevel ? 'XP: ∞' : `XP: ${activeProfile?.totalXP || 0}`"></span>
                     </div>
                     <!-- User Menu Dropdown -->
                     <div x-show="showUserMenu" @click.away="showUserMenu = false" x-transition 
@@ -435,7 +459,9 @@
         <!-- Ibadah List -->
         <div class="grid grid-cols-1 gap-4">
             <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
-                <div class="bg-card rounded-[2rem] p-5 custom-shadow transition-all border border-theme relative group" :class="getScore(item.id) > 0 ? 'ring-2 ring-accent ring-opacity-10' : ''">
+                <div class="bg-card rounded-[2rem] p-5 custom-shadow transition-all border border-theme relative group" 
+                     :class="getScore(item.id) > 0 ? 'ring-2 ring-accent ring-opacity-10' : ''"
+                     :class="item.id === 'friday_special' ? getFridaySpecialEffect() : ''">
                     <!-- Edit Mode Controls -->
                     <div x-show="editMode" class="absolute -top-2 -right-2 flex gap-2 z-10">
                         <button @click="const newName = prompt('Nama baru:', item.name); if(newName) item.name = newName; save();" 
@@ -503,22 +529,37 @@
         <!-- Selection Mode Toggle (Juz vs Surah vs Page) -->
         <div class="flex gap-2 mb-6">
             <button @click="mushaf.selectionMode = 'juz'; quiz.selectionMode = 'juz'; quiz.currentJuz = mushaf.currentJuz; mushaf.showSelector = true;" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative"
                 :class="mushaf.selectionMode === 'juz' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
                 <i data-lucide="grid" class="w-3 h-3"></i>
                 Juz <span x-text="mushaf.currentJuz"></span>
+                <div x-show="mushaf.selectionMode === 'juz'" class="absolute -top-1 -right-1">
+                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded-full" 
+                          :class="getQuizStats('juz', mushaf.currentJuz).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('juz', mushaf.currentJuz).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
+                          x-text="`${getQuizStats('juz', mushaf.currentJuz).percentage}%`"></span>
+                </div>
             </button>
             <button @click="mushaf.selectionMode = 'surah'; quiz.selectionMode = 'surah'; quiz.currentSurah = mushaf.currentSurah; mushaf.showSelector = true;" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative"
                 :class="mushaf.selectionMode === 'surah' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
                 <i data-lucide="list" class="w-3 h-3"></i>
                 <span x-text="mushaf.surahNamesMalay[mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName] || 'Surah'"></span>
+                <div x-show="mushaf.selectionMode === 'surah'" class="absolute -top-1 -right-1">
+                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded-full" 
+                          :class="getQuizStats('surah', mushaf.currentSurah).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('surah', mushaf.currentSurah).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
+                          x-text="`${getQuizStats('surah', mushaf.currentSurah).percentage}%`"></span>
+                </div>
             </button>
             <button @click="mushaf.selectionMode = 'page'; quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; mushaf.showSelector = true;" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative"
                 :class="mushaf.selectionMode === 'page' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
                 <i data-lucide="book" class="w-3 h-3"></i>
                 Page <span x-text="mushaf.currentPage"></span>
+                <div x-show="mushaf.selectionMode === 'page'" class="absolute -top-1 -right-1">
+                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded-full" 
+                          :class="getQuizStats('page', mushaf.currentPage).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('page', mushaf.currentPage).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
+                          x-text="`${getQuizStats('page', mushaf.currentPage).percentage}%`"></span>
+                </div>
             </button>
         </div>
 
@@ -537,10 +578,15 @@
                 <div x-show="mushaf.selectionMode === 'juz'" class="grid grid-cols-5 gap-3">
                     <template x-for="j in 30" :key="j">
                         <button @click="mushaf.currentJuz = j; quiz.selectionMode = 'juz'; quiz.currentJuz = j; mushaf.currentPage = mushaf.juzPages[j]; fetchMushaf(); mushaf.showSelector = false;" 
-                            class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2"
+                            class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 relative"
                             :class="mushaf.currentJuz === j ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted'">
                             <span class="font-black text-xs" x-text="j"></span>
                             <span class="text-[7px] font-bold opacity-50" x-text="`P. ${mushaf.juzPages[j]}`"></span>
+                            <div x-show="getQuizStats('juz', j).total > 0" class="absolute -top-1 -right-1">
+                                <span class="text-[6px] font-black px-1 py-0.5 rounded-full" 
+                                      :class="getQuizStats('juz', j).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('juz', j).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
+                                      x-text="`${getQuizStats('juz', j).percentage}%`"></span>
+                            </div>
                         </button>
                     </template>
                 </div>
@@ -555,12 +601,17 @@
                     <div class="grid grid-cols-2 gap-2">
                         <template x-for="s in filteredSurahs" :key="s.number">
                             <button @click="mushaf.currentSurah = s.number; quiz.selectionMode = 'surah'; quiz.currentSurah = s.number; fetchMushaf(); mushaf.showSelector = false;" 
-                                class="p-3 rounded-xl flex items-center gap-3 transition-all border-2 text-left"
+                                class="p-3 rounded-xl flex items-center gap-3 transition-all border-2 text-left relative"
                                 :class="mushaf.currentSurah === s.number ? 'border-accent bg-accent/5' : 'border-transparent bg-inset'">
                                 <span class="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-[8px] font-black text-accent" x-text="s.number"></span>
                                 <div class="min-w-0">
                                     <p class="text-[9px] font-black text-main truncate uppercase" x-text="mushaf.surahNamesMalay[s.englishName] || s.englishName"></p>
                                     <p class="text-[8px] font-bold text-muted truncate" x-text="s.name"></p>
+                                </div>
+                                <div x-show="getQuizStats('surah', s.number).total > 0" class="absolute -top-1 -right-1">
+                                    <span class="text-[6px] font-black px-1 py-0.5 rounded-full" 
+                                          :class="getQuizStats('surah', s.number).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('surah', s.number).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
+                                          x-text="`${getQuizStats('surah', s.number).percentage}%`"></span>
                                 </div>
                             </button>
                         </template>
@@ -571,9 +622,15 @@
                 <div x-show="mushaf.selectionMode === 'page'" class="grid grid-cols-6 gap-2">
                     <template x-for="p in 604" :key="p">
                         <button @click="mushaf.currentPage = p; quiz.selectionMode = 'page'; quiz.currentPage = p; fetchMushaf(false); mushaf.showSelector = false;" 
-                            class="aspect-square rounded-lg flex items-center justify-center text-[8px] font-black transition-all border"
+                            class="aspect-square rounded-lg flex items-center justify-center text-[8px] font-black transition-all border relative"
                             :class="mushaf.currentPage === p ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted/50'"
-                            x-text="p"></button>
+                            x-text="p">
+                            <div x-show="getQuizStats('page', p).total > 0" class="absolute -top-1 -right-1">
+                                <span class="text-[5px] font-black px-0.5 py-0.5 rounded-full" 
+                                      :class="getQuizStats('page', p).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('page', p).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
+                                      x-text="`${getQuizStats('page', p).percentage}%`"></span>
+                            </div>
+                        </button>
                     </template>
                 </div>
             </div>
@@ -594,6 +651,7 @@
                     <div class="flex flex-wrap gap-2 items-start justify-end">
                         <div class="flex items-center gap-2">
                             <select x-model="mushaf.fontFamily" class="h-10 bg-inset border border-theme rounded-2xl px-3 text-[10px] font-black text-main">
+                                <option>QPC v2</option>
                                 <option>Amiri Quran</option>
                                 <option>Amiri</option>
                                 <option>Scheherazade New</option>
@@ -609,13 +667,13 @@
                         </div>
                         <!-- Mode Toggle -->
                         <div class="h-10 flex bg-inset p-1 rounded-xl border border-theme">
-                            <button @click="quiz.testMode = 'voice'; startQuiz()" 
-                                class="w-9 h-9 flex items-center justify-center rounded-lg transition-all" :class="quiz.testMode === 'voice' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
-                                <i data-lucide="mic" class="w-4 h-4"></i>
-                            </button>
                             <button @click="quiz.testMode = 'mcq'; startQuiz()" 
                                 class="w-9 h-9 flex items-center justify-center rounded-lg transition-all" :class="quiz.testMode === 'mcq' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
                                 <i data-lucide="list-checks" class="w-4 h-4"></i>
+                            </button>
+                            <button @click="showBetaNotice()" 
+                                class="w-9 h-9 flex items-center justify-center rounded-lg transition-all" :class="quiz.testMode === 'voice' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
+                                <i data-lucide="mic" class="w-4 h-4"></i>
                             </button>
                         </div>
                         <button @click="randomizeAyat()" 
@@ -726,7 +784,7 @@
     <div x-show="view === 'stats'" x-cloak class="page-view text-center">
         <header class="mb-12 text-left">
             <h1 class="text-3xl font-black text-main tracking-tighter">Achievement</h1>
-            <p class="text-muted font-medium">Rekod kehebatan <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
+            <p class="text-muted font-medium">Profil <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
         </header>
 
             <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
@@ -1129,7 +1187,10 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 ml-1">Nama Ibadah</label>
-                        <input type="text" x-model="newItem.name" placeholder="Contoh: Selawat 100x" class="w-full p-5 bg-inset rounded-2xl border-none font-bold text-sm text-main focus:ring-2 ring-accent ring-opacity-20 transition-all">
+                        <input type="text" x-model="newItem.name" placeholder="Contoh: Selawat 100x" 
+                            class="w-full p-5 bg-inset rounded-2xl border-none font-bold text-sm text-main focus:ring-2 ring-accent ring-opacity-20 transition-all"
+                            :class="!newItem.name || newItem.name.trim() === '' ? 'ring-2 ring-red-500' : ''">
+                        <p x-show="!newItem.name || newItem.name.trim() === ''" class="text-red-500 text-[8px] font-bold mt-1 ml-2">Sila masukkan nama ibadah</p>
                     </div>
                     
                     <div>
@@ -1138,21 +1199,38 @@
                             <template x-for="(opt, index) in newItem.options" :key="index">
                                 <div class="flex gap-2">
                                     <div class="w-20">
-                                        <input type="number" x-model.number="opt.v" placeholder="XP" class="w-full p-4 bg-inset rounded-xl border-none text-xs font-black text-center text-accent">
+                                        <input type="number" x-model.number="opt.v" placeholder="XP" min="0" max="5" 
+                                            @input="if(opt.v > 5) opt.v = 5"
+                                            class="w-full p-4 bg-inset rounded-xl border-none text-xs font-black text-center text-accent"
+                                            :class="opt.v > 5 || opt.v < 0 ? 'ring-2 ring-red-500' : (opt.v > 0 ? 'ring-2 ring-green-500' : '')">
                                     </div>
                                     <div class="flex-1">
-                                        <input type="text" x-model="opt.l" placeholder="Deskripsi (Contoh: Ya / 2 Rakaat)" class="w-full p-4 bg-inset rounded-xl border-none text-xs font-bold text-main">
+                                        <input type="text" x-model="opt.l" placeholder="Deskripsi (Contoh: Ya / 2 Rakaat)" 
+                                            class="w-full p-4 bg-inset rounded-xl border-none text-xs font-bold text-main">
                                     </div>
-                                    <button @click="newItem.options.splice(index, 1)" x-show="newItem.options.length > 1" class="p-2 text-red-400 hover:text-red-500 transition-colors">
+                                    <button @click="newItem.options.splice(index, 1)" x-show="newItem.options.length > 2" 
+                                        :disabled="newItem.options.length <= 2"
+                                        class="p-2 text-red-400 hover:text-red-500 transition-colors"
+                                        :class="newItem.options.length <= 2 ? 'opacity-50 cursor-not-allowed' : ''">
                                         <i data-lucide="x-circle" class="w-5 h-5"></i>
                                     </button>
                                 </div>
+                                <div class="flex justify-between ml-2">
+                                    <p x-show="opt.v > 5" class="text-red-500 text-[8px] font-bold">⚠️ Maksimum 5 point!</p>
+                                    <p x-show="opt.v < 0" class="text-red-500 text-[8px] font-bold">⚠️ Minimum 0 point!</p>
+                                    <p x-show="opt.v >= 1 && opt.v <= 5" class="text-green-500 text-[8px] font-bold">✓ Valid</p>
+                                </div>
                             </template>
                         </div>
-                        <button @click="newItem.options.push({v: 1, l: ''})" class="mt-3 w-full py-3 border-2 border-dashed border-theme rounded-xl text-[10px] font-black text-muted hover:text-accent hover:border-accent transition-all flex items-center justify-center gap-2">
+                        <button @click="newItem.options.length < 5 ? newItem.options.push({v: 1, l: ''}) : null" 
+                            :class="newItem.options.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''"
+                            class="mt-3 w-full py-3 border-2 border-dashed border-theme rounded-xl text-[10px] font-black text-muted hover:text-accent hover:border-accent transition-all flex items-center justify-center gap-2">
                             <i data-lucide="plus" class="w-4 h-4"></i>
-                            Tambah Pilihan Skor
+                            <span x-text="newItem.options.length >= 5 ? 'Maksimum 5 pilihan sahaja' : 'Tambah Pilihan Skor'"></span>
                         </button>
+                        <div class="mt-2 p-2 bg-blue-50 rounded-lg">
+                            <p class="text-blue-700 text-[8px] font-bold">💡 Petua: Setiap pilihan skor maksimum 5 point</p>
+                        </div>
                     </div>
 
                     <button @click="addItem()" class="w-full py-5 gradient-accent text-white font-black rounded-2xl shadow-accent active:scale-95 transition-transform mt-4">Simpan Misi</button>
@@ -1324,6 +1402,23 @@
             <button @click="showPrayerModal = false" class="w-full py-4 gradient-accent text-white font-black rounded-2xl shadow-accent mt-6" x-text="lang === 'en' ? 'Close' : 'Tutup'"></button>
         </div>
     </div>
+    <!-- Beta Notice Modal -->
+    <div x-show="showBetaModal" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
+        <div @click="showBetaModal = false" class="absolute inset-0 modal-backdrop"></div>
+        <div class="bg-card w-full max-w-sm rounded-[3rem] p-8 relative z-10 custom-shadow border border-theme">
+            <div class="text-center">
+                <div class="w-20 h-20 gradient-purple rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-accent animate-float">
+                    <i data-lucide="mic" class="w-10 h-10 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-black text-main tracking-tighter mb-4">Available in Beta Release</h3>
+                <p class="text-muted font-medium text-sm mb-6">Untuk Beta Release</p>
+                <p class="text-[10px] font-bold text-muted mb-8 leading-relaxed">Fungsi ujian suara akan tersedia dalam versi akan datang. Sila gunakan mod MCQ untuk masa ini.</p>
+                <button @click="showBetaModal = false" class="w-full py-4 gradient-accent text-white font-black rounded-2xl shadow-accent">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
     </div> <!-- Close page-wrapper -->
 
     <!-- Bottom Nav -->
@@ -1369,6 +1464,7 @@
                         { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
                         { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
                         { id: 'alkahfi_1', name: 'Al-Kahfi', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
+                        { id: 'friday_special', name: 'Ibadah Jumaat Special ⭐', icon: 'star', options: [{v:0, l:'0'}, {v:2, l:'Solat Jumaat'}, {v:5, l:'Baca Surah + Al-Kahfi'}] },
                         { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}] },
                         { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
                         { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
@@ -1443,12 +1539,54 @@
             ];
 
             return {
+                initialized: false,
                 view: 'onboarding',
                 currentDay: 1,
                 activeProfileId: null,
                 allProfiles: [],
                 lang: 'ms',
                 showPrayerModal: false,
+                showBetaModal: false,
+                
+                // Enemy System
+                enemy: {
+                    active: false,
+                    type: '',
+                    description: '',
+                    hadith: '',
+                    xpToLose: 0
+                },
+                
+                enemies: [
+                    {
+                        type: 'takabbur',
+                        name: 'Takabbur (Kebanggaan)',
+                        description: 'Menunjuk-nunjuk dan merasa lebih baik dari orang lain, menyembunyikan pahala amalan.',
+                        hadith: 'Rasulullah SAW bersabda: "Tidak masuk syurga orang yang di dalam hatinya ada sebiji genggam takabbur." (HR. Tirmidzi)',
+                        xpToLose: 50
+                    },
+                    {
+                        type: 'sumah',
+                        name: 'Sum\'ah (Riya\')',
+                        description: 'Melakukan ibadah untuk menunjuk-nunjuk kepada manusia, bukan kerana Allah.',
+                        hadith: 'Rasulullah SAW bersabda: "Sesungguhnya seseorang yang mendengar (pahala amalannya) akan dimintai pertanggungjawab pada hari kiamat." (HR. Bukhari)',
+                        xpToLose: 30
+                    },
+                    {
+                        type: 'riak',
+                        name: 'Riak (Sombong)',
+                        description: 'Ingin dipuji dan dikenali kerana amalannya, menjejaki keikhlasan niat.',
+                        hadith: 'Rasulullah SAW bersabda: "Barangsiapa yang dikeranakan kerana riya\', Allah akan menyeruknya pada hari kiamat." (HR. Muslim)',
+                        xpToLose: 40
+                    },
+                    {
+                        type: 'ujub',
+                        name: 'Ujub (Bangga Diri)',
+                        description: 'Membanggakan diri sendiri dan merasa hebat dengan amalan yang dilakukan.',
+                        hadith: 'Rasulullah SAW bersabda: "Orang yang mukmin adalah orang yang paling sederhana dan tidak membanggakan dirinya." (HR. Ibn Majah)',
+                        xpToLose: 25
+                    }
+                ],
                 prayer: {
                     enabled: false,
                     placement: 'both',
@@ -1507,6 +1645,7 @@
                 templates: templates,
                 badgeDefinitions: badgeDefinitions,
                 onboarding: { name: '', mode: 'NORMAL' },
+                onboardingError: '',
                 newItem: { name: '', options: [{v: 0, l: 'Tiada'}, {v: 1, l: 'Ya'}] },
                 darkMode: false,
                 theme: 'theme-navy',
@@ -1524,7 +1663,7 @@
                     verses: [],
                     surahs: [],
                     fontSize: 32,
-                    fontFamily: 'Amiri Quran',
+                    fontFamily: 'QPC v2',
                     viewMode: 'page',
                     searchSurah: '',
                     showSelector: false,
@@ -1595,6 +1734,7 @@
                 },
 
                 init() {
+                    try {
                     const saved = localStorage.getItem('ramadan_rpg_data');
                     if (saved) {
                         const data = JSON.parse(saved);
@@ -1636,13 +1776,16 @@
                     this.fetchMushaf(false);
                     
                     // Auto-sync Ramadan Date
-                    // Ramadan 2026 starts around Feb 18
-                    const ramadanStart = new Date('2026-02-18T00:00:00');
+                    // Ramadan 2026 starts on February 19th
+                    const ramadanStart = new Date('2026-02-19T00:00:00');
                     const today = new Date();
                     const diffTime = today.getTime() - ramadanStart.getTime();
                     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
                     if (diffDays >= 1 && diffDays <= 30) {
                         this.currentDay = diffDays;
+                    } else {
+                        // For testing purposes, set to day 9 as requested
+                        this.currentDay = 9;
                     }
 
                     this.$nextTick(() => {
@@ -1701,6 +1844,14 @@
 
                     // Run Self-Tests on startup
                     this.runTests();
+                    
+                    // Mark app as initialized
+                    this.initialized = true;
+                } catch (error) {
+                    console.error('Initialization error:', error);
+                    // Still mark as initialized to prevent infinite loading
+                    this.initialized = true;
+                }
                 },
 
                 get activeProfile() {
@@ -1943,7 +2094,15 @@
                 },
 
                 createProfile() {
-                    if (!this.onboarding.name) return;
+                    if (!this.onboarding.name || this.onboarding.name.trim() === '') {
+                        this.onboardingError = 'Sila isi nama hero terlebih dahulu';
+                        document.getElementById('heroNameInput').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        document.getElementById('heroNameInput').focus();
+                        return;
+                    }
+                    
+                    this.onboardingError = '';
+                    
                     // Security: Sanitize name
                     const sanitizedName = this.onboarding.name.replace(/<[^>]*>?/gm, '').substring(0, 20);
                     const id = 'p_' + Date.now();
@@ -1951,12 +2110,13 @@
                         id: id,
                         name: sanitizedName,
                         mode: this.onboarding.mode,
-                        ibadahList: JSON.parse(JSON.stringify(this.templates[this.onboarding.mode].list)),
-                        scores: {},
                         totalXP: 0,
-                        pet: { line: '', hatched: false, ts: null },
-                        badges: []
+                        dayData: {},
+                        badges: [],
+                        createdAt: Date.now(),
+                        ibadahList: JSON.parse(JSON.stringify(this.templates[this.onboarding.mode].list))
                     };
+                    
                     this.allProfiles.push(newProfile);
                     this.activeProfileId = id;
                     this.onboarding = { name: '', mode: 'NORMAL' };
@@ -1979,6 +2139,10 @@
                     this.save();
                 },
 
+                showBetaNotice() {
+                    this.showBetaModal = true;
+                },
+
                 deleteActiveProfile() {
                     if (confirm(`Padam profil ${this.activeProfile.name}?`)) {
                         this.allProfiles = this.allProfiles.filter(p => p.id !== this.activeProfileId);
@@ -1990,10 +2154,19 @@
 
                 updateScore(itemId, value) {
                     const profile = this.activeProfile;
+                    if (!profile) {
+                        console.error('No active profile found');
+                        return;
+                    }
+                    if (!profile.scores) profile.scores = {};
                     if (!profile.scores[this.currentDay]) profile.scores[this.currentDay] = {};
                     profile.scores[this.currentDay][itemId] = value;
                     this.recalculateTotalXP();
                     this.checkBadges();
+                    
+                    // Trigger enemy attack after updating score
+                    this.triggerEnemyAttack();
+                    
                     this.save();
                 },
 
@@ -2009,6 +2182,23 @@
 
                 getDailyPct(day) {
                     return Math.min(Math.round((this.calculateTotal(day) / 50) * 100), 100);
+                },
+
+                getQuizStats(type, value) {
+                    const history = this.activeProfile?.hafazanHistory || [];
+                    const filtered = history.filter(h => {
+                        if (type === 'juz') return h.juz === value;
+                        if (type === 'surah') return h.surah === value;
+                        if (type === 'page') return h.page === value;
+                        return false;
+                    });
+                    
+                    if (filtered.length === 0) return { percentage: 0, total: 0, success: 0 };
+                    
+                    const success = filtered.filter(h => h.success).length;
+                    const percentage = Math.round((success / filtered.length) * 100);
+                    
+                    return { percentage, total: filtered.length, success };
                 },
 
                 getProgressColor(total) {
@@ -2033,9 +2223,11 @@
 
                 getUserLevel(customXP = null) {
                     const xp = customXP !== null ? customXP : (this.activeProfile?.totalXP || 0);
-                    const level = Math.floor(xp / 500) + 1;
-                    const progress = ((xp % 500) / 500) * 100;
-                    return { level, progress };
+                    const maxLevel = 12; // Maximum level for full pet evolution
+                    const uncappedLevel = Math.floor(xp / 500) + 1;
+                    const level = Math.min(uncappedLevel, maxLevel);
+                    const progress = uncappedLevel >= maxLevel ? 100 : ((xp % 500) / 500) * 100;
+                    return { level, progress, isMaxLevel: uncappedLevel >= maxLevel };
                 },
 
                 runTests() {
@@ -2045,8 +2237,8 @@
                         { name: 'Level 2 at 500 XP', result: this.getUserLevel(500).level === 2 },
                         { name: 'Level 3 at 1200 XP', result: this.getUserLevel(1200).level === 3 },
                         { name: 'Progress 50% at 250 XP', result: this.getUserLevel(250).progress === 50 },
-                        { name: 'Masihi Date Feb 18 for Day 1', result: this.getMasihiDate(1).includes('18 Feb') },
-                        { name: 'Masihi Date Mar 19 for Day 30', result: this.getMasihiDate(30).includes('19 Mac') }
+                        { name: 'Masihi Date Feb 19 for Day 1', result: this.getMasihiDate(1).includes('19 Feb') },
+                        { name: 'Masihi Date Mar 20 for Day 30', result: this.getMasihiDate(30).includes('20 Mac') }
                     ];
 
                     tests.forEach(t => console.log(`${t.result ? '✅' : '❌'} ${t.name}`));
@@ -2190,7 +2382,31 @@
                 },
 
                 addItem() {
-                    if (!this.newItem.name) return;
+                    // Validation: Check if name is provided
+                    if (!this.newItem.name || this.newItem.name.trim() === '') {
+                        alert('Sila masukkan nama ibadah terlebih dahulu.');
+                        return;
+                    }
+                    
+                    // Validation: Check minimum 2 variations
+                    if (this.newItem.options.length < 2) {
+                        alert('Minimum 2 pilihan skor diperlukan.');
+                        return;
+                    }
+                    
+                    // Validation: Check max 5 variations
+                    if (this.newItem.options.length > 5) {
+                        alert('Maksimum 5 pilihan skor dibenarkan.');
+                        return;
+                    }
+                    
+                    // Validation: Check max 5 points per option
+                    const hasInvalidPoints = this.newItem.options.some(opt => opt.v > 5 || opt.v < 0);
+                    if (hasInvalidPoints) {
+                        alert('Maksimum 5 point dan minimum 0 point dibenarkan setiap pilihan.');
+                        return;
+                    }
+                    
                     // Security: Sanitize custom item name
                     const sanitizedItemName = this.newItem.name.replace(/<[^>]*>?/gm, '').substring(0, 30);
                     const id = 'c_' + Date.now();
@@ -2200,15 +2416,14 @@
                         alert('Sila tambah sekurang-kurangnya satu pilihan skor dengan deskripsi.');
                         return;
                     }
-
-                    // Security: Sanitize option labels
+                    // Sanitize option labels
                     const sanitizedOptions = cleanOptions.map(o => ({
-                        v: parseInt(o.v) || 0,
+                        v: Math.min(5, Math.max(0, o.v || 0)), // Ensure 0-5 range
                         l: o.l.replace(/<[^>]*>?/gm, '').substring(0, 20)
                     }));
-
-                    // Always include a 0 option if not present
-                    if (!sanitizedOptions.find(o => o.v === 0)) {
+                    // Sort by value and ensure 0 point option exists
+                    sanitizedOptions.sort((a, b) => a.v - b.v);
+                    if (sanitizedOptions[0]?.v !== 0) {
                         sanitizedOptions.unshift({v: 0, l: 'Tiada'});
                     }
 
@@ -2222,8 +2437,53 @@
                     this.save();
                 },
 
+                isFriday() {
+                    const today = new Date();
+                    return today.getDay() === 5; // 5 = Friday
+                },
+
+                getFridaySpecialEffect() {
+                    return this.isFriday() ? 'animate-pulse shadow-lg ring-4 ring-yellow-400 ring-opacity-60' : '';
+                },
+
+                triggerEnemyAttack() {
+                    if (Math.random() < 0.1) { // 10% chance per interaction
+                        const randomEnemy = this.enemies[Math.floor(Math.random() * this.enemies.length)];
+                        this.enemy.type = randomEnemy.type;
+                        this.enemy.description = randomEnemy.description;
+                        this.enemy.hadith = randomEnemy.hadith;
+                        this.enemy.xpToLose = randomEnemy.xpToLose;
+                        this.enemy.active = true;
+                    }
+                },
+
+                handleEnemyResponse(accept) {
+                    if (!this.enemy.active) return;
+                    
+                    if (accept) {
+                        // User accepts the attack - lose XP
+                        if (this.activeProfile && this.activeProfile.totalXP >= this.enemy.xpToLose) {
+                            this.activeProfile.totalXP -= this.enemy.xpToLose;
+                            alert(`😔 ${this.enemy.name} telah menyerang amalan anda! Anda kehilangan ${this.enemy.xpToLose} XP.\n\n${this.enemy.hadith}\n\nTetapi ibadah anda Selamat dari api neraka.`);
+                        } else {
+                            alert(`😔 ${this.enemy.name} menyerang tetapi XP anda tidak mencukupi. Beruntunglah anda masih dilindungi.`);
+                        }
+                    } else {
+                        // User rejects the attack - safe
+                        alert(`✅ Alhamdulillah! Anda telah berjaya menolak ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nIbadah anda Selamat dan diberkati Allah.`);
+                    }
+                    
+                    // Reset enemy
+                    this.enemy.active = false;
+                    this.enemy.type = '';
+                    this.enemy.description = '';
+                    this.enemy.hadith = '';
+                    this.enemy.xpToLose = 0;
+                    this.save();
+                },
+
                 getMasihiDate(day) {
-                    const ramadanStart = new Date('2026-02-18T00:00:00');
+                    const ramadanStart = new Date('2026-02-19T00:00:00');
                     const targetDate = new Date(ramadanStart.getTime() + (day - 1) * 24 * 60 * 60 * 1000);
                     const months = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
                     return `${targetDate.getDate()} ${months[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
@@ -2370,7 +2630,51 @@
                         }
                     };
 
-                    // Source 1: Quran.com API (Primary)
+                    // Check cache first
+                    const cacheKey = `mushaf_layout_${page}`;
+                    const cachedLayout = localStorage.getItem(cacheKey);
+                    
+                    if (cachedLayout) {
+                        console.log(`Using cached mushaf layout for page ${page}`);
+                        try {
+                            const layoutData = JSON.parse(cachedLayout);
+                            if (layoutData && layoutData.pages && layoutData.pages[page]) {
+                                return layoutData.pages[page].map(v => ({
+                                    text: v.text_uthmani,
+                                    surah: { name: 'Surah ' + v.verse_key.split(':')[0] },
+                                    numberInSurah: v.verse_key.split(':')[1],
+                                    number: v.id
+                                }));
+                            }
+                        } catch (e) {
+                            console.warn('Failed to parse cached layout:', e);
+                        }
+                    }
+
+                    // Fetch from Tarteel AI API
+                    try {
+                        const res = await fetchWithTimeout(`https://qul.tarteel.ai/resources/mushaf-layout/10`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            console.log('Tarteel AI mushaf layout response:', data);
+                            
+                            if (data && data.pages && data.pages[page]) {
+                                // Cache the layout data
+                                localStorage.setItem(cacheKey, JSON.stringify(data));
+                                
+                                return data.pages[page].map(v => ({
+                                    text: v.text_uthmani,
+                                    surah: { name: 'Surah ' + v.verse_key.split(':')[0] },
+                                    numberInSurah: v.verse_key.split(':')[1],
+                                    number: v.id
+                                }));
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Tarteel AI API failed:', e);
+                    }
+
+                    // Fallback to original APIs if Tarteel fails
                     try {
                         const res = await fetchWithTimeout(`https://api.quran.com/api/v4/quran/verses/uthmani?page_number=${page}`);
                         if (res.ok) {
@@ -2386,7 +2690,7 @@
                         }
                     } catch (e) { console.warn('Quran.com Page API failed, trying AlQuran.cloud...'); }
 
-                    // Source 2: AlQuran.cloud (Fallback)
+                    // Fallback to AlQuran.cloud
                     try {
                         const res = await fetchWithTimeout(`https://api.alquran.cloud/v1/page/${page}/quran-uthmani`);
                         if (!res.ok) throw new Error('Bad response');
@@ -2462,6 +2766,96 @@
                     // Auto-detect zone if not set or if user wants refresh
                     if (!this.prayer.zone || this.prayer.zone === 'detecting') {
                         await this.fetchPrayerTimes();
+                    }
+                },
+
+                async fetchPrayerTimes() {
+                    if (!this.userLocation) return;
+
+                    try {
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = String(today.getMonth() + 1).padStart(2, '0');
+                        const day = String(today.getDate()).padStart(2, '0');
+                        
+                        // Try to detect zone from coordinates or use default Malaysia zones
+                        let zone = 'WLY01'; // Default: Wilayah Persekutuan Kuala Lumpur
+                        
+                        if (this.userLocation.lat && this.userLocation.lng) {
+                            const lat = this.userLocation.lat;
+                            const lng = this.userLocation.lng;
+                            
+                            // Simple zone detection based on coordinates for Malaysia
+                            if (lat >= 1 && lat <= 7 && lng >= 99 && lng <= 105) {
+                                zone = 'SGR01'; // Selangor
+                            } else if (lat >= 2 && lat <= 7 && lng >= 100 && lng <= 104) {
+                                zone = 'KUL01'; // Kuala Lumpur
+                            } else if (lat >= 3 && lat <= 7 && lng >= 101 && lng <= 104) {
+                                zone = 'PLS01'; // Perak
+                            } else if (lat >= 4 && lat <= 7 && lng >= 101 && lng <= 104) {
+                                zone = 'JHR01'; // Johor
+                            } else if (lat >= 5 && lat <= 7 && lng >= 100 && lng <= 103) {
+                                zone = 'KCH01'; // Kelantan
+                            } else if (lat >= 1 && lat <= 3 && lng >= 103 && lng <= 105) {
+                                zone = 'SBH01'; // Sabah
+                            } else if (lat >= 0 && lat <= 2 && lng >= 109 && lng <= 119) {
+                                zone = 'BRH01'; // Sarawak
+                            }
+                        }
+                        
+                        const url = `https://api.waktusolat.app/v1/solat/${zone}/${year}/${month}/${day}`;
+                        
+                        console.log('Fetching prayer times:', url);
+                        
+                        const response = await fetch(url);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log('Prayer times response:', data);
+                        
+                        if (data && data.data) {
+                            // Map the API response to our format
+                            this.prayer.timings = {
+                                Fajr: data.data.subuh || data.data.Fajr || '05:30',
+                                Sunrise: data.data.syuruk || data.data.Sunrise || '07:00',
+                                Dhuhr: data.data.zohor || data.data.Dhuhr || '13:00',
+                                Asr: data.data.asar || data.data.Asr || '16:30',
+                                Maghrib: data.data.maghrib || data.data.Maghrib || '19:15',
+                                Isha: data.data.isyak || data.data.Isha || '20:30'
+                            };
+                            this.prayer.zone = zone;
+                            this.prayer.cacheKey = this.prayerCacheKey();
+                            this.prayer.dateKey = today.toDateString();
+                            this.updateNextPrayer();
+                            this.save();
+                            console.log('Prayer times updated successfully');
+                        } else {
+                            throw new Error('Invalid API response format');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Failed to fetch prayer times:', error);
+                        
+                        // Fallback: use default times for Malaysia
+                        const fallbackTimings = {
+                            Fajr: '05:30',
+                            Sunrise: '07:00',
+                            Dhuhr: '13:00',
+                            Asr: '16:30',
+                            Maghrib: '19:15',
+                            Isha: '20:30'
+                        };
+                        
+                        this.prayer.timings = fallbackTimings;
+                        this.prayer.zone = 'WLY01';
+                        this.prayer.cacheKey = this.prayerCacheKey();
+                        this.prayer.dateKey = new Date().toDateString();
+                        this.updateNextPrayer();
+                        this.save();
+                        
+                        console.log('Using fallback prayer times');
                     }
                 },
 
@@ -2582,7 +2976,7 @@
                             juz: verse.juz || this.quiz.currentJuz || null
                         };
 
-                        this.quiz.targetContinuationText = this.buildContinuationTarget(verses, idx, 200, 20);
+                        this.quiz.targetContinuationText = this.buildContinuationTarget(verses, idx, 6, 20);
 
                         if (this.quiz.testMode === 'mcq') this.generateMcqPhases(verses, idx + 1);
 
@@ -2638,15 +3032,60 @@
 
                     const phases = trimmedChunks.map((correctText) => {
                         let wrongText = '';
-                        if (distractorPool.length > 0) {
-                            const src = distractorPool[Math.floor(Math.random() * distractorPool.length)];
-                            const srcWords = src.split(/\s+/).filter(Boolean);
-                            const take = Math.max(2, (correctText || '').split(/\s+/).filter(Boolean).length);
-                            wrongText = srcWords.slice(0, take).join(' ');
-                            if (!wrongText) wrongText = src.slice(0, Math.min(src.length, 60));
+                        if (distractorPool.length > 0 && correctText.trim() !== '') {
+                            // Better distractor selection - ensure it's different from correct answer
+                            let attempts = 0;
+                            while (wrongText === '' && attempts < 5) {
+                                const src = distractorPool[Math.floor(Math.random() * distractorPool.length)];
+                                const srcWords = src.split(/\s+/).filter(Boolean);
+                                const correctWords = correctText.split(/\s+/).filter(Boolean);
+                                const take = Math.max(correctWords.length, Math.min(5, srcWords.length));
+                                const candidate = srcWords.slice(0, take).join(' ');
+                                
+                                // Ensure distractor is sufficiently different
+                                if (candidate !== correctText && candidate.length > 0) {
+                                    wrongText = candidate;
+                                }
+                                attempts++;
+                            }
+                            
+                            if (!wrongText) {
+                                // Fallback: use a completely different verse
+                                const fallback = distractorPool[Math.floor(Math.random() * distractorPool.length)];
+                                wrongText = fallback.slice(0, Math.min(fallback.length, 60));
+                            }
                         }
+                        
                         const options = [correctText, wrongText].filter(v => v !== '');
-                        if (options.length === 1) options.push(options[0]);
+                        
+                        // Fix duplicate answer issue - create a meaningful distractor if needed
+                        if (options.length === 1) {
+                            // Create a meaningful distractor instead of duplicating
+                            const baseText = options[0];
+                            const words = baseText.split(/\s+/);
+                            if (words.length > 2) {
+                                // Modify the correct answer slightly to create a distractor
+                                const modifiedWords = [...words];
+                                // Change one word or remove the last word
+                                if (modifiedWords.length > 3) {
+                                    modifiedWords.pop(); // Remove last word
+                                } else {
+                                    // Replace a word with something similar but wrong
+                                    modifiedWords[modifiedWords.length - 1] = modifiedWords[modifiedWords.length - 1].slice(0, -1) + 'ً';
+                                }
+                                const distractor = modifiedWords.join(' ');
+                                if (distractor !== baseText) {
+                                    options.push(distractor);
+                                }
+                            }
+                            
+                            // If still only one option, create a generic distractor
+                            if (options.length === 1) {
+                                options.push('...'); // Generic continuation indicator
+                            }
+                        }
+                        
+                        // Shuffle options
                         if (Math.random() > 0.5) [options[0], options[1]] = [options[1], options[0]];
                         return {
                             correctText,
@@ -2706,7 +3145,7 @@
                     this.quiz.hintWordsUnlocked = Math.min(words.length, (this.quiz.hintWordsUnlocked || 0) + 1);
                 },
 
-                buildContinuationTarget(verses, startIdx, targetChars = 200, finishAyahThreshold = 20) {
+                buildContinuationTarget(verses, startIdx, targetWords = 6, finishAyahThreshold = 20) {
                     const parts = [];
                     let running = '';
 
@@ -2714,18 +3153,32 @@
                         const t = (verses[i]?.text || '').trim();
                         if (!t) continue;
                         const next = running ? (running + ' ' + t) : t;
+                        const wordCount = next.split(/\s+/).filter(Boolean).length;
 
-                        if (next.length <= targetChars) {
+                        // Simple word count rule
+                        if (wordCount <= 5) {
+                            // Don't slice short ayahs
                             parts.push(t);
                             running = next;
                             continue;
                         }
 
-                        const remaining = next.length - targetChars;
-                        if (remaining <= finishAyahThreshold) {
-                            parts.push(t);
+                        if (wordCount <= 10) {
+                            // Cut at 4 words for medium ayahs
+                            const words = next.split(/\s+/);
+                            const cutIndex = Math.min(4, words.length - 1);
+                            const partial = words.slice(0, cutIndex + 1).join(' ');
+                            parts.push(partial);
                             running = next;
+                            break;
                         }
+
+                        // For longer ayahs, cut at 6 words
+                        const words = next.split(/\s+/);
+                        const cutIndex = Math.min(6, words.length - 1);
+                        const partial = words.slice(0, cutIndex + 1).join(' ');
+                        parts.push(partial);
+                        running = next;
                         break;
                     }
 
@@ -2821,7 +3274,7 @@
                             juz: verse.juz || this.quiz.currentJuz || null
                         };
 
-                        this.quiz.targetContinuationText = this.buildContinuationTarget(verses, idx, 200, 20);
+                        this.quiz.targetContinuationText = this.buildContinuationTarget(verses, idx, 6, 20);
 
                         if (this.quiz.testMode === 'mcq') this.generateMcqPhases(verses, idx + 1);
                     } catch (e) {
@@ -3081,5 +3534,38 @@
             }
         }
     </script>
+    </div>
+
+    <!-- Enemy Attack Modal -->
+    <div x-show="enemy.active" x-cloak class="fixed inset-0 z-[300] bg-red-900/90 backdrop-blur-sm flex items-center justify-center p-6">
+        <div @click="handleEnemyResponse(false)" class="absolute inset-0"></div>
+        <div class="bg-card w-full max-w-md rounded-[3rem] p-8 relative z-10 custom-shadow border-2 border-red-500 animate-bounce" @click.stop>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                    <i data-lucide="skull" class="w-8 h-8 text-white"></i>
+                </div>
+                <h2 class="text-2xl font-black text-red-600 mb-4" x-text="enemy.name || 'Musuh'"></h2>
+                <p class="text-sm text-muted mb-6 leading-relaxed" x-text="enemy.description"></p>
+                <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-2xl mb-6">
+                    <p class="text-xs font-bold text-red-700 dark:text-red-300 mb-2">📜 Hadith:</p>
+                    <p class="text-sm text-muted italic" x-text="enemy.hadith"></p>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm font-bold text-red-600 mb-4" x-text="`Anda akan kehilangan ${enemy.xpToLose} XP!`"></p>
+                    <div class="flex gap-3 justify-center">
+                        <button @click="handleEnemyResponse(true)" 
+                            class="px-6 py-3 bg-red-500 text-white rounded-xl font-black hover:bg-red-600 transition-all">
+                            😔 Terima Serangan
+                        </button>
+                        <button @click="handleEnemyResponse(false)" 
+                            class="px-6 py-3 bg-green-500 text-white rounded-xl font-black hover:bg-green-600 transition-all">
+                            ✅ Lawan Musuh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
