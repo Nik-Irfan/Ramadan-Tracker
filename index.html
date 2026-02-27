@@ -32,7 +32,7 @@
         }
     </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Amiri:wght@400;700&family=Amiri+Quran&family=Scheherazade+New:wght@400;700&family=Lateef:wght@400;700&family=Harmattan:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Lateef:wght@400;700&family=Harmattan:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { font-family: 'Outfit', sans-serif; transition: background-color 0.3s, color 0.3s; min-height: 100vh; }
@@ -69,21 +69,7 @@
             z-index: 50;
         }
 
-        .quran-card {
-            background: #FDFBF7;
-            border-radius: 2rem;
-            box-shadow: 0 10px 25px rgba(2, 6, 23, 0.06);
-            border: 1px solid rgba(148, 163, 184, 0.25);
-        }
-
-        .quran-text {
-            font-family: 'Amiri Quran', 'Amiri Quran', serif;
-            direction: rtl;
-            text-align: center;
-            line-height: 2.2;
-            font-size: var(--quran-font-size, 2.2rem);
-        }
-        
+                
         /* Theme Variables */
         :root {
             --bg-main: #fcfcfc;
@@ -692,243 +678,21 @@
         </div>
         </div>
 
-        <!-- Mushaf Page (Combined with Quiz) -->
-        <div id="view-mushaf" x-show="view === 'mushaf'" x-cloak class="page-view">
-        <header class="mb-6">
-            <h1 class="text-3xl font-black text-main tracking-tighter">Al-Quran</h1>
-            <p class="text-muted font-medium text-xs">Ujian Hafazan</p>
-        </header>
+        <!-- Stats Page -->
+        <div x-show="view === 'stats'" x-cloak class="page-view text-center">
+            <header class="mb-12 text-left">
+                <h1 class="text-3xl font-black text-main tracking-tighter">Achievement</h1>
+                <p class="text-muted font-medium">Profil <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
+            </header>
 
-        <!-- Ujian Header -->
-        <div class="mb-6">
-            <h2 class="text-xl font-black text-main tracking-tighter">Ujian Hafazan Al-Quran</h2>
-            <p class="text-muted font-medium text-xs">Uji kemahiran hafazan anda</p>
-        </div>
-
-        <!-- Selection Mode Toggle (Juz vs Surah vs Page) -->
-        <div class="flex gap-2 mb-6">
-            <button @click="mushaf.selectionMode = 'juz'; quiz.selectionMode = 'juz'; quiz.currentJuz = mushaf.currentJuz; mushaf.showSelector = true;" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative"
-                :class="mushaf.selectionMode === 'juz' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
-                <i data-lucide="grid" class="w-3 h-3"></i>
-                Juz <span x-text="mushaf.currentJuz"></span>
-                <div x-show="mushaf.selectionMode === 'juz'" class="absolute -top-1 -right-1">
-                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded-full" 
-                          :class="getQuizStats('juz', mushaf.currentJuz).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('juz', mushaf.currentJuz).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
-                          x-text="`${getQuizStats('juz', mushaf.currentJuz).percentage}%`"></span>
-                </div>
-            </button>
-            <button @click="mushaf.selectionMode = 'surah'; quiz.selectionMode = 'surah'; quiz.currentSurah = mushaf.currentSurah; mushaf.showSelector = true;" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative"
-                :class="mushaf.selectionMode === 'surah' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
-                <i data-lucide="list" class="w-3 h-3"></i>
-                <span x-text="mushaf.surahNamesMalay[mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName] || 'Surah'"></span>
-                <div x-show="mushaf.selectionMode === 'surah'" class="absolute -top-1 -right-1">
-                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded-full" 
-                          :class="getQuizStats('surah', mushaf.currentSurah).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('surah', mushaf.currentSurah).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
-                          x-text="`${getQuizStats('surah', mushaf.currentSurah).percentage}%`"></span>
-                </div>
-            </button>
-            <button @click="mushaf.selectionMode = 'page'; quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; mushaf.showSelector = true;" 
-                class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative"
-                :class="mushaf.selectionMode === 'page' ? 'bg-accent text-white shadow-accent' : 'bg-card text-muted border border-theme'">
-                <i data-lucide="book" class="w-3 h-3"></i>
-                Page <span x-text="mushaf.currentPage"></span>
-                <div x-show="mushaf.selectionMode === 'page'" class="absolute -top-1 -right-1">
-                    <span class="text-[7px] font-black px-1.5 py-0.5 rounded-full" 
-                          :class="getQuizStats('page', mushaf.currentPage).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('page', mushaf.currentPage).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
-                          x-text="`${getQuizStats('page', mushaf.currentPage).percentage}%`"></span>
-                </div>
-            </button>
-        </div>
-
-        <!-- Selection Overlay -->
-        <div x-show="mushaf.showSelector" x-cloak class="fixed inset-0 z-[100] flex items-end justify-center max-w-[450px] mx-auto">
-            <div @click="mushaf.showSelector = false" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-            <div class="bg-card w-full max-w-md rounded-t-[3rem] p-8 relative z-10 shadow-2xl border-t border-theme animate-slide-up max-h-[80vh] overflow-y-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-sm font-black text-main uppercase tracking-widest" x-text="`Pilih ${mushaf.selectionMode}`"></h3>
-                    <button @click="mushaf.showSelector = false" class="p-2 text-muted hover:text-main">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <!-- Juz Selector (Grid Style) -->
-                <div x-show="mushaf.selectionMode === 'juz'" class="grid grid-cols-5 gap-3">
-                    <template x-for="j in 30" :key="j">
-                        <button @click="mushaf.currentJuz = j; quiz.selectionMode = 'juz'; quiz.currentJuz = j; mushaf.currentPage = mushaf.juzPages[j]; fetchMushaf(); mushaf.showSelector = false;" 
-                            class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all border-2 relative"
-                            :class="mushaf.currentJuz === j ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted'">
-                            <span class="font-black text-xs" x-text="j"></span>
-                            <span class="text-[7px] font-bold opacity-50" x-text="`P. ${mushaf.juzPages[j]}`"></span>
-                            <div x-show="getQuizStats('juz', j).total > 0" class="absolute -top-1 -right-1">
-                                <span class="text-[6px] font-black px-1 py-0.5 rounded-full" 
-                                      :class="getQuizStats('juz', j).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('juz', j).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
-                                      x-text="`${getQuizStats('juz', j).percentage}%`"></span>
-                            </div>
-                        </button>
-                    </template>
-                </div>
-
-                <!-- Surah Selector (Grid with Search) -->
-                <div x-show="mushaf.selectionMode === 'surah'">
-                    <div class="mb-4 relative">
-                        <input type="text" x-model="mushaf.searchSurah" placeholder="Cari surah (e.g. Yasin)..." 
-                            class="w-full p-4 bg-inset rounded-xl border-none text-[10px] font-bold text-main focus:ring-2 ring-accent ring-opacity-10 transition-all">
-                        <i data-lucide="search" class="absolute right-4 top-3.5 w-4 h-4 text-muted"></i>
+                <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
+                    <div class="absolute -top-4 -right-4 opacity-5">
+                        <i data-lucide="award" class="w-32 h-32 text-accent"></i>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <template x-for="s in filteredSurahs" :key="s.number">
-                            <button @click="mushaf.currentSurah = s.number; quiz.selectionMode = 'surah'; quiz.currentSurah = s.number; fetchMushaf(); mushaf.showSelector = false;" 
-                                class="p-3 rounded-xl flex items-center gap-3 transition-all border-2 text-left relative"
-                                :class="mushaf.currentSurah === s.number ? 'border-accent bg-accent/5' : 'border-transparent bg-inset'">
-                                <span class="w-6 h-6 rounded-lg bg-card dark:bg-slate-800 flex items-center justify-center text-[8px] font-black text-accent" x-text="s.number"></span>
-                                <div class="min-w-0">
-                                    <p class="text-[9px] font-black text-main truncate uppercase" x-text="mushaf.surahNamesMalay[s.englishName] || s.englishName"></p>
-                                    <p class="text-[8px] font-bold text-muted truncate" x-text="s.name"></p>
-                                </div>
-                                <div x-show="getQuizStats('surah', s.number).total > 0" class="absolute -top-1 -right-1">
-                                    <span class="text-[6px] font-black px-1 py-0.5 rounded-full" 
-                                          :class="getQuizStats('surah', s.number).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('surah', s.number).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
-                                          x-text="`${getQuizStats('surah', s.number).percentage}%`"></span>
-                                </div>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Page Selector (Grid Style) -->
-                <div x-show="mushaf.selectionMode === 'page'" class="grid grid-cols-6 gap-2">
-                    <template x-for="p in 604" :key="p">
-                        <button @click="mushaf.currentPage = p; quiz.selectionMode = 'page'; quiz.currentPage = p; fetchMushaf(false); mushaf.showSelector = false;" 
-                            class="aspect-square rounded-lg flex items-center justify-center text-[8px] font-black transition-all border relative"
-                            :class="mushaf.currentPage === p ? 'border-accent bg-accent/5 text-accent' : 'border-transparent bg-inset text-muted/50'"
-                            x-text="p">
-                            <div x-show="getQuizStats('page', p).total > 0" class="absolute -top-1 -right-1">
-                                <span class="text-[5px] font-black px-0.5 py-0.5 rounded-full" 
-                                      :class="getQuizStats('page', p).percentage >= 80 ? 'bg-green-100 text-green-700' : (getQuizStats('page', p).percentage >= 40 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')"
-                                      x-text="`${getQuizStats('page', p).percentage}%`"></span>
-                            </div>
-                        </button>
-                    </template>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quiz Section (Overlay when active) -->
-        <div x-show="quiz.active" x-transition class="mb-6 space-y-4">
-            <div class="relative overflow-visible">
-                <div x-show="quiz.loading" class="absolute inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center z-10">
-                    <div class="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-                </div>
-                
-                <div class="flex flex-wrap justify-between items-start mb-6 gap-3">
-                    <div class="flex items-center gap-3 shrink-0">
-                        <span class="h-10 min-w-10 flex items-center justify-center text-[10px] font-black text-green-600 bg-green-50 px-3 rounded-xl border border-green-100" x-text="`${quiz.session.correct}`"></span>
-                        <span class="h-10 min-w-10 flex items-center justify-center text-[10px] font-black text-red-500 bg-red-50 px-3 rounded-xl border border-red-100" x-text="`${quiz.session.wrong}`"></span>
-                    </div>
-                    <div class="flex flex-wrap gap-2 items-start justify-end">
-                        <div class="flex items-center gap-2">
-                            <select x-model="mushaf.fontFamily" class="h-10 bg-inset border border-theme rounded-2xl px-3 text-[10px] font-black text-main">
-                                <option>QPC v2</option>
-                                <option>Amiri Quran</option>
-                                <option>Amiri</option>
-                                <option>Scheherazade New</option>
-                                <option>Lateef</option>
-                                <option>Harmattan</option>
-                                <option>Noto Naskh Arabic</option>
-                            </select>
-                            <div class="h-10 flex items-center gap-3 bg-inset px-3 rounded-2xl border border-theme">
-                                <button @click="mushaf.fontSize = Math.max(20, mushaf.fontSize - 4)" class="text-muted hover:text-accent"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                                <span class="text-[10px] font-black text-main" x-text="`${mushaf.fontSize}px`"></span>
-                                <button @click="mushaf.fontSize = Math.min(60, mushaf.fontSize + 4)" class="text-muted hover:text-accent"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                            </div>
-                        </div>
-                        <!-- Mode Toggle -->
-                        <div class="h-10 flex bg-inset p-1 rounded-xl border border-theme">
-                            <button @click="quiz.testMode = 'mcq'; startQuiz()" 
-                                class="w-9 h-9 flex items-center justify-center rounded-lg transition-all" :class="quiz.testMode === 'mcq' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
-                                <i data-lucide="list-checks" class="w-4 h-4"></i>
-                            </button>
-                            <button @click="showBetaNotice()" 
-                                class="w-9 h-9 flex items-center justify-center rounded-lg transition-all" :class="quiz.testMode === 'voice' ? 'bg-accent text-white shadow-sm' : 'text-muted'">
-                                <i data-lucide="mic" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        <button @click="randomizeAyat()" 
-                            class="w-10 h-10 flex items-center justify-center bg-purple-50 text-purple-600 rounded-xl hover:bg-purple-100 transition-colors" 
-                            title="Randomize Ayat">
-                            <i data-lucide="shuffle" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="text-center py-4">
-                    <p class="text-muted text-[9px] font-black uppercase tracking-widest mb-4" x-text="quiz.testMode === 'voice' ? 'Sila Baca & Sambung Ayat Ini:' : 'Pilih Sambungan Ayat Yang Betul:'"></p>
-                    <div class="quran-text text-main font-bold mb-8 px-4 py-6" :style="`font-family: '${mushaf.fontFamily}', serif; font-size: ${Math.max(20, ((quiz.verse?.text || '').length > 200 ? mushaf.fontSize - 6 : mushaf.fontSize))}px;`" dir="rtl">
-                        <div x-show="quiz.testMode === 'voice'" class="text-center">
-                            <p class="text-lg mb-4 truncate" x-text="quiz.verse?.text"></p>
-                        </div>
-                        <div x-show="quiz.testMode === 'mcq'" class="text-center text-main">
-                            <p class="text-lg mb-4 truncate" x-text="quiz.verse?.text"></p>
-                        </div>
-                    </div>
-                    
-                    <!-- Voice Mode UI -->
-                    <div x-show="quiz.testMode === 'voice'" class="flex flex-col items-center gap-6">
-                        <div class="relative w-24 h-24">
-                            <!-- Progress Ring -->
-                            <svg class="w-full h-full -rotate-90">
-                                <circle cx="48" cy="48" r="44" class="stroke-accent/10 fill-none" stroke-width="4"></circle>
-                                <circle cx="48" cy="48" r="44" class="stroke-accent fill-none transition-all duration-500" 
-                                    stroke-width="4" stroke-dasharray="276" :stroke-dashoffset="276 - (quiz.recording ? 276 : 0)" stroke-linecap="round"></circle>
-                            </svg>
-                            <button @click="toggleRecitation()"
-                                class="absolute inset-2 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg"
-                                :class="quiz.recording ? 'bg-red-500 shadow-red-200' : 'gradient-accent shadow-accent'">
-                                <i :data-lucide="quiz.recording ? 'square' : 'mic'" class="w-8 h-8 text-white"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="w-full space-y-2">
-                            <p class="text-[9px] font-black uppercase tracking-widest" :class="quiz.recording ? 'text-red-500 animate-pulse' : 'text-muted'" 
-                               x-text="quiz.recording ? 'Sila Teruskan Membaca...' : 'Klik Mic Untuk Mula'"></p>
-                            
-                            <div class="p-4 bg-inset/50 rounded-2xl border border-theme/50 space-y-3">
-                                <div>
-                                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Dikesan (segmen)</p>
-                                    <p class="text-sm font-bold text-main font-arabic leading-relaxed text-center" dir="rtl" x-text="quiz.detectedSegment || '...' "></p>
-                                </div>
-                                <div>
-                                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Bacaan anda (terkumpul)</p>
-                                    <p class="text-sm font-bold text-main font-arabic leading-relaxed text-center" dir="rtl" x-text="quiz.recitedText || '...' "></p>
-                                </div>
-                            </div>
-
-                            <div x-show="quiz.voiceStage === 'review'" class="grid grid-cols-2 gap-2">
-                                <button @click="quiz.voiceStage='recording'; startRecitation();" class="py-3 bg-card border border-theme rounded-xl text-[10px] font-black uppercase tracking-widest text-accent">Teruskan</button>
-                                <button @click="checkQuizAnswer(quiz.recitedText);" class="py-3 gradient-accent text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Semak</button>
-                            </div>
-
-                            <div x-show="quiz.voiceCompleted" class="p-3 bg-green-50 text-green-700 rounded-xl border border-green-200 text-[10px] font-black uppercase tracking-widest text-center">
-                                Complete
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-2">
-                                <button @click="unlockHintWord()" class="py-3 bg-purple-50 text-purple-700 rounded-xl text-[10px] font-black uppercase tracking-widest">Unlock Hint</button>
-                                <button @click="stopRecitation()" class="py-3 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest">Selesai</button>
-                            </div>
-
-                            <div x-show="quiz.hintWordsUnlocked > 0" class="p-3 bg-card rounded-xl border border-theme">
-                                <p class="text-[9px] font-black text-muted uppercase tracking-widest mb-2">Hint sambungan</p>
-                                <p class="text-sm font-bold text-main font-arabic px-1 py-1 leading-relaxed" dir="rtl" x-text="(quiz.verse?.nextText || '').split(/\s+/).filter(Boolean).slice(0, quiz.hintWordsUnlocked).join(' ')"></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MCQ Mode UI -->
-                    <div x-show="quiz.testMode === 'mcq'" class="space-y-3">
-                        <div class="p-4 bg-inset/50 rounded-2xl border border-theme/50" x-show="quiz.mcqBuiltText">
+                    <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Total Experience</h2>
+                    <div class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="`Setakat ${getMasihiDate(currentDay)}`"></div>
+                    <div class="text-7xl font-black text-gradient mb-2" x-text="activeProfile?.totalXP || 0"></div>
+                    <p class="text-[10px] font-black text-accent opacity-60 uppercase tracking-widest mb-8">XP Points Collected</p>
                             <p class="text-[9px] font-black text-muted uppercase tracking-widest mb-2" x-text="`Fasa ${quiz.mcqPhase + 1}/3`"></p>
                             <div class="quran-card text-main font-bold p-4 rounded-lg" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, ((quiz.verse?.text || '').length > 200 ? mushaf.fontSize - 6 : mushaf.fontSize))}px;`" dir="rtl">
                                 <p class="text-lg mb-4" x-text="quiz.mcqBuiltText"></p>
@@ -1695,11 +1459,7 @@
             <i data-lucide="list-checks" class="w-5 h-5"></i>
             <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_amalan')"></span>
         </button>
-        <button @click="view = 'mushaf'; fetchMushaf()" class="flex flex-col items-center gap-1 transition-all" :class="view === 'mushaf' ? 'nav-active' : 'text-muted'">
-            <i data-lucide="book-open" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_quran')"></span>
-        </button>
-        <button @click="view = 'stats'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'stats' ? 'nav-active' : 'text-muted'">
+                <button @click="view = 'stats'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'stats' ? 'nav-active' : 'text-muted'">
             <i data-lucide="user" class="w-5 h-5"></i>
             <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_karakter')"></span>
         </button>
@@ -1743,7 +1503,6 @@
                         { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
                         { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'8 Rakaat'}] },
                         { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'quran_ms', name: 'Al-Quran (MS)', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'10 ms'}, {v:2, l:'20 ms'}] },
                         { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'50x'}, {v:2, l:'100x'}] },
                         { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'50x'}, {v:2, l:'100x'}] },
                         { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
@@ -1765,7 +1524,6 @@
                         { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
                         { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:8, l:'8 Rakaat'}, {v:20, l:'20 Rakaat'}] },
                         { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'quran', name: 'Al-Quran (Juz)', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}, {v:2, l:'2 Juz'}] },
                         { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
                         { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
                         { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
@@ -1791,7 +1549,6 @@
                         { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
                         { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:8, l:'8 Rakaat'}, {v:20, l:'20 Rakaat'}] },
                         { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'quran', name: 'Al-Quran (Juz)', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}, {v:2, l:'2 Juz'}, {v:4, l:'4 Juz'}] },
                         { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}, {v:4, l:'500x'}] },
                         { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}, {v:4, l:'500x'}] },
                         { id: 'sedekah', name: 'Sedekah Harian', icon: 'heart', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] }
@@ -1927,84 +1684,6 @@
                 showCalendar: false,
                 editMode: false,
                 showUserMenu: false,
-                mushaf: {
-                    loading: false,
-                    selectionMode: 'page', // 'juz', 'surah', or 'page'
-                    currentJuz: 1,
-                    currentSurah: 1,
-                    currentPage: 1,
-                    verses: [],
-                    surahs: [],
-                    fontSize: 32,
-                    fontFamily: 'QPC v2',
-                    viewMode: 'page',
-                    searchSurah: '',
-                    showSelector: false,
-                    juzPages: {
-                        1: 1, 2: 22, 3: 42, 4: 62, 5: 82, 6: 102, 7: 122, 8: 142, 9: 162, 10: 182,
-                        11: 202, 12: 222, 13: 242, 14: 262, 15: 282, 16: 302, 17: 322, 18: 342, 19: 362, 20: 382,
-                        21: 402, 22: 422, 23: 442, 24: 462, 25: 482, 26: 502, 27: 522, 28: 542, 29: 562, 30: 582
-                    },
-                    surahNamesMalay: {
-                        'Al-Faatiha': 'Al-Fatihah', 'Al-Baqara': 'Al-Baqarah', 'Aal-i-Imraan': 'Ali \'Imran', 'An-Nisaa': 'An-Nisa\'',
-                        'Al-Maaida': 'Al-Ma\'idah', 'Al-An\'aam': 'Al-An\'am', 'Al-A\'raaf': 'Al-A\'raf', 'Al-Anfaal': 'Al-Anfal',
-                        'At-Tawba': 'At-Taubah', 'Yunus': 'Yunus', 'Hud': 'Hud', 'Yusuf': 'Yusuf', 'Ar-Ra\'d': 'Ar-Ra\'d',
-                        'Ibrahim': 'Ibrahim', 'Al-Hijr': 'Al-Hijr', 'An-Nahl': 'An-Nahl', 'Al-Israa': 'Al-Isra\'',
-                        'Al-Kahf': 'Al-Kahf', 'Maryam': 'Maryam', 'Ta-Ha': 'Taha', 'Al-Anbiyaa': 'Al-Anbiya\'',
-                        'Al-Hajj': 'Al-Hajj', 'Al-Mu\'minoon': 'Al-Mu\'minun', 'An-Noor': 'An-Nur', 'Al-Furqaan': 'Al-Furqan',
-                        'Ash-Shu\'araa': 'Asy-Syu\'ara\'', 'An-Naml': 'An-Naml', 'Al-Qasas': 'Al-Qasas', 'Al-Ankaboot': 'Al-\'Ankabut',
-                        'Ar-Room': 'Ar-Rum', 'Luqman': 'Luqman', 'As-Sajda': 'As-Sajdah', 'Al-Ahzaab': 'Al-Ahzab',
-                        'Saba': 'Saba\'', 'Faatir': 'Fatir', 'Ya-Seen': 'Yasin', 'As-Saaffaat': 'As-Saffat', 'Saad': 'Sad',
-                        'Az-Zumar': 'Az-Zumar', 'Ghafir': 'Ghafir', 'Fussilat': 'Fussilat', 'Ash-Shura': 'Asy-Syura',
-                        'Az-Zukhruf': 'Az-Zukhruf', 'Ad-Dukhaan': 'Ad-Dukhan', 'Al-Jaathiya': 'Al-Jatsiyah', 'Al-Ahqaaf': 'Al-Ahqaf',
-                        'Muhammad': 'Muhammad', 'Al-Fath': 'Al-Fath', 'Al-Hujuraat': 'Al-Hujurat', 'Qaaf': 'Qaf',
-                        'Adh-Dhaariyat': 'Adz-Dzariyat', 'At-Toor': 'At-Tur', 'An-Najm': 'An-Najm', 'Al-Qamar': 'Al-Qamar',
-                        'Ar-Rahmaan': 'Ar-Rahman', 'Al-Waaqi\'a': 'Al-Waqi\'ah', 'Al-Hadeed': 'Al-Hadid', 'Al-Mujaadila': 'Al-Mujadilah',
-                        'Al-Hashr': 'Al-Hasyr', 'Al-Mumtahina': 'Al-Mumtahanah', 'As-Saff': 'As-Saff', 'Al-Jumu\'a': 'Al-Jumu\'ah',
-                        'Al-Munaafiqoon': 'Al-Munafiqun', 'At-Taghaabun': 'At-Taghabun', 'At-Talaaq': 'At-Talaq', 'At-Tahreem': 'At-Tahrim',
-                        'Al-Mulk': 'Al-Mulk', 'Al-Qalam': 'Al-Qalam', 'Al-Haaqqa': 'Al-Haqqah', 'Al-Ma\'aarij': 'Al-Ma\'arij',
-                        'Nooh': 'Nuh', 'Al-Jinn': 'Al-Jinn', 'Al-Muzzammil': 'Al-Muzzammil', 'Al-Muddaththir': 'Al-Muddatsir',
-                        'Al-Qiyaama': 'Al-Qiyamah', 'Al-Insaan': 'Al-Insan', 'Al-Mursalaat': 'Al-Mursalat', 'An-Naba': 'An-Naba\'',
-                        'An-Naazi\'aat': 'An-Nazi\'at', 'Abasa': 'Abasa', 'At-Takweer': 'At-Takwir', 'Al-Infitaar': 'Al-Infitar',
-                        'Al-Mutaffifeen': 'Al-Mutaffifin', 'Al-Inshiqaaq': 'Al-Insyiqaq', 'Al-Burooj': 'Al-Buruj', 'At-Taariq': 'At-Tariq',
-                        'Al-A\'laa': 'Al-A\'la', 'Al-Gaashiya': 'Al-Ghasyiyah', 'Al-Fajr': 'Al-Fajr', 'Al-Balad': 'Al-Balad',
-                        'Ash-Shams': 'Asy-Syams', 'Al-Layl': 'Al-Lail', 'Ad-Duhaa': 'Ad-Duha', 'Ash-Sharh': 'Asy-Syarh',
-                        'At-Teen': 'At-Tin', 'Al-Alaq': 'Al-\'Alaq', 'Al-Qadr': 'Al-Qadr', 'Al-Bayyina': 'Al-Bayyinah',
-                        'Az-Zalzala': 'Az-Zalzalah', 'Al-Aadiyaat': 'Al-\'Adiyat', 'Al-Qaari\'a': 'Al-Qari\'ah', 'At-Takaathur': 'At-Takatsur',
-                        'Al-Asr': 'Al-\'Asr', 'Al-Humaza': 'Al-Humazah', 'Al-Feel': 'Al-Fil', 'Quraish': 'Quraisy',
-                        'Al-Maa\'oon': 'Al-Ma\'un', 'Al-Kawthar': 'Al-Kautsar', 'Al-Kaafiroon': 'Al-Kafirun', 'An-Nasr': 'An-Nasr',
-                        'Al-Masad': 'Al-Masad', 'Al-Ikhlaas': 'Al-Ikhlas', 'Al-Falaq': 'Al-Falaq', 'An-Naas': 'An-Nas'
-                    }
-                },
-                quiz: {
-                    active: true,
-                    loading: false,
-                    testMode: 'mcq',
-                    selectionMode: 'juz',
-                    currentJuz: 1,
-                    currentSurah: 1,
-                    currentPage: 1,
-                    verse: null,
-                    targetContinuationText: '',
-                    recording: false,
-                    transcript: '',
-                    detectedSegment: '',
-                    recitedText: '',
-                    voiceStage: 'idle',
-                    voiceProgress: 0,
-                    voiceCompleted: false,
-                    hintWordsUnlocked: 0,
-                    status: 'idle',
-                    feedback: '',
-                    session: { correct: 0, wrong: 0, total: 0 },
-                    matchedWords: [],
-                    idleTimer: null,
-                    mcqOptions: [],
-                    mcqCorrectIndex: -1,
-                    mcqPhase: 0,
-                    mcqBuiltText: '',
-                    mcqPhases: []
-                },
 
                 init() {
                     try {
@@ -2018,12 +1697,6 @@
                         this.lang = data.lang || 'ms';
                         this.islamicQuoteIndex = Number.isFinite(data.islamicQuoteIndex) ? data.islamicQuoteIndex : 0;
                         this.islamicQuoteDateKey = data.islamicQuoteDateKey || '';
-                        if (Number.isFinite(data.mushafFontSize)) {
-                            this.mushaf.fontSize = Math.max(20, Math.min(60, Number(data.mushafFontSize)));
-                        }
-                        if (typeof data.mushafFontFamily === 'string' && data.mushafFontFamily.trim()) {
-                            this.mushaf.fontFamily = data.mushafFontFamily;
-                        }
                         if (data.prayer && typeof data.prayer === 'object') {
                             this.prayer.enabled = !!data.prayer.enabled;
                             this.prayer.placement = typeof data.prayer.placement === 'string' ? data.prayer.placement : 'both';
@@ -2070,9 +1743,7 @@
                         setInterval(() => this.updateNextPrayer(), 30000);
                     });
                     
-                    this.fetchSurahList();
                     this.startLocationTracking();
-                    this.fetchMushaf(false);
                     
                     // Auto-sync Ramadan Date
                     // Set current day based on Ramadan 2026 calendar
@@ -2127,52 +1798,40 @@
                     this.$watch('darkMode', () => this.saveGlobal());
                     this.$watch('theme', () => this.saveGlobal());
                     this.$watch('lang', () => this.saveGlobal());
-                    this.$watch('mushaf.fontSize', () => this.saveGlobal());
-                    this.$watch('mushaf.fontFamily', () => this.saveGlobal());
                     this.$watch('prayer.enabled', () => { if (this.prayer.enabled) this.ensurePrayerTimes(); this.saveGlobal(); });
                     this.$watch('prayer.placement', () => this.saveGlobal());
                     this.$watch('selectedBadge', () => this.$nextTick(() => lucide.createIcons()));
                     this.$watch('selectedHafazanJuz', () => this.$nextTick(() => lucide.createIcons()));
 
-                    // Load all Quran verses and tajweed words for proper ayah stopping
-                    this.loadAllQuranVerses().then(() => {
-                        this.loadTajweedWords().then(() => {
-                            // Complete loading
-                            this.loadingText = 'Ready!';
-                            this.loadingProgress = 100;
-                            
-                            // Show app after a short delay
-                            setTimeout(() => {
-                                this.appReady = true;
-                                // Initialize prayer times if enabled
-                                if (this.prayer.enabled) {
-                                    this.ensurePrayerTimes();
-                                }
-                                this.initialized = true;
-                            }, 500);
-                        });
-                    });
+                    // Complete loading
+                    this.loadingText = 'Ready!';
+                    this.loadingProgress = 100;
                     
-                    // Auto-load quiz after initialization
+                    // Show app after a short delay
                     setTimeout(() => {
-                        if (this.initialized && !this.quiz.loading) {
-                            this.randomizeAyat();
+                        this.appReady = true;
+                        // Initialize prayer times if enabled
+                        if (this.prayer.enabled) {
+                            this.ensurePrayerTimes();
                         }
                     }, 1000);
-                    
-                    // Run Self-Tests on startup
-                    this.runTests();
-                    
-                    // Mark app as initialized
-                    this.initialized = true;
-                } catch (error) {
-                    console.error('Initialization error:', error);
-                    // Still mark as initialized to prevent infinite loading
-                    this.initialized = true;
+                } catch (e) {
+                    console.error('Init error:', e);
+                    this.appReady = true;
                 }
-                },
+                    
+                // Run Self-Tests on startup
+                this.runTests();
+                
+                // Mark app as initialized
+                this.initialized = true;
+            } catch (error) {
+                console.error('Initialization error:', error);
+                // Still mark as initialized to prevent infinite loading
+                this.initialized = true;
+            },
 
-                get activeProfile() {
+            get activeProfile() {
                     return this.allProfiles.find(p => p.id === this.activeProfileId);
                 },
 
