@@ -686,11 +686,8 @@
 
                 <div class="text-center py-4">
                     <p class="text-muted text-[9px] font-black uppercase tracking-widest mb-4" x-text="quiz.testMode === 'voice' ? 'Sila Baca & Sambung Ayat Ini:' : 'Pilih Sambungan Ayat Yang Betul:'"></p>
-                    <div class="quran-card quran-text text-main font-bold mb-8 px-4 py-6 flex flex-wrap justify-center gap-x-2 gap-y-1" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, ((quiz.verse?.text || '').length > 200 ? mushaf.fontSize - 6 : mushaf.fontSize))}px;`" dir="rtl">
-                        <template x-for="word in quiz.verse?.text.split(' ')" :key="word + Math.random()">
-                            <span :class="quiz.matchedWords.includes(word.replace(/[\u064B-\u0652\u06D6-\u06ED]/g, '')) ? 'text-accent scale-110' : 'text-main'" 
-                                  class="transition-all duration-300" x-text="word"></span>
-                        </template>
+                    <div class="quran-card quran-text text-main font-bold mb-8 px-4 py-6" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, ((quiz.verse?.text || '').length > 200 ? mushaf.fontSize - 6 : mushaf.fontSize))}px;`" dir="rtl">
+                        <p class="leading-relaxed" x-text="quiz.verse?.text || ''"></p>
                     </div>
                     
                     <!-- Voice Mode UI -->
@@ -755,7 +752,7 @@
                             <button @click="checkMcqAnswer(idx)" 
                                 class="w-full p-5 bg-inset hover:bg-accent/5 rounded-[1.5rem] border-2 border-transparent transition-all text-right font-arabic text-lg font-bold text-main flex justify-between items-center group"
                                 :class="quiz.status !== 'idle' ? (idx === quiz.mcqCorrectIndex ? 'border-green-500 bg-green-50' : (idx === quiz.selectedMcqIndex ? 'border-red-400 bg-red-50' : 'opacity-50')) : 'hover:border-accent'">
-                                <span class="w-6 h-6 rounded-full border border-theme flex items-center justify-center text-[10px] font-black text-muted group-hover:border-accent group-hover:text-accent" x-text="['A', 'B'][idx]"></span>
+                                <span class="w-6 h-6 rounded-full border border-theme flex items-center justify-center text-[10px] font-black text-muted group-hover:border-accent group-hover:text-accent" x-text="['A', 'B', 'C', 'D'][idx] || String(idx + 1)"></span>
                                 <span dir="rtl" x-text="opt"></span>
                             </button>
                         </template>
@@ -1730,7 +1727,9 @@
                     mcqCorrectIndex: -1,
                     mcqPhase: 0,
                     mcqBuiltText: '',
-                    mcqPhases: []
+                    mcqPhases: [],
+                    selectedMcqIndex: -1,
+                    tajweedStopWords: []
                 },
 
                 init() {
@@ -1774,6 +1773,7 @@
                     this.fetchSurahList();
                     this.startLocationTracking();
                     this.fetchMushaf(false);
+                    this.loadTajweedStopWords();
                     
                     // Auto-sync Ramadan Date
                     // Ramadan 2026 starts on February 19th
@@ -2991,102 +2991,87 @@
                     }
                 },
 
-                generateMcqPhases(verses, correctIdx) {
-                    const correctFull = verses[correctIdx].text;
-                    const words = (correctFull || '').split(/\s+/).filter(Boolean);
-                    const targetMaxChars = 200;
-                    const chunks = [];
+                getPromptCutIndex(totalWords) {
+                    if (totalWords <= 5) return totalWords;
+                    if (totalWords <= 10) return 4;
+                    return 6;
+                },
 
-                    const pushChunk = (w) => {
-                        if (!w || w.length === 0) return;
-                        chunks.push(w.join(' '));
+                getPromptAndAnswerFromVerse(verseText) {
+                    const words = (verseText || '').split(/\s+/).filter(Boolean);
+                    const total = words.length;
+                    const cutIndex = this.getPromptCutIndex(total);
+
+                    if (total <= 5) {
+                        return {
+                            promptText: words.join(' '),
+                            answerText: words.join(' ')
+                        };
+                    }
+
+                    return {
+                        promptText: words.slice(0, cutIndex).join(' '),
+                        answerText: words.join(' ')
+                    };
+                },
+
+                buildUniqueMcqOptions(correctAnswer, distractorPool, desiredCount = 4) {
+                    let options = [correctAnswer];
+                    let attempts = 0;
+
+                    while (options.length < desiredCount && attempts < 80) {
+                        attempts++;
+                        const src = (distractorPool[Math.floor(Math.random() * distractorPool.length)] || '').trim();
+                        if (!src || src === correctAnswer) continue;
+                        options.push(src);
+                        options = [...new Set(options)];
+                    }
+
+                    while (options.length < desiredCount) {
+                        options.push(`Pilihan ${options.length + 1}`);
+                    }
+
+                    for (let i = options.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [options[i], options[j]] = [options[j], options[i]];
+                    }
+
+                    return options.slice(0, desiredCount);
+                },
+
+                generateMcqPhases(verses, correctIdx) {
+                    const correctFull = (verses[correctIdx]?.text || '').trim();
+                    if (!correctFull) {
+                        this.quiz.mcqPhases = [];
+                        this.quiz.mcqOptions = [];
+                        this.quiz.mcqCorrectIndex = -1;
+                        this.quiz.mcqBuiltText = '';
+                        return;
+                    }
+
+                    const promptInfo = this.getPromptAndAnswerFromVerse(correctFull);
+                    this.quiz.verse = {
+                        ...(this.quiz.verse || {}),
+                        text: promptInfo.promptText || correctFull,
+                        nextText: promptInfo.answerText
                     };
 
-                    const chunkCount = 3;
-                    const perChunk = Math.max(1, Math.ceil(words.length / chunkCount));
-                    for (let i = 0; i < chunkCount; i++) {
-                        pushChunk(words.slice(i * perChunk, (i + 1) * perChunk));
+                    const answerWords = (promptInfo.answerText || correctFull).split(/\s+/).filter(Boolean);
+                    const perChunk = Math.max(1, Math.ceil(answerWords.length / 3));
+                    const chunks = [];
+                    for (let i = 0; i < 3; i++) {
+                        const chunk = answerWords.slice(i * perChunk, (i + 1) * perChunk).join(' ').trim();
+                        if (chunk) chunks.push(chunk);
                     }
-
-                    const trimmedChunks = [];
-                    let running = '';
-                    for (const c of chunks) {
-                        if (!c) continue;
-                        const next = (running ? (running + ' ' + c) : c);
-                        if (next.length > targetMaxChars) break;
-                        trimmedChunks.push(c);
-                        running = next;
-                        if (trimmedChunks.length === 3) break;
-                    }
-
-                    while (trimmedChunks.length < 3 && trimmedChunks.length > 0) trimmedChunks.push('');
-                    if (trimmedChunks.length === 0) {
-                        trimmedChunks.push(correctFull.slice(0, Math.min(correctFull.length, targetMaxChars)));
-                        while (trimmedChunks.length < 3) trimmedChunks.push('');
-                    }
+                    while (chunks.length < 3) chunks.push(chunks[chunks.length - 1] || promptInfo.answerText || correctFull);
 
                     const distractorPool = verses
                         .filter((_, i) => i !== correctIdx)
-                        .map(v => v.text)
+                        .map(v => (v?.text || '').trim())
                         .filter(Boolean);
 
-                    const phases = trimmedChunks.map((correctText) => {
-                        let wrongText = '';
-                        if (distractorPool.length > 0 && correctText.trim() !== '') {
-                            // Better distractor selection - ensure it's different from correct answer
-                            let attempts = 0;
-                            while (wrongText === '' && attempts < 5) {
-                                const src = distractorPool[Math.floor(Math.random() * distractorPool.length)];
-                                const srcWords = src.split(/\s+/).filter(Boolean);
-                                const correctWords = correctText.split(/\s+/).filter(Boolean);
-                                const take = Math.max(correctWords.length, Math.min(5, srcWords.length));
-                                const candidate = srcWords.slice(0, take).join(' ');
-                                
-                                // Ensure distractor is sufficiently different
-                                if (candidate !== correctText && candidate.length > 0) {
-                                    wrongText = candidate;
-                                }
-                                attempts++;
-                            }
-                            
-                            if (!wrongText) {
-                                // Fallback: use a completely different verse
-                                const fallback = distractorPool[Math.floor(Math.random() * distractorPool.length)];
-                                wrongText = fallback.slice(0, Math.min(fallback.length, 60));
-                            }
-                        }
-                        
-                        const options = [correctText, wrongText].filter(v => v !== '');
-                        
-                        // Fix duplicate answer issue - create a meaningful distractor if needed
-                        if (options.length === 1) {
-                            // Create a meaningful distractor instead of duplicating
-                            const baseText = options[0];
-                            const words = baseText.split(/\s+/);
-                            if (words.length > 2) {
-                                // Modify the correct answer slightly to create a distractor
-                                const modifiedWords = [...words];
-                                // Change one word or remove the last word
-                                if (modifiedWords.length > 3) {
-                                    modifiedWords.pop(); // Remove last word
-                                } else {
-                                    // Replace a word with something similar but wrong
-                                    modifiedWords[modifiedWords.length - 1] = modifiedWords[modifiedWords.length - 1].slice(0, -1) + 'ً';
-                                }
-                                const distractor = modifiedWords.join(' ');
-                                if (distractor !== baseText) {
-                                    options.push(distractor);
-                                }
-                            }
-                            
-                            // If still only one option, create a generic distractor
-                            if (options.length === 1) {
-                                options.push('...'); // Generic continuation indicator
-                            }
-                        }
-                        
-                        // Shuffle options
-                        if (Math.random() > 0.5) [options[0], options[1]] = [options[1], options[0]];
+                    const phases = chunks.slice(0, 3).map((correctText) => {
+                        const options = this.buildUniqueMcqOptions(correctText, distractorPool, 4);
                         return {
                             correctText,
                             options,
@@ -3179,6 +3164,38 @@
                         .replace(/ى/g, "ي")
                         .replace(/\s+/g, ' ')
                         .trim();
+                },
+
+                isTajweedStopBoundary(text) {
+                    const cleaned = (text || '').trim();
+                    if (!cleaned) return false;
+
+                    const stopMarks = ['ۘ', 'ۚ', 'ۛ', 'ۗ', 'ۖ', 'ۙ', 'ۜ', '۞', '۩'];
+                    if (stopMarks.some(mark => cleaned.endsWith(mark))) return true;
+
+                    const words = cleaned.split(/\s+/).filter(Boolean);
+                    if (words.length === 0) return false;
+                    const lastWord = this.normalizeArabic(words[words.length - 1]);
+                    if (!lastWord) return false;
+
+                    const knownStops = ['وقف', 'قلى', 'قلي', 'صلى', 'صلي', 'م', 'لا'];
+                    const loadedStops = this.quiz.tajweedStopWords || [];
+                    return knownStops.includes(lastWord) || loadedStops.includes(lastWord);
+                },
+
+                async loadTajweedStopWords() {
+                    try {
+                        const res = await fetch('https://qul.tarteel.ai/tajweed_words');
+                        if (!res.ok) return;
+                        const payload = await res.json();
+                        const fromPayload = Array.isArray(payload) ? payload : (payload?.words || payload?.data || []);
+                        const normalized = fromPayload
+                            .map(w => this.normalizeArabic(typeof w === 'string' ? w : (w?.word || '')))
+                            .filter(Boolean);
+                        this.quiz.tajweedStopWords = [...new Set(normalized)];
+                    } catch (e) {
+                        // network/CORS issues are expected in some environments
+                    }
                 },
 
                 computeOrderedMatchScore(userText, targetText) {
@@ -3377,12 +3394,8 @@
                         const scoreObj = this.computeOrderedMatchScore(this.quiz.recitedText, target);
                         this.quiz.voiceProgress = Math.min(1, scoreObj.score);
 
-                        const recitedLen = (this.quiz.recitedText || '').trim().length;
-                        const targetLen = (target || '').trim().length;
-                        const remaining = Math.max(0, targetLen - recitedLen);
-                        const charHit = recitedLen >= 200;
-                        const nearEnd = remaining > 0 && remaining <= 20;
-                        this.quiz.voiceCompleted = !!(charHit || nearEnd || scoreObj.score >= 0.72);
+                        const nearBoundary = this.isTajweedStopBoundary(this.quiz.recitedText);
+                        this.quiz.voiceCompleted = !!(scoreObj.score >= 0.72 && nearBoundary);
                         
                     } catch (error) {
                         console.error('Whisper API Error:', error);
