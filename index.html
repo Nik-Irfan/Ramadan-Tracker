@@ -1825,10 +1825,6 @@
                 
                 // Mark app as initialized
                 this.initialized = true;
-            } catch (error) {
-                console.error('Initialization error:', error);
-                // Still mark as initialized to prevent infinite loading
-                this.initialized = true;
             },
 
             get activeProfile() {
