@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramadan Ibadah Tracker - BETA</title>
+    <title>Ramadan Ibadah Tracker - TEBUK</title>
     
-    <!-- BETA Version -->
-    <meta name="version" content="beta-test">
+    <!-- TEBUK Version -->
+    <meta name="version" content="tebuk-release">
     
     <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -223,7 +223,7 @@
                 <h1 class="text-3xl font-black text-main mb-2 tracking-tighter">Ramadan Journey</h1>
                 <p class="text-muted font-medium">Mulakan pengembaraan ibadah anda</p>
                 <div class="mt-4">
-                    <span class="text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-[0.3em] bg-slate-900 text-slate-100 border border-slate-700 shadow-sm">Beta Release</span>
+                    <span class="text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-[0.3em] bg-slate-900 text-slate-100 border border-slate-700 shadow-sm">Tebuk Release</span>
                 </div>
             </div>
 
@@ -491,23 +491,13 @@
         <div id="view-mushaf" x-show="view === 'mushaf'" x-cloak class="page-view">
         <header class="mb-6">
             <h1 class="text-3xl font-black text-main tracking-tighter">Al-Quran</h1>
-            <p class="text-muted font-medium text-xs">Mushaf & Ujian Hafazan</p>
+            <p class="text-muted font-medium text-xs">Ujian Hafazan</p>
         </header>
 
-        <!-- Mode Selector -->
-        <div class="flex p-1.5 bg-inset rounded-[2rem] mb-6 border border-theme custom-shadow">
-            <button @click="quiz.active = false" 
-                class="flex-1 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-2"
-                :class="!quiz.active ? 'bg-card text-accent shadow-sm border border-theme' : 'text-muted hover:text-main'">
-                <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-                Baca Biasa
-            </button>
-            <button @click="quiz.active = true; startQuiz()" 
-                class="flex-1 py-3.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center justify-center gap-2"
-                :class="quiz.active ? 'bg-card text-accent shadow-sm border border-theme' : 'text-muted hover:text-main'">
-                <i data-lucide="mic-2" class="w-3.5 h-3.5"></i>
-                Mode Ujian
-            </button>
+        <!-- Ujian Header -->
+        <div class="mb-6">
+            <h2 class="text-xl font-black text-main tracking-tighter">Ujian Hafazan Al-Quran</h2>
+            <p class="text-muted font-medium text-xs">Uji kemahiran hafazan anda</p>
         </div>
 
         <!-- Selection Mode Toggle (Juz vs Surah vs Page) -->
@@ -730,110 +720,7 @@
             </div>
         </div>
 
-        <!-- Mushaf Layout Controls -->
-        <div x-show="!quiz.active" x-transition class="flex flex-col gap-4 mb-4">
-            <div class="flex items-center justify-between px-2">
-                <div class="flex gap-2">
-                    <button @click="mushaf.viewMode = 'list'" class="p-2 rounded-lg transition-all" :class="mushaf.viewMode === 'list' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
-                        <i data-lucide="list" class="w-4 h-4"></i>
-                    </button>
-                    <button @click="mushaf.viewMode = 'page'" class="p-2 rounded-lg transition-all" :class="mushaf.viewMode === 'page' ? 'bg-accent text-white' : 'bg-card text-muted border border-theme'">
-                        <i data-lucide="book-open" class="w-4 h-4"></i>
-                    </button>
-                </div>
-                <div class="flex items-center gap-2">
-                    <select x-model="mushaf.fontFamily" class="bg-card border border-theme rounded-2xl px-4 py-2 text-[10px] font-black text-main custom-shadow">
-                        <option>Amiri Quran</option>
-                        <option>Amiri</option>
-                        <option>Scheherazade New</option>
-                        <option>Lateef</option>
-                        <option>Harmattan</option>
-                        <option>Noto Naskh Arabic</option>
-                    </select>
-                    <div class="flex items-center gap-3 bg-card px-4 py-2 rounded-2xl border border-theme custom-shadow">
-                        <button @click="mushaf.fontSize = Math.max(20, mushaf.fontSize - 4)" class="text-muted hover:text-accent"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                        <span class="text-[10px] font-black text-main" x-text="`${mushaf.fontSize}px`"></span >
-                        <button @click="mushaf.fontSize = Math.min(60, mushaf.fontSize + 4)" class="text-muted hover:text-accent"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                    </div>
-                </div>
             </div>
-        </div>
-
-        <!-- Mushaf Content -->
-        <div x-show="!quiz.active" x-transition class="bg-card rounded-[3rem] p-8 custom-shadow border border-theme relative min-h-[400px]">
-            <div x-show="mushaf.loading" class="absolute inset-0 bg-card/80 backdrop-blur-sm flex items-center justify-center z-10 rounded-[3rem]">
-                <div class="flex flex-col items-center gap-4">
-                    <div class="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-                    <p class="text-[10px] font-black text-muted uppercase tracking-widest animate-pulse">Memuatkan Kalamullah...</p>
-                </div>
-            </div>
-
-            <!-- Error State -->
-            <div x-show="!mushaf.loading && mushaf.verses.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-                <i data-lucide="wifi-off" class="w-12 h-12 text-red-300 mb-4"></i>
-                <p class="text-xs font-bold text-muted mb-6 uppercase tracking-widest leading-relaxed">Gagal memuatkan data.<br>Sila periksa sambungan internet anda.</p>
-                <button @click="fetchMushaf()" class="px-6 py-3 bg-inset text-accent font-black rounded-xl text-[10px] uppercase tracking-widest hover:bg-accent hover:text-white transition-all">
-                    Cuba Lagi
-                </button>
-            </div>
-
-            <!-- List View -->
-            <div class="space-y-12" x-show="!mushaf.loading && mushaf.verses.length > 0 && mushaf.viewMode === 'list'">
-                <template x-for="v in mushaf.verses" :key="v.number">
-                    <div class="text-right">
-                        <p class="quran-text text-main font-bold mb-4" dir="rtl" 
-                           x-text="v.text" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, mushaf.fontSize)}px;`"></p>
-                        <div class="flex justify-between items-center border-t border-theme pt-3">
-                            <span class="text-[8px] font-black text-accent bg-accent/10 px-2 py-1 rounded-md" x-text="v.surah?.name ? `${v.surah.name} : ${v.numberInSurah}` : `Ayat ${v.numberInSurah}`"></span>
-                            <div class="w-6 h-6 rounded-full border border-theme flex items-center justify-center text-[10px] font-black text-muted" x-text="v.numberInSurah"></div>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            <!-- Page/Continuous View -->
-            <div x-show="!mushaf.loading && mushaf.verses.length > 0 && mushaf.viewMode === 'page'" class="flex flex-col h-full">
-                <div class="quran-card quran-text text-main font-bold px-4 py-8 shadow-inner flex-1" dir="rtl" :style="`font-family: '${mushaf.fontFamily}', serif; --quran-font-size: ${Math.max(20, (mushaf.verses.map(v=>v.text).join(' ').length > 200 ? mushaf.fontSize - 6 : mushaf.fontSize))}px;`">
-                    <template x-for="v in paginatedVerses" :key="v.number">
-                        <span class="inline">
-                            <span :style="`font-family: '${mushaf.fontFamily}', serif;`" 
-                                class="text-main font-bold hover:bg-accent/5 transition-colors cursor-pointer" x-text="v.text"></span>
-                            <span class="inline-flex w-8 h-8 rounded-full border-2 border-accent/30 items-center justify-center text-[10px] font-black text-accent mx-2 align-middle shadow-sm bg-white dark:bg-slate-800" x-text="v.numberInSurah"></span>
-                        </span>
-                    </template>
-                </div>
-
-                <!-- Pagination Controls -->
-                <div class="mt-8 flex items-center justify-between gap-4">
-                    <button @click="if(mushaf.currentPage > 1) { mushaf.currentPage--; if(mushaf.selectionMode === 'page') { quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; fetchMushaf(false); } }" 
-                        class="p-4 bg-inset rounded-2xl text-muted hover:text-accent transition-all disabled:opacity-30" :disabled="mushaf.currentPage === 1">
-                        <i data-lucide="chevron-left" class="w-6 h-6"></i>
-                    </button>
-                    
-                    <div class="flex flex-col items-center">
-                        <div class="flex items-center gap-2 mb-1">
-                            <input type="number" x-model.number="mushaf.currentPage" @change="mushaf.currentPage = Math.max(1, Math.min(mushaf.currentPage, totalMushafPages)); if(mushaf.selectionMode === 'page') { quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; fetchMushaf(false); }"
-                                class="w-12 p-2 bg-inset rounded-lg border-none text-center font-black text-xs text-accent">
-                            <span class="text-[10px] font-black text-muted uppercase tracking-widest">/ <span x-text="totalMushafPages"></span></span>
-                        </div>
-                        <span class="text-[8px] font-bold text-muted uppercase tracking-[0.2em]">Halaman</span>
-                    </div>
-
-                    <button @click="if(mushaf.currentPage < totalMushafPages) { mushaf.currentPage++; if(mushaf.selectionMode === 'page') { quiz.selectionMode = 'page'; quiz.currentPage = mushaf.currentPage; fetchMushaf(false); } }" 
-                        class="p-4 bg-inset rounded-2xl text-muted hover:text-accent transition-all disabled:opacity-30" :disabled="mushaf.currentPage === totalMushafPages">
-                        <i data-lucide="chevron-right" class="w-6 h-6"></i>
-                    </button>
-                </div>
-
-                <!-- Mushaf Page Footer -->
-                <div class="mt-8 pt-6 border-t border-[#e6d5b8] dark:border-[#3d301e] flex justify-between items-center opacity-40">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-accent" x-text="mushaf.selectionMode === 'juz' ? `Juz ${mushaf.currentJuz}` : mushaf.surahNamesMalay[mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName] || mushaf.surahs.find(s => s.number === mushaf.currentSurah)?.englishName"></span>
-                    <div class="w-2 h-2 rounded-full bg-accent"></div>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-accent">Ramadan Mushaf</span>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Stats Page -->
     <div x-show="view === 'stats'" x-cloak class="page-view text-center">
@@ -1678,7 +1565,7 @@
                     }
                 },
                 quiz: {
-                    active: false,
+                    active: true,
                     loading: false,
                     testMode: 'mcq',
                     selectionMode: 'juz',
