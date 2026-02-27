@@ -746,6 +746,11 @@
                         </div>
                     </div>
 
+                    <div class="mt-4 p-3 rounded-2xl accent-soft border border-accent/20">
+                        <p class="text-[9px] font-black text-accent uppercase tracking-widest mb-1" x-text="lang === 'en' ? 'Heart Symbolic Perk' : 'Perk Simbolik Hati'"></p>
+                        <p class="text-[10px] text-main font-semibold leading-relaxed" x-text="getPetLinePerkText(activeProfile.pet.line)"></p>
+                    </div>
+
                     <div class="mt-6">
                         <div class="flex justify-between text-[10px] font-black text-muted uppercase tracking-widest mb-2">
                             <span x-text="'Progress Evolusi'"></span>
@@ -763,6 +768,7 @@
                             <span x-text="canHatchPet() ? 'Hatch Sekarang' : 'Capai LVL 3 untuk hatch'"></span>
                         </button>
                     </div>
+                    <p class="text-[10px] text-muted font-semibold mt-3" x-text="lang === 'en' ? 'Pet is a symbol of your heart. The stronger your heart, the stronger your protection from major trials.' : 'Pet ialah simbol hati anda. Lagi kuat hati, lagi kuat perlindungan daripada ujian besar.'"></p>
                 </div>
             </template>
         </div>
@@ -1427,9 +1433,10 @@
                 ],
                 bigBossEnemy: {
                     type: 'big_boss',
-                    name: 'Big Boss: Pencuri Amalan',
-                    description: 'Serangan boss yang sangat jarang berlaku. Dia cuba mencuri terus 50 XP amalan anda.',
-                    hadith: 'Jagalah niat dan istiqamah. Dengan izin Allah, amalan akan terpelihara.',
+                    name: 'Al-Ittihad Al-Khafi',
+                    title: 'Gabungan Empat Penyakit Hati',
+                    description: 'Ketika Takabbur, Sum\'ah, Riak dan Ujub sering ditewaskan, mereka bersatu menjadi satu musuh besar yang lebih licik untuk mencuri pahala.',
+                    hadith: 'Jagalah niat, ikhlas, sabar, dan muhasabah. Hati yang dekat dengan Allah lebih kuat menangkis bisikan syaitan.',
                     xpToLose: 50
                 },
                 islamicQuoteIndex: 0,
@@ -1847,8 +1854,48 @@
                 getEffectiveEnemyLoss(enemyType, baseLoss) {
                     const rawLoss = Number(baseLoss || 0);
                     if (enemyType !== 'big_boss') return rawLoss;
-                    const reduction = this.getPetBossReduction();
+                    const reduction = this.getPetBossReduction() + this.getPetLinePerkReduction();
                     return Math.max(0, rawLoss - reduction);
+                },
+
+                getPetLinePerkReduction() {
+                    const p = this.activeProfile;
+                    if (!p) return 0;
+                    this.ensurePet(p);
+                    if (!p.pet.hatched) return 0;
+
+                    const perkByLine = {
+                        flame: 5,
+                        ocean: 10,
+                        forest: 8
+                    };
+                    return Number(perkByLine[p.pet.line] || 0);
+                },
+
+                getPetLinePerkText(line = null) {
+                    const p = this.activeProfile;
+                    const selectedLine = line || p?.pet?.line || 'forest';
+                    const lang = this.lang || 'ms';
+                    const perks = {
+                        ms: {
+                            flame: 'Flame: Semangat Mujahadah (+5 perlindungan XP lawan Big Boss).',
+                            ocean: 'Ocean: Jiwa Tenang Tawakkal (+10 perlindungan XP lawan Big Boss).',
+                            forest: 'Forest: Hati Istiqamah (+8 perlindungan XP lawan Big Boss).'
+                        },
+                        en: {
+                            flame: 'Flame: Mujahadah spirit (+5 XP protection vs Big Boss).',
+                            ocean: 'Ocean: Tranquil tawakkul (+10 XP protection vs Big Boss).',
+                            forest: 'Forest: Steadfast heart (+8 XP protection vs Big Boss).'
+                        }
+                    };
+                    return (perks[lang] && perks[lang][selectedLine]) ? perks[lang][selectedLine] : perks.ms.forest;
+                },
+
+                getBigBossLore() {
+                    if ((this.lang || 'ms') === 'en') {
+                        return 'After repeated defeats, Takabbur, Sum\'ah, Riya\', and Ujub forged a hidden alliance. Their combined whisper appears as Al-Ittihad Al-Khafi to drain rewards from hearts that lose vigilance. Keep sincerity (ikhlas), self-accounting (muhasabah), and remembrance of Allah as your shield.';
+                    }
+                    return 'Selepas sering ditewaskan, Takabbur, Sum\'ah, Riak dan Ujub membentuk pakatan tersembunyi. Gabungan bisikan ini muncul sebagai Al-Ittihad Al-Khafi untuk menyedut pahala daripada hati yang lalai. Bentengnya ialah ikhlas, muhasabah, dan zikir mengingati Allah.';
                 },
 
                 hatchPet() {
@@ -3476,6 +3523,7 @@ Alhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
                 
                 <!-- Title with glow effect -->
                 <h2 class="text-lg font-black text-red-600 dark:text-red-400 mb-1 drop-shadow-lg" x-text="interchangeWords(enemy.name || 'Musuh')"></h2>
+                <p x-show="enemy.type === 'big_boss'" class="text-[10px] font-black text-red-500 dark:text-red-300 uppercase tracking-widest mb-1" x-text="interchangeWords(bigBossEnemy.title)"></p>
                 
                 <!-- Subtitle with counter -->
                 <div class="mb-3">
@@ -3488,6 +3536,7 @@ Alhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
                 
                 <!-- Description -->
                 <p class="text-xs text-muted mb-3 leading-relaxed" x-text="interchangeWords(enemy.description)"></p>
+                <p x-show="enemy.type === 'big_boss'" class="text-[10px] text-main font-semibold leading-relaxed mb-3" x-text="interchangeWords(getBigBossLore())"></p>
                 
                 <!-- Hadith Section with glass effect -->
                 <div class="bg-gradient-to-r from-red-50/80 to-orange-50/80 dark:from-red-900/40 dark:to-orange-900/30 p-2 rounded-2xl mb-3 border border-red-200/50 backdrop-blur-sm">
