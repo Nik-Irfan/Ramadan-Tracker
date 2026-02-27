@@ -600,7 +600,7 @@
         <div class="grid grid-cols-1 gap-4">
             <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
                 <!-- Only show friday_special on Friday -->
-                <div x-show="item.id !== 'friday_special' && isFriday()" 
+                <div x-show="item.id !== 'friday_special' || isFriday()" 
                      :class="item.id === 'friday_special' ? 'friday-special-override rounded-[2rem] p-5 custom-shadow border border-theme relative group' : 'bg-card rounded-[2rem] p-5 custom-shadow transition-all border border-theme relative group'" 
                      :style="item.id === 'friday_special' ? 'background: var(--bg-card) !important; border: 3px solid var(--accent-color) !important; transform: scale(1.02) !important; margin-top: 1rem !important;' : ''"
                      :class="[
@@ -1105,7 +1105,7 @@
                 <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
                     <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
                         <!-- Only show friday_special on Friday in settings -->
-                        <div x-show="item.id !== 'friday_special' && isFriday()" 
+                        <div x-show="item.id !== 'friday_special' || isFriday()" 
                              class="flex items-center justify-between p-4 bg-inset rounded-2xl">
                             <div>
                                 <!-- Special handling for Friday special -->
