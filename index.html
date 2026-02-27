@@ -2020,27 +2020,39 @@
                 calculateTotal(day, profileId = null) {
                     const p = profileId ? this.allProfiles.find(x => x.id === profileId) : this.activeProfile;
                     if (!p || !p.scores[day]) return 0;
-                    return Object.values(p.scores[day]).reduce((a, b) => a + b, 0);
+
+                    const availableIds = new Set(this.getAvailableIbadahList(day, p).map(item => item.id));
+                    return Object.entries(p.scores[day])
+                        .filter(([itemId]) => availableIds.has(itemId))
+                        .reduce((total, [, value]) => total + (Number(value) || 0), 0);
+                },
+
+                getAvailableIbadahList(day, profile = null) {
+                    const p = profile || this.activeProfile;
+                    if (!p || !Array.isArray(p.ibadahList)) return [];
+
+                    return p.ibadahList.filter(item => item.id !== 'friday_special' || this.isFriday(day));
                 },
 
                 getMaxScore(day) {
                     const p = this.activeProfile;
-                    if (!p || !p.scores[day]) return 0;
-                    
-                    // Calculate max score based on HIGHEST score for each ibadah item
+                    if (!p) return 0;
+
+                    const availableIbadah = this.getAvailableIbadahList(day, p);
                     let maxScore = 0;
-                    p.ibadahList.forEach(item => {
-                        const maxOption = Math.max(...item.options.map(opt => opt.v));
+
+                    availableIbadah.forEach(item => {
+                        const maxOption = Math.max(...item.options.map(opt => Number(opt.v) || 0));
                         maxScore += maxOption;
-                        console.log(`[DEBUG] Item: ${item.name}, Max: ${maxOption}, Running Total: ${maxScore}`);
                     });
-                    
-                    console.log(`[DEBUG] Final Max Score for day ${day}: ${maxScore}`);
-                    return maxScore || 50; // Fallback to 50 if calculation fails
+
+                    return maxScore;
                 },
 
                 getDailyPct(day) {
                     const maxScore = this.getMaxScore(day);
+                    if (maxScore <= 0) return 0;
+
                     const currentScore = this.calculateTotal(day);
                     return Math.min(Math.round((currentScore / maxScore) * 100), 100);
                 },
@@ -2298,13 +2310,18 @@
                     this.save();
                 },
 
-                isFriday() {
-                    // Check if current Ramadan day is a Friday
-                    // Ramadan 2026: 1 Ramadan (Thursday, Feb 19)
-                    // Formula: (currentDay + 3) % 7 === 5 for Friday
-                    const result = (this.currentDay + 3) % 7 === 5;
-                    console.log('isFriday check:', { currentDay: this.currentDay, result: result });
-                    return result;
+                isFriday(day = this.currentDay) {
+                    // Check if selected Ramadan day falls on Friday (Malaysia timezone)
+                    const ramadanStart = new Date('2026-02-19T00:00:00+08:00');
+                    const targetDate = new Date(ramadanStart);
+                    targetDate.setUTCDate(ramadanStart.getUTCDate() + (Number(day) - 1));
+
+                    const weekdayInMalaysia = new Intl.DateTimeFormat('en-US', {
+                        weekday: 'short',
+                        timeZone: 'Asia/Kuala_Lumpur'
+                    }).format(targetDate);
+
+                    return weekdayInMalaysia === 'Fri';
                 },
 
                 getFridaySpecialEffect() {
