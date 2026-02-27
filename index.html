@@ -1328,7 +1328,7 @@
                         { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}] },
                         { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
                         { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Sempurna'}] },
                         { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'8 + 3 Rakaat'}, {v:3, l:'20 Rakaat'}, {v:4, l:'20 + 3 Rakaat'}] },
                         { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:2, l:'10 m/s'}, {v:3, l:'1 Juz (20 m/s)'}] },
                         { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'0'}, {v:2, l:'200x'}, {v:5, l:'500x'}] },
@@ -2027,7 +2027,7 @@
                     const p = this.activeProfile;
                     if (!p || !p.scores[day]) return 0;
                     
-                    // Calculate max score based on ibadah list for this profile's mode
+                    // Calculate max score based on HIGHEST score for each ibadah item
                     let maxScore = 0;
                     p.ibadahList.forEach(item => {
                         const maxOption = Math.max(...item.options.map(opt => opt.v));
