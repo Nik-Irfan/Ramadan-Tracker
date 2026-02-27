@@ -499,7 +499,6 @@
                     <p class="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Best Score</p>
                 </div>
             </div>
-        </div>
 
         <div x-show="prayer.enabled && (prayer.placement === 'profil' || prayer.placement === 'both')" class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme text-left">
             <div class="absolute -top-4 -right-4 opacity-5">
@@ -740,8 +739,7 @@
                     </div>
 
                     <div class="flex items-center justify-between">
-                            <span class="text-sm font-bold text-main" x-text="prayer.zone === 'detecting' ? (lang === 'en' ? 'Detecting...' : 'Mengesan...') : prayer.zone"></span>
-                        </div>
+                        <span class="text-sm font-bold text-main" x-text="prayer.zone === 'detecting' ? (lang === 'en' ? 'Detecting...' : 'Mengesan...') : prayer.zone"></span>
                         <button @click="prayer.zone = 'detecting'; detectAndSetZone().then(() => ensurePrayerTimes());" 
                                 class="px-4 py-2 bg-inset rounded-xl font-black text-[10px] uppercase tracking-widest border border-theme hover:bg-accent hover:text-white transition-all"
                                 x-text="lang === 'en' ? 'Refresh' : 'Segar'">
