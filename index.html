@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ramadan Ibadah Tracker - TEBUK</title>
+    <title>Ramadan Ibadah Tracker - Public</title>
     
-    <!-- TEBUK Version -->
-    <meta name="version" content="tebuk-release">
+    <!-- Public Version -->
+    <meta name="version" content="Public-release">
     
     <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -142,7 +142,7 @@
         .text-main { color: var(--text-main); }
         .text-muted { color: var(--text-muted); }
         .border-theme { border-color: var(--border-color); }
-        .gradient-accent { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .gradient-accent { background: var(--accent-gradient); }
         .accent-soft { background: var(--accent-soft); }
         .text-accent { color: var(--accent-color); }
         .border-accent { border-color: var(--accent-color); }
@@ -382,7 +382,7 @@
                 <h1 class="text-3xl font-black text-main mb-2 tracking-tighter">Ramadan Journey</h1>
                 <p class="text-muted font-medium">Mulakan pengembaraan ibadah anda</p>
                 <div class="mt-4">
-                    <span class="text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-[0.3em] bg-slate-900 text-slate-100 border border-slate-700 shadow-sm">Tebuk Release</span>
+                    <span class="text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-[0.3em] bg-slate-900 text-slate-100 border border-slate-700 shadow-sm">Public Release</span>
                 </div>
             </div>
 
@@ -421,7 +421,7 @@
                 </button>
                 
                 <button x-show="allProfiles.length > 0" @click="view = 'profiles'" class="w-full py-4 text-muted font-bold text-sm">
-                    Kembali ke Senarai Profil
+                    <span x-text="lang === 'en' ? 'Back to Profile List' : 'Kembali ke Senarai Profil'"></span>
                 </button>
 
                 <!-- Version Timestamp -->
@@ -455,8 +455,8 @@
                         </button>
                     </h1>
                     <div class="flex items-center gap-2 mt-1">
-                        <div class="w-24 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div class="h-full gradient-purple transition-all duration-1000" :style="`width: ${getUserLevel().progress}%`"></div>
+                        <div class="w-24 h-2 bg-inset rounded-full overflow-hidden">
+                            <div class="h-full gradient-accent transition-all duration-1000" :style="`width: ${getUserLevel().progress}%`"></div>
                         </div>
                         <span class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="getUserLevel().isMaxLevel ? 'XP: ∞' : `XP: ${activeProfile?.totalXP || 0}`"></span>
                     </div>
@@ -483,21 +483,13 @@
                     <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-current"></i>
                     <span class="text-xs font-black text-orange-600 dark:text-orange-400" x-text="`${calculateStreak()} Day Streak`"></span>
                 </div>
-
-                <button x-show="prayer.enabled && (prayer.placement === 'tracker' || prayer.placement === 'both')" @click="showPrayerModal = true" class="bg-orange-50 dark:bg-orange-900/10 px-3 py-2 rounded-2xl flex items-center gap-2 border border-orange-100/60 dark:border-orange-900/30 custom-shadow text-left w-full">
-                    <i data-lucide="clock" class="w-4 h-4 text-orange-500"></i>
-                    <div>
-                        <p class="text-[10px] font-black text-main" x-text="prayer.nextLabel || (lang === 'en' ? 'Loading...' : 'Memuat...')"></p>
-                        <p class="text-[9px] font-bold text-muted" x-show="prayer.countdown" x-text="prayer.countdown"></p>
-                    </div>
-                </button>
             </div>
         </header>
 
         <!-- Day Selector -->
         <div class="mb-2">
             <div class="flex justify-between items-center mb-2 px-2">
-                <h3 class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pilih Tarikh</h3>
+                <h3 class="text-[10px] font-black text-muted uppercase tracking-[0.2em]" x-text="t('pilih_tarikh')"></h3>
                 <button @click="showCalendar = !showCalendar" class="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-widest bg-card px-3 py-1.5 rounded-full border border-theme shadow-sm">
                     <i :data-lucide="showCalendar ? 'list' : 'calendar'" class="w-3 h-3"></i>
                     <span x-text="showCalendar ? 'List View' : 'Calendar View'"></span>
@@ -550,7 +542,7 @@
                             <span class="text-[8px] font-black leading-none" :class="getDailyPct(day) > 0 ? (getDailyPct(day) >= 80 ? 'text-green-500' : (getDailyPct(day) >= 40 ? 'text-yellow-500' : 'text-red-500')) : 'text-muted/30'" x-text="`${getDailyPct(day)}%`"></span>
                             
                             <!-- Perfect Day Star -->
-                            <div x-show="$data.calculateTotal(day) >= 50" class="absolute top-0.5 right-0.5">
+                            <div x-show="$data.calculateTotal(day) >= $data.getMaxScore(day)" class="absolute top-0.5 right-0.5">
                                 <i data-lucide="star" class="w-2 h-2 text-yellow-400 fill-current"></i>
                             </div>
 
@@ -574,7 +566,7 @@
                 <div>
                     <span class="accent-soft text-accent text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest" x-text="`Ramadan Day ${currentDay}`"></span>
                     <div class="mt-2 text-[9px] font-bold text-muted uppercase tracking-widest" x-text="getMasihiDate(currentDay)"></div>
-                    <h2 class="text-muted text-xs font-bold uppercase mt-4 tracking-tighter">Misi Harian</h2>
+                    <h2 class="text-muted text-xs font-bold uppercase mt-4 tracking-tighter" x-text="t('misi_harian')"></h2>
                 </div>
                 <div class="text-right">
                     <span class="text-5xl font-black text-gradient" x-text="`${getDailyPct(currentDay)}%`"></span>
@@ -586,7 +578,7 @@
                      :style="`width: ${getDailyPct(currentDay)}%`"></div>
             </div>
             <div class="flex justify-between text-[10px] font-bold text-muted uppercase">
-                <span x-text="`${calculateTotal(currentDay)} / 50 Points`"></span>
+                <span x-text="`${calculateTotal(currentDay)} / ${getMaxScore(currentDay)} Points`"></span>
                 <span x-show="getDailyPct(currentDay) === 100" class="text-yellow-500 font-black flex items-center gap-1">
                     <i data-lucide="crown" class="w-3 h-3 fill-current"></i> Perfect Day!
                 </span>
@@ -608,7 +600,7 @@
         <div class="grid grid-cols-1 gap-4">
             <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
                 <!-- Only show friday_special on Friday -->
-                <div x-show="item.id !== 'friday_special' || isFriday()" 
+                <div x-show="item.id !== 'friday_special' && isFriday()" 
                      :class="item.id === 'friday_special' ? 'friday-special-override rounded-[2rem] p-5 custom-shadow border border-theme relative group' : 'bg-card rounded-[2rem] p-5 custom-shadow transition-all border border-theme relative group'" 
                      :style="item.id === 'friday_special' ? 'background: var(--bg-card) !important; border: 3px solid var(--accent-color) !important; transform: scale(1.02) !important; margin-top: 1rem !important;' : ''"
                      :class="[
@@ -637,7 +629,7 @@
                                 <template x-if="item.id === 'friday_special'">
                                     <div>
                                         <h3 class="font-bold text-sm text-main">Surah Al-Kahfi ⭐</h3>
-                                        <p class="text-[10px] text-muted font-medium">Event Mingguan</p>
+                                        <p class="text-[10px] text-muted font-medium" x-text="lang === 'en' ? 'Weekly Event' : 'Event Mingguan'"></p>
                                     </div>
                                 </template>
                                 <!-- Regular items -->
@@ -682,7 +674,7 @@
     <div x-show="view === 'stats'" x-cloak class="page-view text-center">
         <header class="mb-12 text-left">
             <h1 class="text-3xl font-black text-main tracking-tighter">Achievement</h1>
-            <p class="text-muted font-medium">Profil <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
+            <p class="text-muted font-medium"><span x-text="t('profil_title')"></span> <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
         </header>
 
             <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
@@ -690,7 +682,7 @@
                     <i data-lucide="award" class="w-32 h-32 text-accent"></i>
                 </div>
                 <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Total Experience</h2>
-                <div class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="`Setakat ${getMasihiDate(currentDay)}`"></div>
+                <div class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="`${t('setakat')} ${getMasihiDate(currentDay)}`"></div>
                 <div class="text-7xl font-black text-gradient mb-2" x-text="activeProfile?.totalXP || 0"></div>
                 <p class="text-[10px] font-black text-accent opacity-60 uppercase tracking-widest mb-8">XP Points Collected</p>
             
@@ -706,44 +698,16 @@
             </div>
         </div>
 
-        <div x-show="prayer.enabled && (prayer.placement === 'profil' || prayer.placement === 'both')" class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme text-left">
-            <div class="absolute -top-4 -right-4 opacity-5">
-                <i data-lucide="clock" class="w-32 h-32 text-accent"></i>
-            </div>
-            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]" x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></h2>
-            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="lang === 'en' ? 'Tap for full list' : 'Tap untuk senarai penuh'"></p>
-
-            <button @click="showPrayerModal = true" class="w-full p-5 bg-inset rounded-2xl border border-theme">
-                <div class="flex items-center justify-between gap-4">
-                    <div>
-                        <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="lang === 'en' ? 'Next' : 'Seterusnya'"></p>
-                        <p class="text-xl font-black text-main tracking-tighter" x-text="prayer.nextLabel || (lang === 'en' ? 'Loading...' : 'Memuat...')"></p>
-                        <p class="text-[10px] font-bold text-muted" x-show="prayer.countdown" x-text="prayer.countdown"></p>
-                    </div>
-                    <i data-lucide="chevron-right" class="w-5 h-5 text-muted"></i>
-                </div>
-            </button>
-
-            <div class="mt-5 grid grid-cols-2 gap-3">
-                <template x-for="row in prayerRows().slice(0, 4)" :key="row.k">
-                    <div class="p-4 bg-card rounded-2xl border border-theme">
-                        <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="row.label"></p>
-                        <p class="text-[12px] font-black text-main mt-1" x-text="row.time"></p>
-                    </div>
-                </template>
-            </div>
-        </div>
-
         <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme text-left">
             <div class="absolute -top-4 -right-4 opacity-5">
                 <i data-lucide="egg" class="w-32 h-32 text-accent"></i>
             </div>
             <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Companion</h2>
-            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6">Telur retro yang akan evolve ikut level</p>
+            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="t('telur_retro')"></p>
 
             <template x-if="!activeProfile?.pet || !activeProfile.pet.line">
                 <div class="space-y-4">
-                    <p class="text-xs font-bold text-main">Pilih jenis telur:</p>
+                    <p class="text-xs font-bold text-main" x-text="t('pilih_jenis_telur')"></p>
                     <div class="grid grid-cols-3 gap-3">
                         <button @click="choosePetLine('flame')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
                             <i data-lucide="flame" class="w-6 h-6 text-orange-500 mx-auto"></i>
@@ -834,43 +798,15 @@
             </div>
             <p class="text-[8px] font-bold text-muted uppercase tracking-[0.2em] mt-6 text-center">
                 <i data-lucide="info" class="w-3 h-3 inline-block mr-1 -mt-0.5 opacity-50"></i>
-                Setiap juzu' akan 'unlocked' secara automatik mengikut rekod bacaan harian anda.
+                <span x-text="t('juzu_unlocked')"></span>
             </p>
-        </div>
-
-        <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
-            <div class="absolute -top-4 -right-4 opacity-5">
-                <i data-lucide="brain" class="w-32 h-32 text-accent"></i>
-            </div>
-            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Hafazan Tracker</h2>
-            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6">Heatmap ikut Juzu' (tap untuk detail)</p>
-
-            <div class="grid grid-cols-10 gap-1.5">
-                <template x-for="j in 30" :key="j">
-                    <button @click="selectedHafazanJuz = j" class="aspect-square rounded-md flex items-center justify-center text-[8px] font-black transition-all duration-300"
-                            :class="hafazanBoxClass(hafazanStatsForJuz(j).avg)"
-                            x-text="j">
-                    </button>
-                </template>
-            </div>
-
-            <div class="mt-6 grid grid-cols-2 gap-3 text-left">
-                <div class="p-4 bg-inset rounded-2xl border border-theme">
-                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Cara Kiraan</p>
-                    <p class="text-[10px] font-bold text-muted mt-2">Purata % score dari ujian hafazan (voice/mcq) yang anda buat dalam Juz tersebut.</p>
-                </div>
-                <div class="p-4 bg-inset rounded-2xl border border-theme">
-                    <p class="text-[9px] font-black text-muted uppercase tracking-widest">Tip</p>
-                    <p class="text-[10px] font-bold text-muted mt-2">Buat ujian pada selection mode Juz untuk data paling kemas.</p>
-                </div>
-            </div>
         </div>
 
         <!-- Badge Showcase -->
         <div class="mb-10 px-2">
             <h3 class="font-black text-main uppercase text-xs tracking-widest text-left ml-2 mb-6 flex items-center gap-2">
                 <i data-lucide="award" class="w-4 h-4 text-accent"></i>
-                Koleksi Badge
+                <span x-text="t('koleksi_badge')"></span>
             </h3>
             <div class="grid grid-cols-4 gap-3">
                 <template x-for="badge in badgeDefinitions" :key="badge.id">
@@ -886,15 +822,16 @@
         </div>
 
         <div class="space-y-4 text-left px-2">
-            <h3 class="font-black text-main uppercase text-xs tracking-widest ml-2">Prestasi Mengikut Fasa</h3>
+            <h3 class="font-black text-main uppercase text-xs tracking-widest ml-2" x-text="t('prestasi_fasa')"></h3>
             <div class="grid grid-cols-1 gap-3">
                 <template x-for="part in [1, 2, 3]" :key="part">
                     <div class="bg-card p-6 rounded-[2.5rem] custom-shadow flex items-center justify-between border border-theme">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 rounded-2xl bg-inset flex items-center justify-center font-black text-accent" x-text="part"></div>
                             <div>
-                                <p class="text-xs font-black text-main uppercase tracking-tighter" x-text="part === 1 ? 'Fasa Rahmat' : (part === 2 ? 'Fasa Maghfirah' : 'Fasa Pembebasan')"></p>
+                                <p class="text-xs font-black text-main uppercase tracking-tighter" x-text="part === 1 ? (lang === 'en' ? 'Ar-Rahmah' : 'Fasa Rahmat') : (part === 2 ? (lang === 'en' ? 'Al-Maghfirah' : 'Fasa Maghfirah') : (lang === 'en' ? 'Al-Itqu minan Nar' : 'Fasa Pembebasan'))"></p>
                                 <p class="text-[9px] font-bold text-muted uppercase" x-text="`Day ${part*10-9} to ${part*10}`"></p>
+                                <p class="text-[8px] font-bold text-muted mt-1" x-text="part === 1 ? (lang === 'en' ? 'Phase of love' : 'Fasa kasih sayang') : (part === 2 ? (lang === 'en' ? 'Forgiveness' : 'Keampunan') : (lang === 'en' ? 'Freedom from hellfire' : 'Pembebasan daripada api neraka'))"></p>
                             </div>
                         </div>
                         <p class="text-2xl font-black text-accent" x-text="`${calculatePartAverage(part)}%`"></p>
@@ -939,8 +876,8 @@
                 <div class="w-20 h-20 gradient-accent rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-accent animate-float">
                     <i data-lucide="users" class="w-10 h-10 text-white"></i>
                 </div>
-                <h1 class="text-3xl font-black text-main mb-2 tracking-tighter">Arena Keluarga</h1>
-                <p class="text-muted font-medium">Pilih karakter untuk teruskan misi</p>
+                <h1 class="text-3xl font-black text-main mb-2 tracking-tighter" x-text="t('arena_keluarga')"></h1>
+                <p class="text-muted font-medium" x-text="t('pilih_karakter')"></p>
             </div>
 
             <div class="grid grid-cols-1 gap-4 mb-12">
@@ -950,7 +887,7 @@
                         :class="activeProfileId === p.id ? 'ring-4 ring-accent ring-opacity-30 scale-[1.02]' : 'opacity-70'">
                         <div class="flex items-center gap-4">
                             <div class="w-16 h-16 rounded-3xl flex items-center justify-center font-black text-2xl text-white uppercase shadow-accent"
-                                 :class="activeProfileId === p.id ? 'gradient-accent' : 'bg-slate-200 dark:bg-slate-700'" x-text="p.name[0]"></div>
+                                 :class="activeProfileId === p.id ? 'gradient-accent' : 'bg-inset'" x-text="p.name[0]"></div>
                             <div class="text-left">
                                 <p class="font-black text-xl text-main tracking-tighter" x-text="p.name"></p>
                                 <div class="flex items-center gap-2">
@@ -970,7 +907,7 @@
             <div class="text-center">
                 <button @click="view = 'tracker'" class="text-muted text-sm font-medium hover:text-accent transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
-                    Kembali
+                    <span x-text="t('kembali')"></span>
                 </button>
             </div>
         </div>
@@ -979,8 +916,8 @@
     <!-- Community Page -->
     <div x-show="view === 'community'" x-cloak class="page-view">
         <header class="mb-12">
-            <h1 class="text-3xl font-black text-main tracking-tighter">Komuniti</h1>
-            <p class="text-muted font-medium">Hubung dengan komuniti Ramadan</p>
+            <h1 class="text-3xl font-black text-main tracking-tighter" x-text="t('komuniti_title')"></h1>
+            <p class="text-muted font-medium" x-text="lang === 'en' ? 'Connect with Ramadan community' : 'Hubung dengan komuniti Ramadan'"></p>
         </header>
 
         <div class="max-w-2xl mx-auto">
@@ -990,9 +927,7 @@
                     <div class="w-3 h-3 bg-accent rounded-full animate-pulse"></div>
                     <span class="text-accent font-black text-sm uppercase tracking-wider">For Internal Release</span>
                 </div>
-                <p class="text-main text-sm">
-                    Komuniti features are currently under development for internal testing.
-                </p>
+                <p class="text-main text-sm" x-text="lang === 'en' ? 'Community features are currently under development for internal testing.' : 'Komuniti features are currently under development for internal testing.'"></p>
             </div>
 
             <!-- Features Overview -->
@@ -1039,56 +974,15 @@
     <!-- Config Page -->
     <div x-show="view === 'settings'" x-cloak class="page-view">
         <header class="mb-12">
-            <h1 class="text-3xl font-black text-main tracking-tighter">Tetapan</h1>
-            <p class="text-muted font-medium">Urus ibadah & profil anda</p>
+            <h1 class="text-3xl font-black text-main tracking-tighter" x-text="t('settings_title')"></h1>
+            <p class="text-muted font-medium" x-text="t('profil_anda')"></p>
         </header>
 
         <div class="space-y-6">
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
                 <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
-                    <i data-lucide="clock" class="w-5 h-5 text-accent"></i>
-                    <span x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></span>
-                </h2>
-
-                <div class="space-y-5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm font-bold text-main" x-text="lang === 'en' ? 'Enable' : 'Aktifkan'"></span>
-                        <button @click="prayer.enabled = !prayer.enabled; if(prayer.enabled) ensurePrayerTimes(); save();" 
-                                class="w-12 h-6 rounded-full transition-colors relative"
-                                :class="prayer.enabled ? 'gradient-accent' : 'bg-card dark:bg-slate-800'">
-                            <div class="absolute top-1 left-1 w-4 h-4 bg-card dark:bg-slate-800 rounded-full transition-transform"
-                                 :class="prayer.enabled ? 'translate-x-6' : ''"></div>
-                        </button>
-                    </div>
-
-                    <div>
-                        <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3" x-text="lang === 'en' ? 'Placement' : 'Lokasi Paparan'"></span>
-                        <select x-model="prayer.placement" @change="save();" class="w-full p-4 bg-inset rounded-2xl border border-theme text-[10px] font-black text-main">
-                            <option value="tracker" x-text="lang === 'en' ? 'Tracker' : 'Tracker'"></option>
-                            <option value="profil" x-text="lang === 'en' ? 'Profile (Profil)' : 'Profil'"></option>
-                            <option value="both" x-text="lang === 'en' ? 'Both' : 'Dua-dua'"></option>
-                        </select>
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-1" x-text="lang === 'en' ? 'Zone' : 'Zon'"></span>
-                            <span class="text-sm font-bold text-main" x-text="prayer.zone === 'detecting' ? (lang === 'en' ? 'Detecting...' : 'Mengesan...') : prayer.zone"></span>
-                        </div>
-                        <button @click="prayer.zone = 'detecting'; detectAndSetZone().then(() => { console.log('Zone detected:', prayer.zone); ensurePrayerTimes(); }).catch(err => console.error('Detection failed:', err));" 
-                                class="px-4 py-2 bg-inset rounded-xl font-black text-[10px] uppercase tracking-widest border border-theme hover:bg-accent hover:text-white transition-all"
-                                x-text="lang === 'en' ? 'Refresh' : 'Segar'">
-                        </button>
-                    </div>
-
-                    <p class="text-[10px] font-bold text-muted" x-text="lang === 'en' ? 'Uses your GPS location. Tap the card to view today\'s full list.' : 'Guna lokasi GPS. Tap kad untuk lihat senarai penuh hari ini.'"></p>
-                </div>
-            </div>
-
-            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
-                <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
                     <i data-lucide="languages" class="w-5 h-5 text-accent"></i>
-                    Bahasa
+                    <span x-text="t('bahasa')"></span>
                 </h2>
                 <div class="flex gap-3">
                     <button @click="lang = 'ms'; save();" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border transition-all"
@@ -1101,20 +995,20 @@
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
                 <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
                     <i data-lucide="palette" class="w-5 h-5 text-accent"></i>
-                    Penampilan
+                    <span x-text="t('penampilan')"></span>
                 </h2>
                 <div class="space-y-6">
                     <div class="flex items-center justify-between">
                         <span class="text-sm font-bold text-main">Dark Mode</span>
                         <button @click="darkMode = !darkMode" 
                                 class="w-12 h-6 rounded-full transition-colors relative"
-                                :class="darkMode ? 'gradient-accent' : 'bg-slate-200 dark:bg-slate-700'">
+                                :class="darkMode ? 'gradient-accent' : 'bg-inset'">
                             <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform"
                                  :class="darkMode ? 'translate-x-6' : ''"></div>
                         </button>
                     </div>
                     <div>
-                        <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3">Warna Tema</span>
+                        <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3" x-text="t('warna_tema')"></span>
                         <div class="flex flex-wrap gap-4">
                             <button @click="theme = 'emerald'" class="w-10 h-10 rounded-full bg-emerald-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'emerald' ? 'ring-emerald-200 scale-110' : ''"></button>
                             <button @click="theme = 'navy'" class="w-10 h-10 rounded-full bg-[#1e3a8a] ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'navy' ? 'ring-blue-200 scale-110' : ''"></button>
@@ -1130,11 +1024,11 @@
 
             <!-- Profile Actions -->
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
-                <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest">Akaun</h2>
+                <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest" x-text="t('akaun')"></h2>
                 <div class="space-y-3">
                     <button @click="view = 'profiles'" class="w-full py-5 bg-slate-50 dark:bg-slate-800 text-main font-black rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-transform border border-transparent hover:border-accent hover:border-opacity-20">
                         <i data-lucide="users" class="w-5 h-5 text-accent"></i>
-                        Tukar Akaun
+                        <span x-text="t('tukar_akaun')"></span>
                     </button>
                     <button @click="logout()" class="w-full py-5 bg-red-50 dark:bg-red-900/20 text-red-500 font-black rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-transform border border-transparent hover:border-red-200">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
@@ -1146,19 +1040,19 @@
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
                 <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
                     <i data-lucide="plus-circle" class="w-5 h-5 text-accent"></i>
-                    Misi Kustom
+                    <span x-text="t('misi_kustom')"></span>
                 </h2>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 ml-1">Nama Ibadah</label>
-                        <input type="text" x-model="newItem.name" placeholder="Contoh: Selawat 100x" 
+                        <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 ml-1" x-text="t('nama_ibadah')"></label>
+                        <input type="text" x-model="newItem.name" :placeholder="t('contoh_selawat')" 
                             class="w-full p-5 bg-inset rounded-2xl border-none font-bold text-sm text-main focus:ring-2 ring-accent ring-opacity-20 transition-all"
                             :class="!newItem.name || newItem.name.trim() === '' ? 'ring-2 ring-red-500' : ''">
-                        <p x-show="!newItem.name || newItem.name.trim() === ''" class="text-red-500 text-[8px] font-bold mt-1 ml-2">Sila masukkan nama ibadah</p>
+                        <p x-show="!newItem.name || newItem.name.trim() === ''" class="text-red-500 text-[8px] font-bold mt-1 ml-2" x-text="lang === 'en' ? 'Please enter worship name' : 'Sila masukkan nama ibadah'"></p>
                     </div>
                     
                     <div>
-                        <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 ml-1">Pilihan Skor & Deskripsi</label>
+                        <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 ml-1" x-text="t('skor_deskripsi')"></label>
                         <div class="space-y-3">
                             <template x-for="(opt, index) in newItem.options" :key="index">
                                 <div class="flex gap-2">
@@ -1190,20 +1084,20 @@
                             :class="newItem.options.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''"
                             class="mt-3 w-full py-3 border-2 border-dashed border-theme rounded-xl text-[10px] font-black text-muted hover:text-accent hover:border-accent transition-all flex items-center justify-center gap-2">
                             <i data-lucide="plus" class="w-4 h-4"></i>
-                            <span x-text="newItem.options.length >= 5 ? 'Maksimum 5 pilihan sahaja' : 'Tambah Pilihan Skor'"></span>
+                            <span x-text="newItem.options.length >= 5 ? (lang === 'en' ? 'Maximum 5 options only' : 'Maksimum 5 pilihan sahaja') : t('tambah_pilihan_skor')"></span>
                         </button>
                         <div class="mt-2 p-2 bg-blue-50 rounded-lg">
-                            <p class="text-blue-700 text-[8px] font-bold">💡 Petua: Setiap pilihan skor maksimum 5 point</p>
+                            <p class="text-blue-700 text-[8px] font-bold" x-text="t('petua_skor')"></p>
                         </div>
                     </div>
 
-                    <button @click="addItem()" class="w-full py-5 gradient-accent text-white font-black rounded-2xl shadow-accent active:scale-95 transition-transform mt-4">Simpan Misi</button>
+                    <button @click="addItem()" class="w-full py-5 gradient-accent text-white font-black rounded-2xl shadow-accent active:scale-95 transition-transform mt-4" x-text="t('simpan_misi')"></button>
                 </div>
             </div>
 
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
                 <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest flex justify-between items-center">
-                    Senarai Misi Semasa
+                    <span x-text="t('senarai_misi_semasa')"></span>
                     <button @click="syncTemplate()" class="text-[8px] bg-accent/10 text-accent px-2 py-1 rounded-md hover:bg-accent hover:text-white transition-all">
                         <i data-lucide="refresh-cw" class="w-2 h-2 inline-block mr-1"></i> Sync Template
                     </button>
@@ -1211,14 +1105,14 @@
                 <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
                     <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
                         <!-- Only show friday_special on Friday in settings -->
-                        <div x-show="item.id !== 'friday_special' || isFriday()" 
+                        <div x-show="item.id !== 'friday_special' && isFriday()" 
                              class="flex items-center justify-between p-4 bg-inset rounded-2xl">
                             <div>
                                 <!-- Special handling for Friday special -->
                                 <template x-if="item.id === 'friday_special'">
                                     <div>
                                         <p class="font-black text-main text-sm">Surah Al-Kahfi ⭐</p>
-                                        <p class="text-[9px] text-muted font-medium">Event Mingguan</p>
+                                        <p class="text-[9px] text-muted font-medium" x-text="lang === 'en' ? 'Weekly Event' : 'Event Mingguan'"></p>
                                     </div>
                                 </template>
                                 <!-- Regular items -->
@@ -1236,18 +1130,16 @@
             </div>
 
             <button @click="deleteActiveProfile()" class="w-full py-5 bg-red-50 dark:bg-red-900/10 text-red-500 font-black rounded-[2rem] border-2 border-dashed border-red-100 dark:border-red-900/30">
-                Padam Profil <span x-text="activeProfile?.name"></span>
+                <span x-text="t('padam_profil')"></span> <span x-text="activeProfile?.name"></span>
             </button>
 
             <!-- Support & Credits -->
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme mt-6">
                 <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest flex items-center gap-2">
                     <i data-lucide="coffee" class="w-5 h-5 text-orange-400"></i>
-                    Sokongan & Kredit
+                    <span x-text="t('sokongan_kredit')"></span>
                 </h2>
-                <p class="text-[10px] font-bold text-muted uppercase tracking-widest leading-relaxed mb-6">
-                    Dibina dengan ❤️ untuk manfaat ummah. Jika aplikasi ini membantu anda, anda boleh menyokong pembangun di sini:
-                </p>
+                <p class="text-[10px] font-bold text-muted uppercase tracking-widest leading-relaxed mb-6" x-text="lang === 'en' ? 'Built with ❤️ for the benefit of the ummah. If this app helps you, you can support the developer here:' : 'Dibina dengan ❤️ untuk manfaat ummah. Jika aplikasi ini membantu anda, anda boleh menyokong pembangun di sini:'"></p>
                 <div class="space-y-3">
                     <a href="https://buymeacoffee.com/nikirfan" target="_blank" class="w-full py-5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 font-black rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-transform border border-transparent hover:border-orange-200">
                         <i data-lucide="coffee" class="w-5 h-5"></i>
@@ -1269,7 +1161,6 @@
             <!-- Version Timestamp -->
             <div class="text-center py-8">
                 <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 02:35</p>
-                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.4.5-quiz-pro</p>
             </div>
         </div>
     </div>
@@ -1344,40 +1235,6 @@
         </div>
     </div>
 
-    <div x-show="showPrayerModal" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
-        <div @click="showPrayerModal = false" class="absolute inset-0 modal-backdrop"></div>
-        <div class="bg-card w-full max-w-sm rounded-[3rem] p-8 relative z-10 custom-shadow border border-theme">
-            <div class="flex items-start justify-between gap-4 mb-4">
-                <div class="text-left">
-                    <p class="text-[9px] font-black text-muted uppercase tracking-[0.2em]" x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></p>
-                    <h3 class="text-2xl font-black text-main tracking-tighter" x-text="getMasihiDate(currentDay)"></h3>
-                </div>
-                <button @click="showPrayerModal = false" class="p-2 rounded-xl bg-inset text-muted hover:text-red-500">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
-
-            <div class="space-y-2 text-left">
-                <template x-if="!prayer.timings">
-                    <div class="p-4 bg-inset rounded-2xl border border-theme">
-                        <p class="text-[10px] font-bold text-muted" x-text="lang === 'en' ? 'Loading timings...' : 'Memuat waktu solat...'"></p>
-                    </div>
-                </template>
-                <template x-if="prayer.timings">
-                    <div class="space-y-2">
-                        <template x-for="row in prayerRows()" :key="row.k">
-                            <div class="p-4 bg-inset rounded-2xl border border-theme flex items-center justify-between">
-                                <p class="text-[10px] font-black text-main" x-text="row.label"></p>
-                                <p class="text-[10px] font-black text-accent" x-text="row.time"></p>
-                            </div>
-                        </template>
-                    </div>
-                </template>
-            </div>
-
-            <button @click="showPrayerModal = false" class="w-full py-4 gradient-accent text-white font-black rounded-2xl shadow-accent mt-6" x-text="lang === 'en' ? 'Close' : 'Tutup'"></button>
-        </div>
-    </div>
     <!-- Beta Notice Modal -->
     <div x-show="showBetaModal" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
         <div @click="showBetaModal = false" class="absolute inset-0 modal-backdrop"></div>
@@ -1413,7 +1270,7 @@
         </button>
         <button @click="view = 'community'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'community' ? 'nav-active' : 'text-muted'">
             <i data-lucide="users" class="w-5 h-5"></i>
-            <span class="text-[8px] font-black uppercase tracking-tighter">Komuniti</span>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('community')"></span>
         </button>
         <button @click="view = 'settings'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'settings' ? 'nav-active' : 'text-muted'">
             <i data-lucide="settings-2" class="w-5 h-5"></i>
@@ -1431,71 +1288,79 @@
         }
 
         function trackerApp() {
+            console.log('[DEBUG] trackerApp initializing...');
             const templates = {
                 'EASY': {
                     description: 'Mode untuk mula konsisten dengan mengutamakan amalan utama.',
                     list: [
-                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0'}, {v:5, l:'10 Ayat Awal Al-Kahfi'}, {v:10, l:'Full Surah Al-Kahfi'}] },
-                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
-                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}] },
-                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
-                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
-                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
-                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
-                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'8 Rakaat'}] },
-                        { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'50x'}, {v:2, l:'100x'}] },
-                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'50x'}, {v:2, l:'100x'}] },
-                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
+                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0 - Tiada'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'2 rakaat'}] },
+                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'Bersahur'}] },
+                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0 - Tiada'}, {v:2, l:'2 rakaat'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'2 Rakaat'}, {v:3, l:'6 Rakaat'}] },
+                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'Berdoa'}] },
+                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'0 - Tiada'}, {v:2, l:'2 rakaat'}] },
+                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Sempurna'}] },
+                        { id: 'tarawih', name: 'Terawih', icon: 'moon', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'8 Rakaat'}, {v:2, l:'8 + 3 Rakaat'}] },
+                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'5 m/s'}, {v:2, l:'10 m/s'}] },
+                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
+                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'15x'}, {v:2, l:'30x'}] },
+                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'Bersedekah'}] }
                     ]
                 },
-                'NORMAL': {
+                'MED': {
                     description: 'Kombinasi seimbang antara fardu, sunat rawatib dan amalan harian.',
                     list: [
-                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0'}, {v:5, l:'10 Ayat Awal Al-Kahfi'}, {v:10, l:'Full Surah Al-Kahfi'}] },
-                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}, {v:4, l:'4 Rakaat'}] },
+                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'2 rakaat'}, {v:2, l:'4 rakaat'}] },
                         { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
                         { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
-                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}, {v:4, l:'4 Rakaat'}] },
-                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
-                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 rakaat'}] },
+                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'4 Rakaat'}, {v:3, l:'6 Rakaat'}] },
+                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
                         { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
-                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
-                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:8, l:'8 Rakaat'}, {v:20, l:'20 Rakaat'}] },
-                        { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
-                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
+                        { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}] },
+                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
+                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'8 + 3 Rakaat'}, {v:3, l:'20 Rakaat'}, {v:4, l:'20 + 3 Rakaat'}] },
+                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:2, l:'10 m/s'}, {v:3, l:'1 Juz (20 m/s)'}] },
+                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'0'}, {v:2, l:'200x'}, {v:5, l:'500x'}] },
+                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:2, l:'30x'}, {v:3, l:'60x'}] },
+                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'25x'}, {v:2, l:'50x'}] },
                         { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
                     ]
                 },
                 'HARD': {
                     description: 'Cabaran ibadah penuh merangkumi rawatib lengkap, zikir dan tadabbur Quran.',
                     list: [
-                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0'}, {v:5, l:'10 Ayat Awal Al-Kahfi'}, {v:10, l:'Full Surah Al-Kahfi'}] },
-                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:4, l:'4 Rakaat'}, {v:8, l:'8 Rakaat'}] },
+                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'4 rakaat'}] },
                         { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
                         { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
-                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:4, l:'4 Rakaat'}, {v:8, l:'8 Rakaat'}] },
-                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Qobliah'}, {v:4, l:'Lengkap'}] },
-                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
-                        { id: 'rawatib_asar', name: 'Rawatib Asar', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'4 rakaat'}] },
+                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0'}, {v:3, l:'6 Rakaat'}] },
+                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'rawatib_asar', name: 'Rawatib Asar', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}] },
+                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
                         { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
+                        { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}] },
+                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
                         { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
-                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:8, l:'8 Rakaat'}, {v:20, l:'20 Rakaat'}] },
-                        { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}, {v:4, l:'500x'}] },
-                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}, {v:4, l:'500x'}] },
-                        { id: 'sedekah', name: 'Sedekah Harian', icon: 'heart', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] }
+                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'8 + 3 Rakaat'}, {v:3, l:'20 Rakaat'}, {v:4, l:'20 + 3 Rakaat'}] },
+                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:3, l:'1 Juz (20 m/s)'}, {v:4, l:'2 Juz (40 m/s)'}] },
+                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'0'}, {v:5, l:'500x'}] },
+                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:3, l:'60x'}, {v:4, l:'120x'}, {v:5, l:'240x'}] },
+                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:2, l:'50x'}, {v:3, l:'100x'}] },
+                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
                     ]
                 }
             };
@@ -1518,7 +1383,6 @@
                 activeProfileId: null,
                 allProfiles: [],
                 lang: 'ms',
-                showPrayerModal: false,
                 showBetaModal: false,
                 
                 // Enemy System
@@ -1561,16 +1425,6 @@
                         xpToLose: 100
                     }
                 ],
-                prayer: {
-                    enabled: false,
-                    placement: 'both',
-                    zone: 'detecting', // will auto-detect on first enable
-                    cacheKey: '',
-                    dateKey: '',
-                    timings: null,
-                    nextLabel: '',
-                    countdown: ''
-                },
                 islamicQuoteIndex: 0,
                 islamicQuoteDateKey: '',
                 quoteCopyStatus: '',
@@ -1618,7 +1472,7 @@
                 ],
                 templates: templates,
                 badgeDefinitions: badgeDefinitions,
-                onboarding: { name: '', mode: 'NORMAL' },
+                onboarding: { name: '', mode: 'EASY' },
                 onboardingError: '',
                 newItem: { name: '', options: [{v: 0, l: 'Tiada'}, {v: 1, l: 'Ya'}] },
                 darkMode: false,
@@ -1632,26 +1486,20 @@
                 init() {
                     try {
                     const saved = localStorage.getItem('ramadan_rpg_data');
+                    console.log('[DEBUG] Loading saved data:', saved);
                     if (saved) {
                         const data = JSON.parse(saved);
+                        console.log('[DEBUG] Parsed data:', data);
+                        console.log('[DEBUG] Active ID from saved:', data.activeId);
                         this.allProfiles = data.profiles || [];
                         this.activeProfileId = data.activeId;
+                        console.log('[DEBUG] Setting activeProfileId to:', data.activeId);
                         this.darkMode = data.darkMode || false;
                         this.theme = this.normalizeTheme(data.theme || 'emerald');
                         this.lang = data.lang || 'ms';
                         this.islamicQuoteIndex = Number.isFinite(data.islamicQuoteIndex) ? data.islamicQuoteIndex : 0;
                         this.islamicQuoteDateKey = data.islamicQuoteDateKey || '';
-                        if (data.prayer && typeof data.prayer === 'object') {
-                            this.prayer.enabled = !!data.prayer.enabled;
-                            this.prayer.placement = typeof data.prayer.placement === 'string' ? data.prayer.placement : 'both';
-                            this.prayer.cacheKey = data.prayer.cacheKey || '';
-                            this.prayer.dateKey = data.prayer.dateKey || '';
-                            this.prayer.timings = data.prayer.timings || null;
-                        }
-                        this.prayer.method = Number.isFinite(data.prayer.method) ? data.prayer.method : 11;
-                        this.prayer.cacheKey = data.prayer.cacheKey || '';
-                        this.prayer.dateKey = data.prayer.dateKey || '';
-                        this.prayer.timings = data.prayer.timings || null;
+                        console.log('[DEBUG] Data loaded, profiles count:', this.allProfiles.length);
                     }
                     // Ensure Friday special is at the top for all existing profiles
                     (this.allProfiles || []).forEach(p => {
@@ -1682,18 +1530,15 @@
                     });
 
                     this.ensureDailyIslamicQuote();
-
-                    this.$nextTick(() => {
-                        setInterval(() => this.updateNextPrayer(), 30000);
-                    });
-                    
-                    this.startLocationTracking();
                     
                     // Auto-sync Ramadan Date
-                    // Set current day based on Ramadan 2026 calendar
+                    // Calculate current day based on actual date
                     // Ramadan 2026: February 19 (1st) to March 20 (30th)
-                    // Today is Friday, February 27, 2026 = 9 Ramadan
-                    this.currentDay = 9;
+                    const ramadanStart = new Date('2026-02-19T00:00:00+08:00'); // Malaysia timezone
+                    const now = new Date();
+                    const diffTime = now - ramadanStart;
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                    this.currentDay = Math.max(1, Math.min(30, diffDays + 1)); // Ensure between 1-30
 
                     this.$nextTick(() => {
                         lucide.createIcons();
@@ -1742,8 +1587,6 @@
                     this.$watch('darkMode', () => this.saveGlobal());
                     this.$watch('theme', () => this.saveGlobal());
                     this.$watch('lang', () => this.saveGlobal());
-                    this.$watch('prayer.enabled', () => { if (this.prayer.enabled) this.ensurePrayerTimes(); this.saveGlobal(); });
-                    this.$watch('prayer.placement', () => this.saveGlobal());
                     this.$watch('selectedBadge', () => this.$nextTick(() => lucide.createIcons()));
                     this.$watch('selectedHafazanJuz', () => this.$nextTick(() => lucide.createIcons()));
 
@@ -1754,10 +1597,6 @@
                     // Show app after a short delay
                     setTimeout(() => {
                         this.appReady = true;
-                        // Initialize prayer times if enabled
-                        if (this.prayer.enabled) {
-                            this.ensurePrayerTimes();
-                        }
                     }, 1000);
                 } catch (e) {
                     console.error('Init error:', e);
@@ -1779,7 +1618,11 @@
                 },
 
             get activeProfile() {
-                    return this.allProfiles.find(p => p.id === this.activeProfileId);
+                    const profile = this.allProfiles.find(p => p.id === this.activeProfileId);
+                    console.log('[DEBUG] activeProfileId:', this.activeProfileId, 'found profile:', profile);
+                    console.log('[DEBUG] allProfiles count:', this.allProfiles.length);
+                    console.log('[DEBUG] activeProfile.ibadahList length:', profile?.ibadahList?.length || 'undefined');
+                    return profile;
                 },
 
                 randomizeIslamicQuote(persistForToday = false) {
@@ -1866,14 +1709,82 @@
                             nav_quran: 'Al-Quran',
                             nav_karakter: 'Profil',
                             nav_arena: 'Karakter',
-                            nav_tetapan: 'Tetapan'
+                            nav_tetapan: 'Tetapan',
+                            settings_title: 'Tetapan',
+                            urus_ibadah: 'Uruse Ibadah',
+                            profil_anda: 'Profil Anda',
+                            bahasa: 'Bahasa',
+                            penampilan: 'Penampilan',
+                            warna_tema: 'Warna Tema',
+                            akaun: 'Akaun',
+                            tukar_akaun: 'Tukar Akaun',
+                            misi_kustom: 'Misi Kustom',
+                            nama_ibadah: 'Nama Ibadah',
+                            contoh_selawat: 'Contoh: Selawat 100x',
+                            skor_deskripsi: 'Skor & Deskripsi',
+                            tiada: 'Tiada',
+                            ya: 'Ya',
+                            tambah_pilihan_skor: 'Tambah Pilihan Skor',
+                            petua_skor: 'Petua: Setiap pilihan skor maksimum 5 point',
+                            simpan_misi: 'Simpan Misi',
+                            senarai_misi_semasa: 'Senarai Misi Semasa',
+                            padam_profil: 'Padam Profil',
+                            sokongan_kredit: 'Sokongan & Kredit',
+                            community: 'Komuniti',
+                            komuniti_title: 'Komuniti',
+                            arena_keluarga: 'Arena Keluarga',
+                            pilih_karakter: 'Pilih karakter untuk teruskan misi',
+                            kembali: 'Kembali',
+                            pilih_tarikh: 'Pilih Tarikh',
+                            misi_harian: 'Misi Harian',
+                            profil_title: 'Profil',
+                            setakat: 'Setakat',
+                            telur_retro: 'Telur retro akan evolve ikut level',
+                            pilih_jenis_telur: 'Pilih jenis telur',
+                            juzu_unlocked: 'Setiap juzu\' akan \'unlocked\' secara automatik mengikut rekod bacaan harian anda.',
+                            koleksi_badge: 'Koleksi Badge',
+                            prestasi_fasa: 'Prestasi mengikut fasa'
                         },
                         en: {
                             nav_amalan: 'Tracker',
                             nav_quran: 'Quran',
                             nav_karakter: 'Profile',
                             nav_arena: 'Character',
-                            nav_tetapan: 'Settings'
+                            nav_tetapan: 'Settings',
+                            settings_title: 'Settings',
+                            urus_ibadah: 'Manage Worship',
+                            profil_anda: 'Your Profile',
+                            bahasa: 'Language',
+                            penampilan: 'Appearance',
+                            warna_tema: 'Theme Color',
+                            akaun: 'Account',
+                            tukar_akaun: 'Switch Account',
+                            misi_kustom: 'Custom Mission',
+                            nama_ibadah: 'Worship Name',
+                            contoh_selawat: 'Example: Selawat 100x',
+                            skor_deskripsi: 'Score & Description',
+                            tiada: 'None',
+                            ya: 'Yes',
+                            tambah_pilihan_skor: 'Add Score Option',
+                            petua_skor: 'Tip: Each score option maximum 5 points',
+                            simpan_misi: 'Save Mission',
+                            senarai_misi_semasa: 'Current Mission List',
+                            padam_profil: 'Delete Profile',
+                            sokongan_kredit: 'Support & Credits',
+                            community: 'Community',
+                            komuniti_title: 'Community',
+                            arena_keluarga: 'Family Arena',
+                            pilih_karakter: 'Choose character to continue mission',
+                            kembali: 'Back',
+                            pilih_tarikh: 'Select Date',
+                            misi_harian: 'Daily Mission',
+                            profil_title: 'Profile',
+                            setakat: 'Progress',
+                            telur_retro: 'Retro egg will evolve according to level',
+                            pilih_jenis_telur: 'Choose egg type',
+                            juzu_unlocked: 'Each juzu\' will be \'unlocked\' automatically according to your daily reading record.',
+                            koleksi_badge: 'Badge Collection',
+                            prestasi_fasa: 'Performance by Phase'
                         }
                     };
                     const lang = this.lang || 'ms';
@@ -2010,8 +1921,8 @@
                 modeLabel(mode) {
                     const m = (mode || '').toString().toUpperCase();
                     const labels = {
-                        ms: { EASY: 'Permulaan', NORMAL: 'Biasa', HARD: 'Intensif' },
-                        en: { EASY: 'Beginner', NORMAL: 'Standard', HARD: 'Intensive' }
+                        ms: { EASY: 'Permulaan', MED: 'Sederhana', HARD: 'Intensif' },
+                        en: { EASY: 'Beginner', MED: 'Medium', HARD: 'Intensive' }
                     };
                     const lang = this.lang || 'ms';
                     return (labels[lang] && labels[lang][m]) ? labels[lang][m] : m;
@@ -2043,7 +1954,7 @@
                     
                     this.allProfiles.push(newProfile);
                     this.activeProfileId = id;
-                    this.onboarding = { name: '', mode: 'NORMAL' };
+                    this.onboarding = { name: '', mode: 'EASY' };
                     this.view = 'tracker';
                     this.save();
                 },
@@ -2084,12 +1995,20 @@
                     }
                     if (!profile.scores) profile.scores = {};
                     if (!profile.scores[this.currentDay]) profile.scores[this.currentDay] = {};
+                    
+                    console.log(`[DEBUG] Updating score: ${itemId} = ${value} (was ${profile.scores[this.currentDay][itemId] || 0})`);
+                    
                     profile.scores[this.currentDay][itemId] = value;
                     this.recalculateTotalXP();
                     this.checkBadges();
                     
                     // Trigger enemy attack after updating score
                     this.triggerEnemyAttack();
+                    
+                    // Force Alpine reactivity update
+                    this.$nextTick(() => {
+                        console.log('[DEBUG] Alpine reactivity triggered');
+                    });
                     
                     this.save();
                 },
@@ -2104,8 +2023,26 @@
                     return Object.values(p.scores[day]).reduce((a, b) => a + b, 0);
                 },
 
+                getMaxScore(day) {
+                    const p = this.activeProfile;
+                    if (!p || !p.scores[day]) return 0;
+                    
+                    // Calculate max score based on ibadah list for this profile's mode
+                    let maxScore = 0;
+                    p.ibadahList.forEach(item => {
+                        const maxOption = Math.max(...item.options.map(opt => opt.v));
+                        maxScore += maxOption;
+                        console.log(`[DEBUG] Item: ${item.name}, Max: ${maxOption}, Running Total: ${maxScore}`);
+                    });
+                    
+                    console.log(`[DEBUG] Final Max Score for day ${day}: ${maxScore}`);
+                    return maxScore || 50; // Fallback to 50 if calculation fails
+                },
+
                 getDailyPct(day) {
-                    return Math.min(Math.round((this.calculateTotal(day) / 50) * 100), 100);
+                    const maxScore = this.getMaxScore(day);
+                    const currentScore = this.calculateTotal(day);
+                    return Math.min(Math.round((currentScore / maxScore) * 100), 100);
                 },
 
                 getQuizStats(type, value) {
@@ -2413,13 +2350,13 @@
                         if (this.activeProfile && this.activeProfile.totalXP >= this.enemy.xpToLose) {
                             this.activeProfile.totalXP -= this.enemy.xpToLose;
                             this.save(); // Save immediately after XP deduction
-                            alert(`Ya, saya rasa ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAkibatnya, anda kehilangan ${this.enemy.xpToLose} XP.\n\nMuhasabah: Perbaiki niat dan kembali kepada Allah.`);
+                            this.showEnemyNotification(false, `Ya, saya rasa ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAkibatnya, anda kehilangan ${this.enemy.xpToLose} XP.\n\nMuhasabah: Perbaiki niat dan kembali kepada Allah.`);
                         } else {
-                            alert(`Ya, saya rasa ${this.enemy.name} tetapi XP tidak mencukupi.\n\n${this.enemy.hadith}\n\nBeruntunglah, Allah masih melindungi amalan anda.`);
+                            this.showEnemyNotification(true, `Ya, saya rasa ${this.enemy.name} tetapi XP tidak mencukupi.\n\n${this.enemy.hadith}\n\nBeruntunglah, Allah masih melindungi amalan anda.`);
                         }
                     } else {
                         // User resists the bad feeling - XP stays safe
-                        alert(`Tidak, saya lawan ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAlhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
+                        this.showEnemyNotification(true, `Tidak, saya lawan ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAlhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
                     }
                     
                     // Reset enemy state
@@ -2430,6 +2367,95 @@
                     this.enemy.hadith = '';
                     this.enemy.xpToLose = 0;
                     this.save();
+                },
+
+                interchangeWords(text) {
+                    if (!text || typeof text !== 'string') return text;
+                    
+                    // Check language and provide appropriate translations
+                    const isBM = this.lang === 'ms';
+                    
+                    if (isBM) {
+                        // Return original Malay text for BM mode
+                        return text;
+                    } else {
+                        // English translations
+                        const translations = {
+                            // Enemy names - keep Arabic for title, translate others
+                            'Takabbur': 'Takabbur (التكبر)',
+                            'Sum\'ah': 'Sum\'ah (السمعة)',
+                            'Riak': 'Riak (الرياء)',
+                            'Ujub': 'Ujub (العجب)',
+                            'Musuh': 'Musuh (العدو)',
+                            
+                            // Common phrases
+                            '⚠️ Penyakit Hati': '⚠️ Heart Disease',
+                            '1 / 4': '1 / 4',
+                            'Kesemua -100 XP': 'All -100 XP',
+                            '📜 Hadith:': '📜 Hadith:',
+                            '⚠️ Anda akan kehilangan': '⚠️ You will lose',
+                            'XP!': 'XP!',
+                            'Ya, saya rasa ini': 'Yes, I do this',
+                            'Tidak, saya lawan': 'No, I resist this',
+                            
+                            // Enemy descriptions
+                            'Menunjuk-nunjuk dan merasa lebih baik dari orang lain, menyembunyikan pahala amalan.': 'Showing off and feeling superior to others, hiding the rewards of deeds.',
+                            'Menceritakan amal ibadah yang telah dilakukan kepada orang lain untuk mendapatkan pujian.': 'Telling others about worship deeds to get praise.',
+                            'Melakukan ibadah atau kebaikan bukan kerana Allah, tetapi untuk mendapat pujian manusia.': 'Doing worship or good deeds not for Allah, but to get human praise.',
+                            'Membanggakan diri sendiri dan merasa hebat dengan amalan yang dilakukan.': 'Being proud of oneself and feeling great with the deeds done.',
+                            
+                            // Hadith translations
+                            'Rasulullah SAW bersabda: "Tidak masuk syurga orang yang di dalam hatinya ada sebiji genggam takabbur." (HR. Tirmidzi)': 'The Prophet (PBUH) said: "A person who has a speck of arrogance in their heart will not enter Paradise." (HR. Tirmidzi)',
+                            '"Sesiapa yang melakukan amal kerana sum\'ah (ingin didengar orang), nescaya Allah akan memperdengarkan aibnya. Dan sesiapa yang melakukan amal kerana riya\' (ingin dilihat orang), nescaya Allah akan memperlihatkan aibnya." (HR Bukhari & Muslim).': '"Whoever does deeds to be heard (sum\'ah), Allah will expose their faults. And whoever does deeds to be seen (riya\'), Allah will expose their faults." (HR Bukhari & Muslim).',
+                            '"Ketika seorang lelaki berjalan dengan memakai dua helai pakaian (yang indah) sambil mengagumi dirinya sendiri (ujub) dan rambutnya disisir rapi, tiba-tiba Allah menenggelamkannya ke dalam bumi, maka dia terus terbenam di dalamnya sehingga hari kiamat." (HR Bukhari & Muslim).': '"When a man was walking wearing two garments (beautiful) while admiring himself (ujub) and his hair was neatly combed, suddenly Allah caused him to sink into the earth, so he continued to sink in it until the Day of Judgment." (HR Bukhari & Muslim).'
+                        };
+                        
+                        // Check if text exists in translations
+                        if (translations[text]) {
+                            return translations[text];
+                        }
+                    }
+                    
+                    // For any other text, return as-is
+                    return text;
+                },
+
+                showEnemyNotification(success, message) {
+                    // Create a simple notification system
+                    const notification = document.createElement('div');
+                    notification.className = `fixed top-4 right-4 z-[400] p-4 rounded-xl shadow-xl transform transition-all duration-500 max-w-sm ${
+                        success 
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                            : 'bg-gradient-to-r from-red-500 to-red-600 text-white'
+                    }`;
+                    notification.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0">
+                                <i data-lucide="${success ? 'check-circle' : 'alert-triangle'}" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-black text-sm mb-1">${success ? 'Victory!' : 'Defeat!'}</p>
+                                <p class="text-xs opacity-90 whitespace-pre-line">${message}</p>
+                            </div>
+                            <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(notification);
+                    
+                    // Initialize icons
+                    lucide.createIcons();
+                    
+                    // Auto-remove after 8 seconds
+                    setTimeout(() => {
+                        if (notification.parentElement) {
+                            notification.style.opacity = '0';
+                            notification.style.transform = 'translateX(100%)';
+                            setTimeout(() => notification.remove(), 500);
+                        }
+                    }, 8000);
                 },
 
                 getMasihiDate(day) {
@@ -2743,431 +2769,6 @@
                     if (this.mushaf.selectionMode === 'page') return 604;
                     const perPage = 10;
                     return Math.ceil(this.mushaf.verses.length / perPage) || 1;
-                },
-
-                startLocationTracking() {
-                    if ("geolocation" in navigator) {
-                        navigator.geolocation.watchPosition(
-                            (pos) => {
-                                this.userLocation = {
-                                    lat: pos.coords.latitude,
-                                    lng: pos.coords.longitude
-                                };
-                                this.updateNextPrayer();
-                            }, (err) => {
-                                console.warn('Geolocation error:', err);
-                            }, { enableHighAccuracy: true });
-                    }
-                },
-
-                prayerCacheKey() {
-                    const zone = this.prayer.zone || 'WLY01';
-                    const today = new Date();
-                    return `${zone}-${today.getFullYear()}-${today.getMonth() + 1}`;
-                },
-
-                async ensurePrayerTimes() {
-                    if (!this.prayer.enabled) return;
-                    if (!this.userLocation) {
-                        console.log('No user location, skipping prayer times');
-                        return;
-                    }
-
-                    const key = this.prayerCacheKey();
-                    const today = new Date();
-                    if (!key) return;
-
-                    if (this.prayer.cacheKey === key && this.prayer.timings && this.prayer.dateKey === today.toDateString()) {
-                        this.updateNextPrayer();
-                        return;
-                    }
-
-                    // Auto-detect zone if not set or if user wants refresh
-                    if (!this.prayer.zone || this.prayer.zone === 'detecting') {
-                        await this.fetchPrayerTimes();
-                        this.updateNextPrayer(); // Update next prayer after fetching
-                    } else {
-                        // Zone is set, but we don't have timings for today
-                        await this.fetchPrayerTimes();
-                        this.updateNextPrayer(); // Update next prayer after fetching
-                    }
-                },
-
-                async detectAndSetZone() {
-                    if (!navigator.geolocation) {
-                        alert('Geolocation is not supported by your browser');
-                        return;
-                    }
-
-                    try {
-                        // Get current position
-                        const position = await new Promise((resolve, reject) => {
-                            navigator.geolocation.getCurrentPosition(resolve, reject, {
-                                enableHighAccuracy: true,
-                                timeout: 10000,
-                                maximumAge: 0
-                            });
-                        });
-
-                        // Update user location
-                        this.userLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-
-                        // Detect zone based on coordinates
-                        const lat = this.userLocation.lat;
-                        const lng = this.userLocation.lng;
-                        let zone = 'WLY01'; // Default: Wilayah Persekutuan Kuala Lumpur
-                        
-                        // Malaysia zone detection based on coordinates
-                        if (lat >= 1 && lat <= 7 && lng >= 99 && lng <= 105) {
-                            zone = 'SGR01'; // Selangor
-                        } else if (lat >= 2 && lat <= 7 && lng >= 100 && lng <= 104) {
-                            zone = 'KUL01'; // Kuala Lumpur
-                        } else if (lat >= 3 && lat <= 7 && lng >= 101 && lng <= 104) {
-                            zone = 'PLS01'; // Perak
-                        } else if (lat >= 4 && lat <= 7 && lng >= 101 && lng <= 104) {
-                            zone = 'JHR01'; // Johor
-                        } else if (lat >= 5 && lat <= 7 && lng >= 100 && lng <= 103) {
-                            zone = 'KDH01'; // Kedah
-                        } else if (lat >= 6 && lat <= 7 && lng >= 100 && lng <= 102) {
-                            zone = 'PRK01'; // Perlis
-                        } else if (lat >= 0 && lat <= 6 && lng >= 102 && lng <= 105) {
-                            zone = 'TRG01'; // Terengganu
-                        } else if (lat >= 0 && lat <= 5 && lng >= 101 && lng <= 104) {
-                            zone = 'PHG01'; // Pahang
-                        } else if (lat >= 1 && lat <= 5 && lng >= 103 && lng <= 105) {
-                            zone = 'NNS01'; // Negeri Sembilan
-                        } else if (lat >= 1 && lat <= 4 && lng >= 102 && lng <= 105) {
-                            zone = 'MLK01'; // Melaka
-                        } else if (lat >= 0 && lat <= 7 && lng >= 110 && lng <= 118) {
-                            zone = 'SBH01'; // Sabah (Borneo)
-                        } else if (lat >= 0 && lat <= 7 && lng >= 109 && lng <= 119) {
-                            zone = 'SRW01'; // Sarawak (Borneo)
-                        }
-
-                        this.prayer.zone = zone;
-                        this.saveGlobal();
-                        
-                    } catch (error) {
-                        console.error('GPS detection failed:', error);
-                        alert('Failed to detect your location. Please check your GPS permissions.');
-                        // Set default zone
-                        this.prayer.zone = 'WLY01';
-                        this.saveGlobal();
-                    }
-                },
-
-                async fetchPrayerTimes() {
-                    if (!this.userLocation) {
-                        console.log('No user location available');
-                        return;
-                    }
-
-                    try {
-                        const today = new Date();
-                        const year = today.getFullYear();
-                        const month = String(today.getMonth() + 1).padStart(2, '0');
-                        const day = String(today.getDate()).padStart(2, '0');
-                        
-                        // Use the detected zone
-                        const zone = this.prayer.zone || 'WLY01';
-                        
-                        const url = `https://api.waktusolat.app/v1/solat/${zone}/${year}/${month}/${day}`;
-                        
-                        console.log('Fetching prayer times:', url);
-                        console.log('Zone:', zone, 'Date:', `${year}-${month}-${day}`);
-                        
-                        const response = await fetch(url);
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                        }
-                        
-                        const result = await response.json();
-                        console.log('Prayer times response:', result);
-                        
-                        if (result && result.data) {
-                            this.prayer.timings = result.data;
-                            this.prayer.cacheKey = this.prayerCacheKey();
-                            this.prayer.dateKey = today.toDateString();
-                            this.updateNextPrayer();
-                            this.save();
-                            console.log('Prayer times updated successfully:', this.prayer.timings);
-                        } else {
-                            console.warn('No prayer times data in response, using fallback');
-                            throw new Error('Invalid API response format');
-                        }
-                        
-                    } catch (error) {
-                        console.error('Failed to fetch prayer times:', error);
-                        console.log('Using fallback prayer times');
-                        
-                        // Fallback: use default times for Malaysia
-                        const fallbackTimings = {
-                            Fajr: '05:30',
-                            Sunrise: '07:00',
-                            Dhuhr: '13:00',
-                            Asr: '16:30',
-                            Maghrib: '19:15',
-                            Isha: '20:30'
-                        };
-                        
-                        this.prayer.timings = fallbackTimings;
-                        this.prayer.zone = 'WLY01';
-                        this.prayer.cacheKey = this.prayerCacheKey();
-                        this.prayer.dateKey = new Date().toDateString();
-                        this.updateNextPrayer();
-                        this.save();
-                        console.log('Fallback prayer times set:', this.prayer.timings);
-                        
-                        console.log('Using fallback prayer times');
-                    }
-                },
-
-                tsToTime(ts) {
-                    const h = Math.floor(ts / 3600);
-                    const m = Math.floor((ts % 3600) / 60);
-                    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                },
-
-                parsePrayerTimeToDate(hhmm) {
-                    const m = (hhmm || '').match(/^(\d{1,2}):(\d{2})/);
-                    if (!m) return null;
-                    const d = new Date();
-                    d.setHours(Number(m[1]), Number(m[2]), 0, 0);
-                    return d;
-                },
-
-                updateNextPrayer() {
-                    const t = this.prayer.timings;
-                    if (!t) {
-                        this.prayer.nextLabel = this.lang === 'en' ? 'No data' : 'Tiada data';
-                        this.prayer.countdown = '';
-                        return;
-                    }
-
-                    const order = [
-                        { k: 'Fajr', labelMs: 'Subuh', labelEn: 'Fajr' },
-                        { k: 'Dhuhr', labelMs: 'Zohor', labelEn: 'Dhuhr' },
-                        { k: 'Asr', labelMs: 'Asar', labelEn: 'Asr' },
-                        { k: 'Maghrib', labelMs: 'Maghrib', labelEn: 'Maghrib' },
-                        { k: 'Isha', labelMs: 'Isyak', labelEn: 'Isha' }
-                    ];
-
-                    const now = new Date();
-                    let next = null;
-
-                    for (const it of order) {
-                        const d = this.parsePrayerTimeToDate(t[it.k]);
-                        if (d && d.getTime() > now.getTime()) {
-                            next = { ...it, time: t[it.k], date: d };
-                            break;
-                        }
-                    }
-
-                    if (next) {
-                        this.prayer.nextLabel = this.lang === 'en' ? next.labelEn : next.labelMs;
-                        const diff = Math.floor((next.date.getTime() - now.getTime()) / 60000);
-                        if (diff > 0) {
-                            const h = Math.floor(diff / 60);
-                            const m = diff % 60;
-                            this.prayer.countdown = this.lang === 'en'
-                                ? `${h > 0 ? `${h}h ` : ''}${m}m`
-                                : `${h > 0 ? `${h}j ` : ''}${m}m`;
-                        } else {
-                            this.prayer.countdown = '';
-                        }
-                    } else {
-                        // After Isha, show Fajr of next day
-                        this.prayer.nextLabel = this.lang === 'en' ? 'Fajr (tomorrow)' : 'Subuh (esok)';
-                        this.prayer.countdown = '';
-                    }
-                },
-
-                prayerRows() {
-                    const t = this.prayer.timings || {};
-                    const tr = (ms, en) => (this.lang === 'en' ? en : ms);
-                    const rows = [
-                        { k: 'Fajr', label: tr('Subuh', 'Fajr') },
-                        { k: 'Sunrise', label: tr('Syuruk', 'Sunrise') },
-                        { k: 'Dhuhr', label: tr('Zohor', 'Dhuhr') },
-                        { k: 'Asr', label: tr('Asar', 'Asr') },
-                        { k: 'Maghrib', label: tr('Maghrib', 'Maghrib') },
-                        { k: 'Isha', label: tr('Isyak', 'Isha') }
-                    ];
-                    return rows.map(r => ({ ...r, time: (t[r.k] || '--:--').toString().trim() }));
-                },
-
-                async startQuiz() {
-                    this.quiz.active = true;
-                    this.quiz.status = 'idle';
-                    this.quiz.transcript = '';
-                    this.quiz.detectedSegment = '';
-                    this.quiz.recitedText = '';
-                    this.quiz.voiceStage = 'idle';
-                    this.quiz.voiceProgress = 0;
-                    this.quiz.voiceCompleted = false;
-                    this.quiz.hintWordsUnlocked = 0;
-                    this.quiz.matchedWords = [];
-                    this.quiz.targetContinuationText = '';
-                    this.quiz.loading = true;
-                    this.quiz.selectedMcqIndex = -1;
-                    this.quiz.mcqPhase = 0;
-                    this.quiz.mcqBuiltText = '';
-                    this.quiz.mcqPhases = [];
-                    
-                    try {
-                        let verses;
-                        if (this.quiz.selectionMode === 'page') {
-                            const page = this.quiz.currentPage || this.mushaf.currentPage;
-                            verses = await this.fetchPageData(page);
-                        } else if (this.quiz.selectionMode === 'juz') {
-                            verses = await this.fetchJuzData(this.quiz.currentJuz);
-                        } else {
-                            verses = await this.fetchSurahData(this.quiz.currentSurah);
-                        }
-                        
-                        if (!verses || verses.length < 2) throw new Error('Not enough verses');
-
-                        const idx = Math.floor(Math.random() * (verses.length - 1));
-                        const verse = verses[idx];
-                        const nextVerse = verses[idx + 1];
-
-                        this.quiz.verse = {
-                            text: verse.text,
-                            nextText: nextVerse.text,
-                            surah: verse.surah.name,
-                            numberInSurah: verse.numberInSurah,
-                            juz: verse.juz || this.quiz.currentJuz || null
-                        };
-
-                        this.quiz.targetContinuationText = this.buildContinuationTarget(verses, idx, 6, 20);
-
-                        if (this.quiz.testMode === 'mcq') this.generateMcqPhases(verses, idx + 1);
-
-                        this.quiz.session.total++;
-                    } catch (e) {
-                        console.error('Quiz Error:', e);
-                        alert('Gagal memuatkan ayat. Sila periksa internet.');
-                        this.quiz.active = false;
-                    } finally {
-                        this.quiz.loading = false;
-                        this.$nextTick(() => lucide.createIcons());
-                    }
-                },
-
-                generateMcqPhases(verses, correctIdx) {
-                    const correctFull = verses[correctIdx].text;
-                    
-                    // Use complete ayahs instead of word chunks
-                    const distractorPool = verses
-                        .filter((_, i) => i !== correctIdx)
-                        .map(v => v.text)
-                        .filter(Boolean);
-
-                    // Create phases with complete ayahs
-                    const phases = [];
-                    
-                    // Phase 1: Use the correct ayah
-                    if (correctFull && correctFull.trim() !== '') {
-                        let options = [correctFull];
-                        
-                        // Add 3 unique distractor ayahs
-                        let attempts = 0;
-                        while (options.length < 4 && attempts < 10) {
-                            const src = distractorPool[Math.floor(Math.random() * distractorPool.length)];
-                            const candidate = src.trim();
-                            
-                            // Ensure distractor is unique and different from correct answer
-                            if (!options.includes(candidate) && candidate !== correctFull && candidate.length > 0) {
-                                options.push(candidate);
-                            }
-                            attempts++;
-                        }
-                        
-                        // If we couldn't get 4 unique options, create generic ones
-                        while (options.length < 4) {
-                            const genericDistractor = `...${options.length}`;
-                            if (!options.includes(genericDistractor)) {
-                                options.push(genericDistractor);
-                            }
-                        }
-                        
-                        // Shuffle options
-                        const shuffled = [...options].sort(() => Math.random() - 0.5);
-                        const wrongText = shuffled.find(opt => opt !== correctFull) || '';
-                        
-                        const finalOptions = [correctFull, wrongText].filter(v => v !== '');
-                        
-                        // Ensure we have at least 2 options
-                        if (finalOptions.length < 2) {
-                            finalOptions.push('...');
-                        }
-                        
-                        // Shuffle final options
-                        if (Math.random() > 0.5) [finalOptions[0], finalOptions[1]] = [finalOptions[1], finalOptions[0]];
-                        
-                        phases.push({
-                            correctText: correctFull,
-                            options: finalOptions,
-                            correctIndex: finalOptions.indexOf(correctFull)
-                        });
-                    }
-
-                    // Add 2 more phases with different ayahs if available
-                    for (let i = 0; i < 2 && i < distractorPool.length; i++) {
-                        const ayahText = distractorPool[i];
-                        if (ayahText && ayahText.trim() !== '') {
-                            let options = [ayahText];
-                            
-                            // Add 3 unique distractors
-                            let attempts = 0;
-                            while (options.length < 4 && attempts < 10) {
-                                const src = distractorPool[Math.floor(Math.random() * distractorPool.length)];
-                                const candidate = src.trim();
-                                
-                                if (!options.includes(candidate) && candidate !== ayahText && candidate.length > 0) {
-                                    options.push(candidate);
-                                }
-                                attempts++;
-                            }
-                            
-                            // If we couldn't get 4 unique options, create generic ones
-                            while (options.length < 4) {
-                                const genericDistractor = `...${options.length}`;
-                                if (!options.includes(genericDistractor)) {
-                                    options.push(genericDistractor);
-                                }
-                            }
-                            
-                            // Shuffle options
-                            const shuffled = [...options].sort(() => Math.random() - 0.5);
-                            const wrongText = shuffled.find(opt => opt !== ayahText) || '';
-                            
-                            const finalOptions = [ayahText, wrongText].filter(v => v !== '');
-                            
-                            // Ensure we have at least 2 options
-                            if (finalOptions.length < 2) {
-                                finalOptions.push('...');
-                            }
-                            
-                            // Shuffle final options
-                            if (Math.random() > 0.5) [finalOptions[0], finalOptions[1]] = [finalOptions[1], finalOptions[0]];
-                            
-                            phases.push({
-                                correctText: ayahText,
-                                options: finalOptions,
-                                correctIndex: finalOptions.indexOf(ayahText)
-                            });
-                        }
-                    }
-
-                    this.quiz.mcqPhases = phases;
-                    this.quiz.mcqPhase = 0;
-                    this.quiz.mcqOptions = phases[0]?.options || [];
-                    this.quiz.mcqCorrectIndex = phases[0]?.correctIndex ?? -1;
-                    this.quiz.mcqBuiltText = '';
                 },
 
                 checkMcqAnswer(index) {
@@ -3732,17 +3333,7 @@
                         islamicQuoteIndex: this.islamicQuoteIndex,
                         islamicQuoteDateKey: this.islamicQuoteDateKey,
                         mushafFontSize: this.mushaf?.fontSize,
-                        mushafFontFamily: this.mushaf?.fontFamily,
-                        prayer: {
-                            enabled: this.prayer.enabled,
-                            placement: this.prayer.placement,
-                            zone: this.prayer.zone,
-                            cacheKey: this.prayer.cacheKey,
-                            dateKey: this.prayer.dateKey,
-                            timings: this.prayer.timings,
-                            nextLabel: this.prayer.nextLabel,
-                            countdown: this.prayer.countdown
-                        }
+                        mushafFontFamily: this.mushaf?.fontFamily
                     }));
                 }
             }
@@ -3753,50 +3344,50 @@
     <!-- Enemy Attack Modal -->
     <div x-show="enemy.active" x-cloak class="fixed inset-0 z-[300] bg-black/30 backdrop-blur-[2px] flex items-center justify-center p-6">
         <div @click="handleEnemyResponse(false)" class="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
-        <div class="bg-gradient-to-br from-white/95 to-red-50/90 dark:from-red-900/40 dark:to-slate-800/95 w-full max-w-md rounded-[2rem] p-8 relative z-10 custom-shadow border border-red-500/30 shadow-2xl backdrop-blur-md">
-            <div class="text-center mb-6">
+        <div class="bg-gradient-to-br from-white/95 to-red-50/90 dark:from-red-900/40 dark:to-slate-800/95 w-full max-w-xs rounded-[1rem] p-4 relative z-10 custom-shadow border border-red-500/30 shadow-2xl backdrop-blur-md">
+            <div class="text-center mb-4">
                 <!-- Icon with animation and glow -->
-                <div class="w-20 h-20 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl ring-4 ring-red-500/20">
-                    <i data-lucide="alert-triangle" class="w-10 h-10 text-white animate-pulse"></i>
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-xl ring-4 ring-red-500/20">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-white animate-pulse"></i>
                 </div>
                 
                 <!-- Title with glow effect -->
-                <h2 class="text-2xl font-black text-red-600 dark:text-red-400 mb-3 drop-shadow-lg" x-text="enemy.name || 'Musuh'"></h2>
+                <h2 class="text-lg font-black text-red-600 dark:text-red-400 mb-1 drop-shadow-lg" x-text="interchangeWords(enemy.name || 'Musuh')"></h2>
                 
                 <!-- Subtitle with counter -->
-                <div class="mb-6">
-                    <p class="text-sm font-bold text-red-600 dark:text-red-300 mb-2 drop-shadow">⚠️ Penyakit Hati</p>
+                <div class="mb-3">
+                    <p class="text-xs font-bold text-red-600 dark:text-red-300 mb-1 drop-shadow" x-text="interchangeWords('⚠️ Penyakit Hati')"></p>
                     <div class="flex items-center justify-center gap-2">
-                        <span class="text-xs font-black text-red-500 bg-red-100/80 dark:bg-red-900/40 px-3 py-1 rounded-full backdrop-blur-sm">1 / 4</span>
-                        <span class="text-xs font-bold text-red-600 dark:text-red-300 drop-shadow">Kesemua -100 XP</span>
+                        <span class="text-[10px] font-black text-red-500 bg-red-100/80 dark:bg-red-900/40 px-2 py-1 rounded-full backdrop-blur-sm" x-text="interchangeWords('1 / 4')"></span>
+                        <span class="text-[10px] font-bold text-red-600 dark:text-red-300 drop-shadow" x-text="interchangeWords('Kesemua -100 XP')"></span>
                     </div>
                 </div>
                 
                 <!-- Description -->
-                <p class="text-sm text-muted mb-6 leading-relaxed" x-text="enemy.description"></p>
+                <p class="text-xs text-muted mb-3 leading-relaxed" x-text="interchangeWords(enemy.description)"></p>
                 
                 <!-- Hadith Section with glass effect -->
-                <div class="bg-gradient-to-r from-red-50/80 to-orange-50/80 dark:from-red-900/40 dark:to-orange-900/30 p-4 rounded-2xl mb-6 border border-red-200/50 backdrop-blur-sm">
-                    <p class="text-xs font-bold text-red-700 dark:text-red-300 mb-2">📜 Hadith:</p>
-                    <p class="text-sm text-muted italic leading-relaxed" x-text="enemy.hadith"></p>
+                <div class="bg-gradient-to-r from-red-50/80 to-orange-50/80 dark:from-red-900/40 dark:to-orange-900/30 p-2 rounded-2xl mb-3 border border-red-200/50 backdrop-blur-sm">
+                    <p class="text-[10px] font-bold text-red-700 dark:text-red-300 mb-1" x-text="interchangeWords('📜 Hadith:')"></p>
+                    <p class="text-xs text-muted italic leading-relaxed" x-text="interchangeWords(enemy.hadith)"></p>
                 </div>
                 
                 <!-- Warning Message with enhanced styling -->
-                <div class="bg-gradient-to-r from-red-100/90 to-red-50/90 dark:from-red-900/50 dark:to-red-800/40 p-3 rounded-xl mb-6 border border-red-200/50 backdrop-blur-sm">
-                    <p class="text-sm font-bold text-red-700 dark:text-red-300 text-center drop-shadow">
-                        ⚠️ Anda akan kehilangan <span x-text="enemy.xpToLose" class="font-black text-red-600 text-lg"></span> XP!
+                <div class="bg-gradient-to-r from-red-100/90 to-red-50/90 dark:from-red-900/50 dark:to-red-800/40 p-2 rounded-xl mb-3 border border-red-200/50 backdrop-blur-sm">
+                    <p class="text-xs font-bold text-red-700 dark:text-red-300 text-center drop-shadow">
+                        <span x-text="interchangeWords('⚠️ Anda akan kehilangan')"></span> <span x-text="enemy.xpToLose" class="font-black text-red-600 text-sm"></span> <span x-text="interchangeWords('XP!')"></span>
                     </p>
                 </div>
                 
                 <!-- Action Buttons with enhanced effects -->
-                <div class="flex gap-3 justify-center">
+                <div class="flex gap-2 justify-center">
                     <button @click="handleEnemyResponse(true)" 
-                        class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-black hover:from-red-600 hover:to-red-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm">
-                        Ya, saya rasa ini
+                        class="px-3 py-1 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-black hover:from-red-600 hover:to-red-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm text-xs">
+                        <span x-text="interchangeWords('Ya, saya rasa ini')"></span>
                     </button>
                     <button @click="handleEnemyResponse(false)" 
-                        class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-black hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm">
-                        Tidak, saya lawan
+                        class="px-3 py-1 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-black hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 backdrop-blur-sm text-xs">
+                        <span x-text="interchangeWords('Tidak, saya lawan')"></span>
                     </button>
                 </div>
             </div>
