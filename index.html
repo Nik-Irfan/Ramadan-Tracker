@@ -746,6 +746,12 @@
                         </div>
                     </div>
 
+                    <div class="mt-4 p-3 rounded-2xl accent-soft border border-accent/20">
+                        <p class="text-[9px] font-black text-accent uppercase tracking-widest mb-1" x-text="lang === 'en' ? 'Guardian Heart Shield' : 'Perisai Hati Penjaga'"></p>
+                        <p class="text-[10px] text-main font-semibold leading-relaxed" x-text="lang === 'en' ? `Pet Power Level ${getPetGuardianLevel()} protects ${getPetBossReduction()} XP from Big Boss.` : `Power Level pet ${getPetGuardianLevel()} melindungi ${getPetBossReduction()} XP daripada Big Boss.`"></p>
+                        <p class="text-[10px] text-muted font-semibold leading-relaxed mt-1" x-text="lang === 'en' ? `Big Boss emergence chance now ${getBigBossSpawnChancePctText()}` : `Peluang kemunculan Big Boss kini ${getBigBossSpawnChancePctText()}`"></p>
+                    </div>
+
                     <div class="mt-6">
                         <div class="flex justify-between text-[10px] font-black text-muted uppercase tracking-widest mb-2">
                             <span x-text="'Progress Evolusi'"></span>
@@ -763,6 +769,7 @@
                             <span x-text="canHatchPet() ? 'Hatch Sekarang' : 'Capai LVL 3 untuk hatch'"></span>
                         </button>
                     </div>
+                    <p class="text-[10px] text-muted font-semibold mt-3" x-text="lang === 'en' ? 'Pet is a symbol of your heart. The stronger your heart, the stronger your protection from major trials.' : 'Pet ialah simbol hati anda. Lagi kuat hati, lagi kuat perlindungan daripada ujian besar.'"></p>
                 </div>
             </template>
         </div>
@@ -1390,6 +1397,7 @@
                     active: false,
                     name: '',
                     type: '',
+                    icon: 'alert-triangle',
                     description: '',
                     hadith: '',
                     xpToLose: 0
@@ -1425,6 +1433,15 @@
                         xpToLose: 100
                     }
                 ],
+                bigBossEnemy: {
+                    type: 'big_boss',
+                    icon: 'skull',
+                    name: 'Fitnah Akhir Zaman',
+                    title: 'Final Boss: Fitnah Akhir Zaman',
+                    description: 'Takabbur, Sum\'ah, Riak, dan Ujub yang sering kalah kini menyatu menjadi satu entiti akhir zaman untuk mencuri pahala amalan.',
+                    hadith: 'Ujian fitnah ditangkis dengan ikhlas, zikir, sabar, dan muhasabah. Pelihara hati agar tetap dekat dengan Allah.',
+                    xpToLose: 50
+                },
                 islamicQuoteIndex: 0,
                 islamicQuoteDateKey: '',
                 quoteCopyStatus: '',
@@ -1505,6 +1522,9 @@
                     (this.allProfiles || []).forEach(p => {
                         this.ensurePet(p);
                         this.normalizeProfileOptionLabels(p);
+                        if (!p.enemyRollsByDay || typeof p.enemyRollsByDay !== 'object') p.enemyRollsByDay = {};
+                        if (!Number.isFinite(Number(p.enemyPenaltyXP))) p.enemyPenaltyXP = 0;
+                        p.enemyPenaltyXP = Number(p.enemyPenaltyXP || 0);
                         
                         // Check if friday_special exists and is not at the top
                         if (p.ibadahList && p.ibadahList.length > 0) {
@@ -1546,41 +1566,9 @@
                     this.$nextTick(() => {
                         lucide.createIcons();
                         this.scrollToCurrentDay();
-                        // #region agent log
-                        try {
-                            const trackerEl = document.getElementById('view-tracker');
-                            const mushafEl = document.getElementById('view-mushaf');
-                            console.log('[DEBUG:init_nextTick]', {
-                                view: this.view,
-                                scrollY: window.scrollY,
-                                innerHeight: window.innerHeight,
-                                docHeight: document.documentElement.scrollHeight,
-                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
-                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null
-                            });
-                        } catch (e) {}
-                        // #endregion
                     });
-                    this.$watch('view', (newView, oldView) => this.$nextTick(() => {
+                    this.$watch('view', () => this.$nextTick(() => {
                         lucide.createIcons();
-                        // #region agent log
-                        try {
-                            const trackerEl = document.getElementById('view-tracker');
-                            const mushafEl = document.getElementById('view-mushaf');
-                            console.log('[DEBUG:view_watch]', {
-                                oldView,
-                                newView,
-                                scrollY: window.scrollY,
-                                innerHeight: window.innerHeight,
-                                docHeight: document.documentElement.scrollHeight,
-                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
-                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null,
-                                trackerInnerLength: trackerEl ? trackerEl.innerHTML.length : null,
-                                hasActiveProfile: !!this.activeProfile,
-                                ibadahCount: this.activeProfile?.ibadahList?.length ?? null
-                            });
-                        } catch (e) {}
-                        // #endregion
                         // Always reset scroll position when switching "pages"
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         document.documentElement.scrollTop = 0;
@@ -1822,6 +1810,42 @@
                     return !!p.pet.line && lvl >= 3;
                 },
 
+                getPetGuardianLevel() {
+                    const p = this.activeProfile;
+                    if (!p) return 0;
+                    this.ensurePet(p);
+                    if (!p.pet.line || !p.pet.hatched) return 0;
+                    return this.getPetStage(this.getUserLevel().level) + 1; // 1..5
+                },
+
+                getPetBossReduction() {
+                    return this.getPetGuardianLevel() * 10;
+                },
+
+                getEffectiveEnemyLoss(enemyType, baseLoss) {
+                    const rawLoss = Number(baseLoss || 0);
+                    if (enemyType !== 'big_boss') return rawLoss;
+                    const reduction = this.getPetBossReduction();
+                    return Math.max(0, rawLoss - reduction);
+                },
+
+                getBigBossSpawnChance() {
+                    const guardianLevel = this.getPetGuardianLevel();
+                    const schedule = [0.01, 0.008, 0.006, 0.004, 0.003, 0.002];
+                    return schedule[Math.min(guardianLevel, schedule.length - 1)];
+                },
+
+                getBigBossSpawnChancePctText() {
+                    return `${(this.getBigBossSpawnChance() * 100).toFixed(1)}%`;
+                },
+
+                getBigBossLore() {
+                    if ((this.lang || 'ms') === 'en') {
+                        return 'After repeated defeats, Takabbur, Sum\'ah, Riya\', and Ujub merged into one final entity: Fitnah Akhir Zaman. This is not a trial to face alone; a guarded heart and a trained guardian companion are your shield.';
+                    }
+                    return 'Selepas sering tewas, Takabbur, Sum\'ah, Riak, dan Ujub bergabung menjadi satu entiti terakhir: Fitnah Akhir Zaman. Ujian ini bukan untuk dilawan sendirian; hati yang dijaga dan pet penjaga yang dilatih menjadi perisai amalan anda.';
+                },
+
                 hatchPet() {
                     const p = this.activeProfile;
                     if (!p) return;
@@ -1952,6 +1976,8 @@
                         dayData: {},
                         badges: [],
                         createdAt: Date.now(),
+                        enemyRollsByDay: {},
+                        enemyPenaltyXP: 0,
                         ibadahList: JSON.parse(JSON.stringify(this.templates[this.onboarding.mode].list))
                     };
                     
@@ -2121,7 +2147,8 @@
                         const hasAllSolat = solatIds.every(id => (p.scores[d] && p.scores[d][id] > 0));
                         if (hasAllSolat) xp += 50;
                     }
-                    p.totalXP = xp;
+                    const totalPenalty = Number(p.enemyPenaltyXP || 0);
+                    p.totalXP = Math.max(0, xp - totalPenalty);
                 },
 
                 getUserLevel(customXP = null) {
@@ -2411,22 +2438,46 @@
                     
                     if (accept) {
                         // User accepts the bad feeling - XP can be reduced
-                        if (this.activeProfile && this.activeProfile.totalXP >= this.enemy.xpToLose) {
-                            this.activeProfile.totalXP -= this.enemy.xpToLose;
+                        const effectiveLoss = Number(this.enemy.xpToLose || 0);
+                        if (this.activeProfile && this.activeProfile.totalXP >= effectiveLoss && effectiveLoss > 0) {
+                            if (!Number.isFinite(Number(this.activeProfile.enemyPenaltyXP))) this.activeProfile.enemyPenaltyXP = 0;
+                            this.activeProfile.enemyPenaltyXP = Number(this.activeProfile.enemyPenaltyXP || 0) + effectiveLoss;
+                            this.recalculateTotalXP();
                             this.save(); // Save immediately after XP deduction
-                            this.showEnemyNotification(false, `Ya, saya rasa ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAkibatnya, anda kehilangan ${this.enemy.xpToLose} XP.\n\nMuhasabah: Perbaiki niat dan kembali kepada Allah.`);
+                            this.showEnemyNotification(false, `Ya, saya rasa ${this.enemy.name}.
+
+${this.enemy.hadith}
+
+Akibatnya, anda kehilangan ${effectiveLoss} XP.
+
+Muhasabah: Perbaiki niat dan kembali kepada Allah.`);
+                        } else if (effectiveLoss === 0 && this.enemy.type === 'big_boss') {
+                            this.showEnemyNotification(true, `Big Boss muncul tetapi pet anda melindungi semua amalan!
+
+${this.enemy.hadith}
+
+Alhamdulillah, tiada XP hilang.`);
                         } else {
-                            this.showEnemyNotification(true, `Ya, saya rasa ${this.enemy.name} tetapi XP tidak mencukupi.\n\n${this.enemy.hadith}\n\nBeruntunglah, Allah masih melindungi amalan anda.`);
+                            this.showEnemyNotification(true, `Ya, saya rasa ${this.enemy.name} tetapi XP tidak mencukupi.
+
+${this.enemy.hadith}
+
+Beruntunglah, Allah masih melindungi amalan anda.`);
                         }
                     } else {
                         // User resists the bad feeling - XP stays safe
-                        this.showEnemyNotification(true, `Tidak, saya lawan ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAlhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
+                        this.showEnemyNotification(true, `Tidak, saya lawan ${this.enemy.name}.
+
+${this.enemy.hadith}
+
+Alhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
                     }
                     
                     // Reset enemy state
                     this.enemy.active = false;
                     this.enemy.name = '';
                     this.enemy.type = '';
+                    this.enemy.icon = 'alert-triangle';
                     this.enemy.description = '';
                     this.enemy.hadith = '';
                     this.enemy.xpToLose = 0;
@@ -3412,23 +3463,25 @@
             <div class="text-center mb-4">
                 <!-- Icon with animation and glow -->
                 <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-xl ring-4 ring-red-500/20">
-                    <i data-lucide="alert-triangle" class="w-6 h-6 text-white animate-pulse"></i>
+                    <i :data-lucide="enemy.icon || 'alert-triangle'" class="w-6 h-6 text-white animate-pulse"></i>
                 </div>
                 
                 <!-- Title with glow effect -->
                 <h2 class="text-lg font-black text-red-600 dark:text-red-400 mb-1 drop-shadow-lg" x-text="interchangeWords(enemy.name || 'Musuh')"></h2>
+                <p x-show="enemy.type === 'big_boss'" class="text-[10px] font-black text-red-500 dark:text-red-300 uppercase tracking-widest mb-1" x-text="interchangeWords(bigBossEnemy.title)"></p>
                 
                 <!-- Subtitle with counter -->
                 <div class="mb-3">
                     <p class="text-xs font-bold text-red-600 dark:text-red-300 mb-1 drop-shadow" x-text="interchangeWords('⚠️ Penyakit Hati')"></p>
                     <div class="flex items-center justify-center gap-2">
                         <span class="text-[10px] font-black text-red-500 bg-red-100/80 dark:bg-red-900/40 px-2 py-1 rounded-full backdrop-blur-sm" x-text="interchangeWords('1 / 4')"></span>
-                        <span class="text-[10px] font-bold text-red-600 dark:text-red-300 drop-shadow" x-text="interchangeWords('Kesemua -100 XP')"></span>
+                        <span class="text-[10px] font-bold text-red-600 dark:text-red-300 drop-shadow" x-text="interchangeWords(`Kesan -${enemy.xpToLose} XP`)" ></span>
                     </div>
                 </div>
                 
                 <!-- Description -->
                 <p class="text-xs text-muted mb-3 leading-relaxed" x-text="interchangeWords(enemy.description)"></p>
+                <p x-show="enemy.type === 'big_boss'" class="text-[10px] text-main font-semibold leading-relaxed mb-3" x-text="interchangeWords(getBigBossLore())"></p>
                 
                 <!-- Hadith Section with glass effect -->
                 <div class="bg-gradient-to-r from-red-50/80 to-orange-50/80 dark:from-red-900/40 dark:to-orange-900/30 p-2 rounded-2xl mb-3 border border-red-200/50 backdrop-blur-sm">
