@@ -222,7 +222,7 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="antialiased" x-data="trackerApp()" x-init="init()" x-init="setTimeout(() => { if (!this.initialized) { this.initialized = true; } }, 1000)" :class="{ 'dark': darkMode, 'theme-rose': theme === 'rose', 'theme-ocean': theme === 'ocean', 'theme-purple': theme === 'purple', 'theme-pink': theme === 'pink', 'theme-gold': theme === 'gold', 'theme-navy': theme === 'navy' }">
+<body class="antialiased" x-data="trackerApp()" x-init="init(); setTimeout(() => { if (!this.initialized) { this.initialized = true; } }, 1000)" :class="{ 'dark': darkMode, 'theme-rose': theme === 'rose', 'theme-ocean': theme === 'ocean', 'theme-purple': theme === 'purple', 'theme-pink': theme === 'pink', 'theme-gold': theme === 'gold', 'theme-navy': theme === 'navy' }">
     
     <!-- Loading Screen -->
     <div x-show="!initialized" x-cloak class="fixed inset-0 z-[300] bg-gradient-to-br from-accent to-purple-600 flex items-center justify-center">
@@ -1734,6 +1734,7 @@
                 },
 
                 init() {
+                    try {
                     const saved = localStorage.getItem('ramadan_rpg_data');
                     if (saved) {
                         const data = JSON.parse(saved);
@@ -1851,6 +1852,7 @@
                     // Still mark as initialized to prevent infinite loading
                     this.initialized = true;
                 }
+                },
 
                 get activeProfile() {
                     return this.allProfiles.find(p => p.id === this.activeProfileId);
@@ -2768,7 +2770,9 @@
                 },
 
                 async fetchPrayerTimes() {
-                    if (!this.userLocation) {
+                    if (!this.userLocation) return;
+
+                    try {
                         const today = new Date();
                         const year = today.getFullYear();
                         const month = String(today.getMonth() + 1).padStart(2, '0');
