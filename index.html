@@ -479,9 +479,9 @@
                 </div>
             </div>
             <div class="flex flex-col items-end gap-2">
-                <div class="bg-orange-50 dark:bg-orange-900/10 px-3 py-2 rounded-2xl flex items-center gap-2 border border-orange-100 dark:border-orange-900/30">
-                    <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-current"></i>
-                    <span class="text-xs font-black text-orange-600 dark:text-orange-400" x-text="`${calculateStreak()} Day Streak`"></span>
+                <div class="accent-soft px-3 py-2 rounded-2xl flex items-center gap-2 border border-accent/20">
+                    <i data-lucide="flame" class="w-4 h-4 text-accent fill-current"></i>
+                    <span class="text-xs font-black text-accent" x-text="`${calculateStreak()} Day Streak`"></span>
                 </div>
             </div>
         </header>
@@ -503,11 +503,11 @@
                         class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 font-bold relative"
                         :class="[
                             currentDay === day ? 'gradient-accent text-white shadow-accent scale-110' : 'bg-inset text-muted',
-                            isStreakDay(day) ? 'ring-2 ring-orange-300 ring-opacity-80' : ''
+                            isStreakDay(day) ? 'ring-2 ring-accent ring-opacity-40' : ''
                         ]"
                         x-text="day">
                         <div x-show="$data.calculateTotal(day) >= 50" class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"></div>
-                        <div x-show="isStreakDay(day)" class="absolute -bottom-1 -left-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
+                        <div x-show="isStreakDay(day)" class="absolute -bottom-1 -left-1 w-3 h-3 rounded-full border-2 border-white" style="background-color: var(--accent-color);"></div>
                     </button>
                 </template>
             </div>
@@ -529,7 +529,7 @@
                             :class="[
                                 currentDay === day ? 'border-accent ring-2 ring-accent ring-opacity-20' : 'border-transparent bg-inset',
                                 calculateTotal(day) > 0 ? 'opacity-100' : 'opacity-60',
-                                isStreakDay(day) ? 'ring-2 ring-orange-300 ring-opacity-70' : '',
+                                isStreakDay(day) ? 'ring-2 ring-accent ring-opacity-30' : '',
                                 // Highlight Friday (Jumaat) days
                                 ((day + 3) % 7 === 5) ? 'ring-2 ring-yellow-400 ring-opacity-30' : ''
                             ]">
@@ -539,7 +539,7 @@
                             <div x-show="(day + 3) % 7 === 5" class="absolute top-0 right-0 w-2 h-2 bg-yellow-400 rounded-full"></div>
                             
                             <!-- Percentage Text -->
-                            <span class="text-[8px] font-black leading-none" :class="getDailyPct(day) > 0 ? (getDailyPct(day) >= 80 ? 'text-green-500' : (getDailyPct(day) >= 40 ? 'text-yellow-500' : 'text-red-500')) : 'text-muted/30'" x-text="`${getDailyPct(day)}%`"></span>
+                            <span class="text-[8px] font-black leading-none" :class="getDailyPct(day) > 0 ? 'text-accent' : 'text-muted/30'" x-text="`${getDailyPct(day)}%`"></span>
                             
                             <!-- Perfect Day Star -->
                             <div x-show="$data.calculateTotal(day) >= $data.getMaxScore(day)" class="absolute top-0.5 right-0.5">
@@ -547,7 +547,7 @@
                             </div>
 
                             <div x-show="isStreakDay(day)" class="absolute bottom-0.5 left-0.5">
-                                <i data-lucide="flame" class="w-2 h-2 text-orange-500 fill-current"></i>
+                                <i data-lucide="flame" class="w-2 h-2 text-accent fill-current"></i>
                             </div>
                         </button>
                     </template>
@@ -586,13 +586,13 @@
         </div>
 
         <!-- Combo Bonus Notification -->
-        <div x-show="checkFullSolatBonus()" x-transition class="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-4 rounded-3xl mb-6 flex items-center gap-4">
-            <div class="w-10 h-10 gradient-blue rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+        <div x-show="checkFullSolatBonus()" x-transition class="accent-soft border border-accent/20 p-4 rounded-3xl mb-6 flex items-center gap-4">
+            <div class="w-10 h-10 gradient-accent rounded-xl flex items-center justify-center shadow-accent">
                 <i data-lucide="zap" class="w-5 h-5 text-white fill-current"></i>
             </div>
             <div>
-                <p class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">Full Solat Bonus Activated!</p>
-                <p class="text-[10px] font-bold text-blue-400 dark:text-blue-500 uppercase tracking-widest">+50 Bonus XP Earned</p>
+                <p class="text-xs font-black text-accent uppercase tracking-tighter">Full Solat Bonus Activated!</p>
+                <p class="text-[10px] font-bold text-accent/80 uppercase tracking-widest">+50 Bonus XP Earned</p>
             </div>
         </div>
 
@@ -646,7 +646,7 @@
                                 class="flex-1 min-w-[70px] py-3 px-2 rounded-[1.2rem] text-[10px] font-black transition-all duration-300 border-2 flex flex-col items-center justify-center"
                                 :class="getScore(item.id) === option.v ? 'btn-active border-transparent' : 'bg-inset border-transparent text-muted hover:border-accent hover:border-opacity-30'">
                                 <span class="opacity-40 mb-0.5" x-text="`+${option.v}`"></span>
-                                <span class="uppercase truncate w-full text-center px-1" x-text="option.l"></span>
+                                <span class="uppercase truncate w-full text-center px-1" x-text="formatOptionLabel(option)"></span>
                             </button>
                         </template>
                     </div>
@@ -1010,13 +1010,13 @@
                     <div>
                         <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3" x-text="t('warna_tema')"></span>
                         <div class="flex flex-wrap gap-4">
-                            <button @click="theme = 'emerald'" class="w-10 h-10 rounded-full bg-emerald-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'emerald' ? 'ring-emerald-200 scale-110' : ''"></button>
-                            <button @click="theme = 'navy'" class="w-10 h-10 rounded-full bg-[#1e3a8a] ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'navy' ? 'ring-blue-200 scale-110' : ''"></button>
-                            <button @click="theme = 'rose'" class="w-10 h-10 rounded-full bg-rose-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'rose' ? 'ring-rose-200 scale-110' : ''"></button>
-                            <button @click="theme = 'ocean'" class="w-10 h-10 rounded-full bg-sky-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'ocean' ? 'ring-sky-200 scale-110' : ''"></button>
-                            <button @click="theme = 'purple'" class="w-10 h-10 rounded-full bg-purple-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'purple' ? 'ring-purple-200 scale-110' : ''"></button>
-                            <button @click="theme = 'pink'" class="w-10 h-10 rounded-full bg-pink-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'pink' ? 'ring-pink-200 scale-110' : ''"></button>
-                            <button @click="theme = 'gold'" class="w-10 h-10 rounded-full bg-amber-400 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'gold' ? 'ring-amber-200 scale-110' : ''"></button>
+                            <button @click="theme = 'emerald'" class="w-10 h-10 rounded-full bg-emerald-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'emerald' ? 'ring-accent scale-110' : ''"></button>
+                            <button @click="theme = 'navy'" class="w-10 h-10 rounded-full bg-[#1e3a8a] ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'navy' ? 'ring-accent scale-110' : ''"></button>
+                            <button @click="theme = 'rose'" class="w-10 h-10 rounded-full bg-rose-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'rose' ? 'ring-accent scale-110' : ''"></button>
+                            <button @click="theme = 'ocean'" class="w-10 h-10 rounded-full bg-sky-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'ocean' ? 'ring-accent scale-110' : ''"></button>
+                            <button @click="theme = 'purple'" class="w-10 h-10 rounded-full bg-purple-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'purple' ? 'ring-accent scale-110' : ''"></button>
+                            <button @click="theme = 'pink'" class="w-10 h-10 rounded-full bg-pink-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'pink' ? 'ring-accent scale-110' : ''"></button>
+                            <button @click="theme = 'gold'" class="w-10 h-10 rounded-full bg-amber-400 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'gold' ? 'ring-accent scale-110' : ''"></button>
                         </div>
                     </div>
                 </div>
@@ -1293,74 +1293,74 @@
                 'EASY': {
                     description: 'Mode untuk mula konsisten dengan mengutamakan amalan utama.',
                     list: [
-                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0 - Tiada'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
-                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'2 rakaat'}] },
-                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'Bersahur'}] },
-                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0 - Tiada'}, {v:2, l:'2 rakaat'}] },
-                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'2 Rakaat'}, {v:3, l:'6 Rakaat'}] },
-                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'Berdoa'}] },
-                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'0 - Tiada'}, {v:2, l:'2 rakaat'}] },
-                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0.5 - Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Sempurna'}] },
-                        { id: 'tarawih', name: 'Terawih', icon: 'moon', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'8 Rakaat'}, {v:2, l:'8 + 3 Rakaat'}] },
-                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'5 m/s'}, {v:2, l:'10 m/s'}] },
-                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
-                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'15x'}, {v:2, l:'30x'}] },
-                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0 - Tiada'}, {v:1, l:'Bersedekah'}] }
+                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'Tiada'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'Tiada'}, {v:1, l:'2 rakaat'}] },
+                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'Tiada'}, {v:1, l:'Bersahur'}] },
+                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'Tiada'}, {v:2, l:'2 rakaat'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:1, l:'2 Rakaat'}, {v:3, l:'6 Rakaat'}] },
+                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:1, l:'Berdoa'}] },
+                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'Sendiri'}, {v:1, l:'Awal Waktu'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:2, l:'2 rakaat'}] },
+                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Sempurna'}] },
+                        { id: 'tarawih', name: 'Terawih', icon: 'moon', options: [{v:0, l:'Tiada'}, {v:1, l:'8 Rakaat'}, {v:2, l:'8 + 3 Rakaat'}] },
+                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'Tiada'}, {v:1, l:'5 m/s'}, {v:2, l:'10 m/s'}] },
+                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'Tiada'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
+                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'Tiada'}, {v:1, l:'15x'}, {v:2, l:'30x'}] },
+                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:1, l:'Bersedekah'}] }
                     ]
                 },
                 'MED': {
                     description: 'Kombinasi seimbang antara fardu, sunat rawatib dan amalan harian.',
                     list: [
-                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
-                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'2 rakaat'}, {v:2, l:'4 rakaat'}] },
-                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 rakaat'}] },
-                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'4 Rakaat'}, {v:3, l:'6 Rakaat'}] },
-                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}] },
-                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}] },
-                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Sempurna'}] },
-                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'8 + 3 Rakaat'}, {v:3, l:'20 Rakaat'}, {v:4, l:'20 + 3 Rakaat'}] },
-                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:2, l:'10 m/s'}, {v:3, l:'1 Juz (20 m/s)'}] },
-                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'0'}, {v:2, l:'200x'}, {v:5, l:'500x'}] },
-                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:2, l:'30x'}, {v:3, l:'60x'}] },
-                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'25x'}, {v:2, l:'50x'}] },
-                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
+                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'Tiada'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'Tiada'}, {v:1, l:'2 rakaat'}, {v:2, l:'4 rakaat'}] },
+                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'Tiada'}, {v:1, l:'Ya'}] },
+                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'Tiada'}, {v:2, l:'Ya'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'Tiada'}, {v:1, l:'2 Rakaat'}, {v:2, l:'4 rakaat'}] },
+                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:2, l:'4 Rakaat'}, {v:3, l:'6 Rakaat'}] },
+                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:1, l:'Ya'}] },
+                        { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:1, l:'2 Rakaat'}] },
+                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}] },
+                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:2, l:'Ya'}] },
+                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Sempurna'}] },
+                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'Tiada'}, {v:2, l:'8 + 3 Rakaat'}, {v:3, l:'20 Rakaat'}, {v:4, l:'20 + 3 Rakaat'}] },
+                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'Tiada'}, {v:2, l:'10 m/s'}, {v:3, l:'1 Juz (20 m/s)'}] },
+                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'Tiada'}, {v:2, l:'200x'}, {v:5, l:'500x'}] },
+                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'Tiada'}, {v:2, l:'30x'}, {v:3, l:'60x'}] },
+                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:1, l:'25x'}, {v:2, l:'50x'}] },
+                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:1, l:'Ya'}] }
                     ]
                 },
                 'HARD': {
                     description: 'Cabaran ibadah penuh merangkumi rawatib lengkap, zikir dan tadabbur Quran.',
                     list: [
-                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'0'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
-                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'4 rakaat'}] },
-                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
-                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'4 rakaat'}] },
-                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0'}, {v:3, l:'6 Rakaat'}] },
-                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
-                        { id: 'rawatib_asar', name: 'Rawatib Asar', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}] },
-                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
-                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'0'}, {v:1, l:'2 Rakaat'}] },
-                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
-                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
-                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
-                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'8 + 3 Rakaat'}, {v:3, l:'20 Rakaat'}, {v:4, l:'20 + 3 Rakaat'}] },
-                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:3, l:'1 Juz (20 m/s)'}, {v:4, l:'2 Juz (40 m/s)'}] },
-                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'0'}, {v:5, l:'500x'}] },
-                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:3, l:'60x'}, {v:4, l:'120x'}, {v:5, l:'240x'}] },
-                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:2, l:'50x'}, {v:3, l:'100x'}] },
-                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
+                        { id: 'friday_special', name: 'Event Mingguan: Surah Al-Kahfi ⭐', icon: 'book-open', options: [{v:0, l:'Tiada'}, {v:20, l:'20 Ayat'}, {v:40, l:'Full Surah'}] },
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'Tiada'}, {v:2, l:'4 rakaat'}] },
+                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'Tiada'}, {v:1, l:'Ya'}] },
+                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'Tiada'}, {v:2, l:'Ya'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'Tiada'}, {v:2, l:'4 rakaat'}] },
+                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:3, l:'6 Rakaat'}] },
+                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'rawatib_asar', name: 'Rawatib Asar', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:1, l:'2 Rakaat'}] },
+                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:1, l:'Ya'}] },
+                        { id: 'rawatib_maghrib', name: 'Rawatib Maghrib', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:1, l:'2 Rakaat'}] },
+                        { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'rawatib_isyak', name: 'Rawatib Isyak', icon: 'clock', options: [{v:0, l:'Tiada'}, {v:2, l:'Ya'}] },
+                        { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0.5, l:'Sendiri'}, {v:2, l:'Berjemaah'}, {v:3, l:'Berjemaah + Awal Waktu'}] },
+                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'Tiada'}, {v:2, l:'8 + 3 Rakaat'}, {v:3, l:'20 Rakaat'}, {v:4, l:'20 + 3 Rakaat'}] },
+                        { id: 'al_quran', name: 'Al-Quran', icon: 'book-open', options: [{v:0, l:'Tiada'}, {v:3, l:'1 Juz (20 m/s)'}, {v:4, l:'2 Juz (40 m/s)'}] },
+                        { id: 'zikir', name: 'Zikir', icon: 'message-circle', options: [{v:0, l:'Tiada'}, {v:5, l:'500x'}] },
+                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'Tiada'}, {v:3, l:'60x'}, {v:4, l:'120x'}, {v:5, l:'240x'}] },
+                        { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:2, l:'50x'}, {v:3, l:'100x'}] },
+                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'Tiada'}, {v:1, l:'Ya'}] }
                     ]
                 }
             };
@@ -1425,6 +1425,13 @@
                         xpToLose: 100
                     }
                 ],
+                bigBossEnemy: {
+                    type: 'big_boss',
+                    name: 'Big Boss: Pencuri Amalan',
+                    description: 'Serangan boss yang sangat jarang berlaku. Dia cuba mencuri terus 50 XP amalan anda.',
+                    hadith: 'Jagalah niat dan istiqamah. Dengan izin Allah, amalan akan terpelihara.',
+                    xpToLose: 50
+                },
                 islamicQuoteIndex: 0,
                 islamicQuoteDateKey: '',
                 quoteCopyStatus: '',
@@ -1504,6 +1511,10 @@
                     // Ensure Friday special is at the top for all existing profiles
                     (this.allProfiles || []).forEach(p => {
                         this.ensurePet(p);
+                        this.normalizeProfileOptionLabels(p);
+                        if (!p.enemyRollsByDay || typeof p.enemyRollsByDay !== 'object') p.enemyRollsByDay = {};
+                        if (!Number.isFinite(Number(p.enemyPenaltyXP))) p.enemyPenaltyXP = 0;
+                        p.enemyPenaltyXP = Number(p.enemyPenaltyXP || 0);
                         
                         // Check if friday_special exists and is not at the top
                         if (p.ibadahList && p.ibadahList.length > 0) {
@@ -1520,7 +1531,7 @@
                                 fridaySpecial.name = 'Event Mingguan: Surah Al-Kahfi ⭐';
                                 fridaySpecial.icon = 'book-open';
                                 fridaySpecial.options = [
-                                    {v:0, l:'0'}, 
+                                    {v:0, l:'Tiada'}, 
                                     {v:5, l:'10 Ayat Awal Al-Kahfi'}, 
                                     {v:10, l:'Full Surah Al-Kahfi'}
                                 ];
@@ -1528,6 +1539,8 @@
                         }
                         this.save();
                     });
+
+                    Object.values(this.templates || {}).forEach(t => this.normalizeProfileOptionLabels(t));
 
                     this.ensureDailyIslamicQuote();
                     
@@ -1819,6 +1832,25 @@
                     return !!p.pet.line && lvl >= 3;
                 },
 
+                getPetGuardianLevel() {
+                    const p = this.activeProfile;
+                    if (!p) return 0;
+                    this.ensurePet(p);
+                    if (!p.pet.line || !p.pet.hatched) return 0;
+                    return this.getPetStage(this.getUserLevel().level) + 1; // 1..5
+                },
+
+                getPetBossReduction() {
+                    return this.getPetGuardianLevel() * 10;
+                },
+
+                getEffectiveEnemyLoss(enemyType, baseLoss) {
+                    const rawLoss = Number(baseLoss || 0);
+                    if (enemyType !== 'big_boss') return rawLoss;
+                    const reduction = this.getPetBossReduction();
+                    return Math.max(0, rawLoss - reduction);
+                },
+
                 hatchPet() {
                     const p = this.activeProfile;
                     if (!p) return;
@@ -1949,6 +1981,8 @@
                         dayData: {},
                         badges: [],
                         createdAt: Date.now(),
+                        enemyRollsByDay: {},
+                        enemyPenaltyXP: 0,
                         ibadahList: JSON.parse(JSON.stringify(this.templates[this.onboarding.mode].list))
                     };
                     
@@ -1995,21 +2029,21 @@
                     }
                     if (!profile.scores) profile.scores = {};
                     if (!profile.scores[this.currentDay]) profile.scores[this.currentDay] = {};
-                    
+
                     console.log(`[DEBUG] Updating score: ${itemId} = ${value} (was ${profile.scores[this.currentDay][itemId] || 0})`);
-                    
+
                     profile.scores[this.currentDay][itemId] = value;
                     this.recalculateTotalXP();
                     this.checkBadges();
-                    
-                    // Trigger enemy attack after updating score
-                    this.triggerEnemyAttack();
-                    
+
+                    // Trigger enemy attack after updating score with dynamic daily spawn chance
+                    this.triggerEnemyAttack(this.currentDay);
+
                     // Force Alpine reactivity update
                     this.$nextTick(() => {
                         console.log('[DEBUG] Alpine reactivity triggered');
                     });
-                    
+
                     this.save();
                 },
 
@@ -2017,30 +2051,69 @@
                     return (this.activeProfile?.scores[this.currentDay] && this.activeProfile.scores[this.currentDay][itemId]) || 0;
                 },
 
+                formatOptionLabel(option) {
+                    if (!option) return '';
+                    const value = Number(option.v);
+                    const rawLabel = (option.l || '').toString().trim();
+
+                    if (rawLabel === '' && value === 0) return 'Tiada';
+
+                    const valueText = Number.isFinite(value) ? String(value).replace(/\.0+$/, '') : '';
+                    const escapedValue = valueText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const prefixPattern = escapedValue ? new RegExp(`^${escapedValue}\\s*-\\s*`, 'i') : null;
+                    const normalized = prefixPattern ? rawLabel.replace(prefixPattern, '').trim() : rawLabel;
+
+                    if (normalized.toLowerCase() === '0' && value === 0) return 'Tiada';
+                    return normalized || (value === 0 ? 'Tiada' : rawLabel);
+                },
+
+                normalizeProfileOptionLabels(profile) {
+                    if (!profile || !Array.isArray(profile.ibadahList)) return;
+
+                    profile.ibadahList.forEach(item => {
+                        if (!Array.isArray(item.options)) return;
+                        item.options.forEach(option => {
+                            option.l = this.formatOptionLabel(option);
+                        });
+                    });
+                },
+
                 calculateTotal(day, profileId = null) {
                     const p = profileId ? this.allProfiles.find(x => x.id === profileId) : this.activeProfile;
                     if (!p || !p.scores[day]) return 0;
-                    return Object.values(p.scores[day]).reduce((a, b) => a + b, 0);
+
+                    const availableIds = new Set(this.getAvailableIbadahList(day, p).map(item => item.id));
+                    return Object.entries(p.scores[day])
+                        .filter(([itemId]) => availableIds.has(itemId))
+                        .reduce((total, [, value]) => total + (Number(value) || 0), 0);
+                },
+
+                getAvailableIbadahList(day, profile = null) {
+                    const p = profile || this.activeProfile;
+                    if (!p || !Array.isArray(p.ibadahList)) return [];
+
+                    return p.ibadahList.filter(item => item.id !== 'friday_special' || this.isFriday(day));
                 },
 
                 getMaxScore(day) {
                     const p = this.activeProfile;
-                    if (!p || !p.scores[day]) return 0;
-                    
-                    // Calculate max score based on HIGHEST score for each ibadah item
+                    if (!p) return 0;
+
+                    const availableIbadah = this.getAvailableIbadahList(day, p);
                     let maxScore = 0;
-                    p.ibadahList.forEach(item => {
-                        const maxOption = Math.max(...item.options.map(opt => opt.v));
+
+                    availableIbadah.forEach(item => {
+                        const maxOption = Math.max(...item.options.map(opt => Number(opt.v) || 0));
                         maxScore += maxOption;
-                        console.log(`[DEBUG] Item: ${item.name}, Max: ${maxOption}, Running Total: ${maxScore}`);
                     });
-                    
-                    console.log(`[DEBUG] Final Max Score for day ${day}: ${maxScore}`);
-                    return maxScore || 50; // Fallback to 50 if calculation fails
+
+                    return maxScore;
                 },
 
                 getDailyPct(day) {
                     const maxScore = this.getMaxScore(day);
+                    if (maxScore <= 0) return 0;
+
                     const currentScore = this.calculateTotal(day);
                     return Math.min(Math.round((currentScore / maxScore) * 100), 100);
                 },
@@ -2079,7 +2152,8 @@
                         const hasAllSolat = solatIds.every(id => (p.scores[d] && p.scores[d][id] > 0));
                         if (hasAllSolat) xp += 50;
                     }
-                    p.totalXP = xp;
+                    const totalPenalty = Number(p.enemyPenaltyXP || 0);
+                    p.totalXP = Math.max(0, xp - totalPenalty);
                 },
 
                 getUserLevel(customXP = null) {
@@ -2298,13 +2372,18 @@
                     this.save();
                 },
 
-                isFriday() {
-                    // Check if current Ramadan day is a Friday
-                    // Ramadan 2026: 1 Ramadan (Thursday, Feb 19)
-                    // Formula: (currentDay + 3) % 7 === 5 for Friday
-                    const result = (this.currentDay + 3) % 7 === 5;
-                    console.log('isFriday check:', { currentDay: this.currentDay, result: result });
-                    return result;
+                isFriday(day = this.currentDay) {
+                    // Check if selected Ramadan day falls on Friday (Malaysia timezone)
+                    const ramadanStart = new Date('2026-02-19T00:00:00+08:00');
+                    const targetDate = new Date(ramadanStart);
+                    targetDate.setUTCDate(ramadanStart.getUTCDate() + (Number(day) - 1));
+
+                    const weekdayInMalaysia = new Intl.DateTimeFormat('en-US', {
+                        weekday: 'short',
+                        timeZone: 'Asia/Kuala_Lumpur'
+                    }).format(targetDate);
+
+                    return weekdayInMalaysia === 'Fri';
                 },
 
                 getFridaySpecialEffect() {
@@ -2324,14 +2403,35 @@
                     return effect;
                 },
 
-                triggerEnemyAttack() {
-                    if (Math.random() < 0.1) { // 10% chance per interaction
-                        const randomEnemy = this.enemies[Math.floor(Math.random() * this.enemies.length)];
-                        this.enemy.type = randomEnemy.type;
-                        this.enemy.name = randomEnemy.name;
-                        this.enemy.description = randomEnemy.description;
-                        this.enemy.hadith = randomEnemy.hadith;
-                        this.enemy.xpToLose = randomEnemy.xpToLose;
+                getEnemySpawnChance(day = this.currentDay) {
+                    const schedule = [0.10, 0.05, 0.03, 0.01, 0];
+                    const p = this.activeProfile;
+                    if (!p) return 0;
+                    if (!p.enemyRollsByDay) p.enemyRollsByDay = {};
+
+                    const attempts = Number(p.enemyRollsByDay[day] || 0);
+                    return schedule[Math.min(attempts, schedule.length - 1)];
+                },
+
+                triggerEnemyAttack(day = this.currentDay) {
+                    const p = this.activeProfile;
+                    if (!p) return;
+                    if (!p.enemyRollsByDay) p.enemyRollsByDay = {};
+
+                    const chance = this.getEnemySpawnChance(day);
+                    p.enemyRollsByDay[day] = Number(p.enemyRollsByDay[day] || 0) + 1;
+
+                    if (chance > 0 && Math.random() < chance) {
+                        const isBigBoss = Math.random() < 0.01;
+                        const enemyToSpawn = isBigBoss
+                            ? this.bigBossEnemy
+                            : this.enemies[Math.floor(Math.random() * this.enemies.length)];
+
+                        this.enemy.type = enemyToSpawn.type;
+                        this.enemy.name = enemyToSpawn.name;
+                        this.enemy.description = enemyToSpawn.description;
+                        this.enemy.hadith = enemyToSpawn.hadith;
+                        this.enemy.xpToLose = this.getEffectiveEnemyLoss(enemyToSpawn.type, enemyToSpawn.xpToLose);
                         this.enemy.active = true;
                     }
                 },
@@ -2347,16 +2447,39 @@
                     
                     if (accept) {
                         // User accepts the bad feeling - XP can be reduced
-                        if (this.activeProfile && this.activeProfile.totalXP >= this.enemy.xpToLose) {
-                            this.activeProfile.totalXP -= this.enemy.xpToLose;
+                        const effectiveLoss = Number(this.enemy.xpToLose || 0);
+                        if (this.activeProfile && this.activeProfile.totalXP >= effectiveLoss && effectiveLoss > 0) {
+                            if (!Number.isFinite(Number(this.activeProfile.enemyPenaltyXP))) this.activeProfile.enemyPenaltyXP = 0;
+                            this.activeProfile.enemyPenaltyXP = Number(this.activeProfile.enemyPenaltyXP || 0) + effectiveLoss;
+                            this.recalculateTotalXP();
                             this.save(); // Save immediately after XP deduction
-                            this.showEnemyNotification(false, `Ya, saya rasa ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAkibatnya, anda kehilangan ${this.enemy.xpToLose} XP.\n\nMuhasabah: Perbaiki niat dan kembali kepada Allah.`);
+                            this.showEnemyNotification(false, `Ya, saya rasa ${this.enemy.name}.
+
+${this.enemy.hadith}
+
+Akibatnya, anda kehilangan ${effectiveLoss} XP.
+
+Muhasabah: Perbaiki niat dan kembali kepada Allah.`);
+                        } else if (effectiveLoss === 0 && this.enemy.type === 'big_boss') {
+                            this.showEnemyNotification(true, `Big Boss muncul tetapi pet anda melindungi semua amalan!
+
+${this.enemy.hadith}
+
+Alhamdulillah, tiada XP hilang.`);
                         } else {
-                            this.showEnemyNotification(true, `Ya, saya rasa ${this.enemy.name} tetapi XP tidak mencukupi.\n\n${this.enemy.hadith}\n\nBeruntunglah, Allah masih melindungi amalan anda.`);
+                            this.showEnemyNotification(true, `Ya, saya rasa ${this.enemy.name} tetapi XP tidak mencukupi.
+
+${this.enemy.hadith}
+
+Beruntunglah, Allah masih melindungi amalan anda.`);
                         }
                     } else {
                         // User resists the bad feeling - XP stays safe
-                        this.showEnemyNotification(true, `Tidak, saya lawan ${this.enemy.name}.\n\n${this.enemy.hadith}\n\nAlhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
+                        this.showEnemyNotification(true, `Tidak, saya lawan ${this.enemy.name}.
+
+${this.enemy.hadith}
+
+Alhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
                     }
                     
                     // Reset enemy state
@@ -3359,7 +3482,7 @@
                     <p class="text-xs font-bold text-red-600 dark:text-red-300 mb-1 drop-shadow" x-text="interchangeWords('⚠️ Penyakit Hati')"></p>
                     <div class="flex items-center justify-center gap-2">
                         <span class="text-[10px] font-black text-red-500 bg-red-100/80 dark:bg-red-900/40 px-2 py-1 rounded-full backdrop-blur-sm" x-text="interchangeWords('1 / 4')"></span>
-                        <span class="text-[10px] font-bold text-red-600 dark:text-red-300 drop-shadow" x-text="interchangeWords('Kesemua -100 XP')"></span>
+                        <span class="text-[10px] font-bold text-red-600 dark:text-red-300 drop-shadow" x-text="interchangeWords(`Kesan -${enemy.xpToLose} XP`)" ></span>
                     </div>
                 </div>
                 
