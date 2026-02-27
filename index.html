@@ -747,8 +747,9 @@
                     </div>
 
                     <div class="mt-4 p-3 rounded-2xl accent-soft border border-accent/20">
-                        <p class="text-[9px] font-black text-accent uppercase tracking-widest mb-1" x-text="lang === 'en' ? 'Heart Symbolic Perk' : 'Perk Simbolik Hati'"></p>
-                        <p class="text-[10px] text-main font-semibold leading-relaxed" x-text="getPetLinePerkText(activeProfile.pet.line)"></p>
+                        <p class="text-[9px] font-black text-accent uppercase tracking-widest mb-1" x-text="lang === 'en' ? 'Guardian Heart Shield' : 'Perisai Hati Penjaga'"></p>
+                        <p class="text-[10px] text-main font-semibold leading-relaxed" x-text="lang === 'en' ? `Pet Power Level ${getPetGuardianLevel()} protects ${getPetBossReduction()} XP from Big Boss.` : `Power Level pet ${getPetGuardianLevel()} melindungi ${getPetBossReduction()} XP daripada Big Boss.`"></p>
+                        <p class="text-[10px] text-muted font-semibold leading-relaxed mt-1" x-text="lang === 'en' ? `Big Boss emergence chance now ${getBigBossSpawnChancePctText()}` : `Peluang kemunculan Big Boss kini ${getBigBossSpawnChancePctText()}`"></p>
                     </div>
 
                     <div class="mt-6">
@@ -1396,6 +1397,7 @@
                     active: false,
                     name: '',
                     type: '',
+                    icon: 'alert-triangle',
                     description: '',
                     hadith: '',
                     xpToLose: 0
@@ -1433,10 +1435,11 @@
                 ],
                 bigBossEnemy: {
                     type: 'big_boss',
-                    name: 'Al-Ittihad Al-Khafi',
-                    title: 'Gabungan Empat Penyakit Hati',
-                    description: 'Ketika Takabbur, Sum\'ah, Riak dan Ujub sering ditewaskan, mereka bersatu menjadi satu musuh besar yang lebih licik untuk mencuri pahala.',
-                    hadith: 'Jagalah niat, ikhlas, sabar, dan muhasabah. Hati yang dekat dengan Allah lebih kuat menangkis bisikan syaitan.',
+                    icon: 'skull',
+                    name: 'Fitnah Akhir Zaman',
+                    title: 'Final Boss: Fitnah Akhir Zaman',
+                    description: 'Takabbur, Sum\'ah, Riak, dan Ujub yang sering kalah kini menyatu menjadi satu entiti akhir zaman untuk mencuri pahala amalan.',
+                    hadith: 'Ujian fitnah ditangkis dengan ikhlas, zikir, sabar, dan muhasabah. Pelihara hati agar tetap dekat dengan Allah.',
                     xpToLose: 50
                 },
                 islamicQuoteIndex: 0,
@@ -1563,41 +1566,9 @@
                     this.$nextTick(() => {
                         lucide.createIcons();
                         this.scrollToCurrentDay();
-                        // #region agent log
-                        try {
-                            const trackerEl = document.getElementById('view-tracker');
-                            const mushafEl = document.getElementById('view-mushaf');
-                            console.log('[DEBUG:init_nextTick]', {
-                                view: this.view,
-                                scrollY: window.scrollY,
-                                innerHeight: window.innerHeight,
-                                docHeight: document.documentElement.scrollHeight,
-                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
-                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null
-                            });
-                        } catch (e) {}
-                        // #endregion
                     });
-                    this.$watch('view', (newView, oldView) => this.$nextTick(() => {
+                    this.$watch('view', () => this.$nextTick(() => {
                         lucide.createIcons();
-                        // #region agent log
-                        try {
-                            const trackerEl = document.getElementById('view-tracker');
-                            const mushafEl = document.getElementById('view-mushaf');
-                            console.log('[DEBUG:view_watch]', {
-                                oldView,
-                                newView,
-                                scrollY: window.scrollY,
-                                innerHeight: window.innerHeight,
-                                docHeight: document.documentElement.scrollHeight,
-                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
-                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null,
-                                trackerInnerLength: trackerEl ? trackerEl.innerHTML.length : null,
-                                hasActiveProfile: !!this.activeProfile,
-                                ibadahCount: this.activeProfile?.ibadahList?.length ?? null
-                            });
-                        } catch (e) {}
-                        // #endregion
                         // Always reset scroll position when switching "pages"
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         document.documentElement.scrollTop = 0;
@@ -1854,48 +1825,25 @@
                 getEffectiveEnemyLoss(enemyType, baseLoss) {
                     const rawLoss = Number(baseLoss || 0);
                     if (enemyType !== 'big_boss') return rawLoss;
-                    const reduction = this.getPetBossReduction() + this.getPetLinePerkReduction();
+                    const reduction = this.getPetBossReduction();
                     return Math.max(0, rawLoss - reduction);
                 },
 
-                getPetLinePerkReduction() {
-                    const p = this.activeProfile;
-                    if (!p) return 0;
-                    this.ensurePet(p);
-                    if (!p.pet.hatched) return 0;
-
-                    const perkByLine = {
-                        flame: 5,
-                        ocean: 10,
-                        forest: 8
-                    };
-                    return Number(perkByLine[p.pet.line] || 0);
+                getBigBossSpawnChance() {
+                    const guardianLevel = this.getPetGuardianLevel();
+                    const schedule = [0.01, 0.008, 0.006, 0.004, 0.003, 0.002];
+                    return schedule[Math.min(guardianLevel, schedule.length - 1)];
                 },
 
-                getPetLinePerkText(line = null) {
-                    const p = this.activeProfile;
-                    const selectedLine = line || p?.pet?.line || 'forest';
-                    const lang = this.lang || 'ms';
-                    const perks = {
-                        ms: {
-                            flame: 'Flame: Semangat Mujahadah (+5 perlindungan XP lawan Big Boss).',
-                            ocean: 'Ocean: Jiwa Tenang Tawakkal (+10 perlindungan XP lawan Big Boss).',
-                            forest: 'Forest: Hati Istiqamah (+8 perlindungan XP lawan Big Boss).'
-                        },
-                        en: {
-                            flame: 'Flame: Mujahadah spirit (+5 XP protection vs Big Boss).',
-                            ocean: 'Ocean: Tranquil tawakkul (+10 XP protection vs Big Boss).',
-                            forest: 'Forest: Steadfast heart (+8 XP protection vs Big Boss).'
-                        }
-                    };
-                    return (perks[lang] && perks[lang][selectedLine]) ? perks[lang][selectedLine] : perks.ms.forest;
+                getBigBossSpawnChancePctText() {
+                    return `${(this.getBigBossSpawnChance() * 100).toFixed(1)}%`;
                 },
 
                 getBigBossLore() {
                     if ((this.lang || 'ms') === 'en') {
-                        return 'After repeated defeats, Takabbur, Sum\'ah, Riya\', and Ujub forged a hidden alliance. Their combined whisper appears as Al-Ittihad Al-Khafi to drain rewards from hearts that lose vigilance. Keep sincerity (ikhlas), self-accounting (muhasabah), and remembrance of Allah as your shield.';
+                        return 'After repeated defeats, Takabbur, Sum\'ah, Riya\', and Ujub merged into one final entity: Fitnah Akhir Zaman. This is not a trial to face alone; a guarded heart and a trained guardian companion are your shield.';
                     }
-                    return 'Selepas sering ditewaskan, Takabbur, Sum\'ah, Riak dan Ujub membentuk pakatan tersembunyi. Gabungan bisikan ini muncul sebagai Al-Ittihad Al-Khafi untuk menyedut pahala daripada hati yang lalai. Bentengnya ialah ikhlas, muhasabah, dan zikir mengingati Allah.';
+                    return 'Selepas sering tewas, Takabbur, Sum\'ah, Riak, dan Ujub bergabung menjadi satu entiti terakhir: Fitnah Akhir Zaman. Ujian ini bukan untuk dilawan sendirian; hati yang dijaga dan pet penjaga yang dilatih menjadi perisai amalan anda.';
                 },
 
                 hatchPet() {
@@ -2529,6 +2477,7 @@ Alhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
                     this.enemy.active = false;
                     this.enemy.name = '';
                     this.enemy.type = '';
+                    this.enemy.icon = 'alert-triangle';
                     this.enemy.description = '';
                     this.enemy.hadith = '';
                     this.enemy.xpToLose = 0;
@@ -3514,7 +3463,7 @@ Alhamdulillah, anda berjaya melawan nafsu dan amalan anda kekal diberkati.`);
             <div class="text-center mb-4">
                 <!-- Icon with animation and glow -->
                 <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-xl ring-4 ring-red-500/20">
-                    <i data-lucide="alert-triangle" class="w-6 h-6 text-white animate-pulse"></i>
+                    <i :data-lucide="enemy.icon || 'alert-triangle'" class="w-6 h-6 text-white animate-pulse"></i>
                 </div>
                 
                 <!-- Title with glow effect -->
