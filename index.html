@@ -1,87 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ramadan Ibadah Tracker - PUBLIC</title>
+    
+    <!-- PUBLIC Version -->
+    <meta name="version" content="public-version">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Ramadan Tracker">
+    <meta name="theme-color" content="#8b5cf6">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2319/2319914.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        accent: 'var(--accent-color)',
+                        main: 'var(--text-main)',
+                        muted: 'var(--text-muted)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Outfit', sans-serif; transition: background-color 0.3s, color 0.3s; min-height: 100vh; }
+
+        body {
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .dark body {
+            background-color: #020617;
+        }
+
+        /* Fixed Navigation Center Fix */
+        .nav-fixed {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 418px; /* 450px - 32px padding */
+            z-index: 50;
+        }
+
+        
+        /* Theme Variables */
+        :root {
+            --bg-main: #fcfcfc;
+            --bg-card: #ffffff;
+            --bg-inset: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #94a3b8;
+            --border-color: #f1f5f9;
+            --accent-gradient: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            --accent-soft: #f0fdf4;
+            --accent-color: #22c55e;
+            --accent-shadow: rgba(34, 197, 94, 0.2);
+        }
+
+        .dark {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-inset: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --accent-soft: rgba(34, 197, 94, 0.1);
+        }
+
+        .theme-rose {
+            --accent-gradient: linear-gradient(135deg, #fb7185 0%, #e11d48 100%);
+            --accent-soft: #fff1f2;
+            --accent-color: #e11d48;
+            --accent-shadow: rgba(225, 29, 72, 0.2);
+        }
+
+        .theme-ocean {
+            --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+            --accent-soft: #f0f9ff;
+            --accent-color: #0284c7;
+            --accent-shadow: rgba(2, 132, 199, 0.2);
+        }
+
+        .theme-purple {
+            --accent-gradient: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+            --accent-soft: #faf5ff;
+            --accent-color: #7e22ce;
+            --accent-shadow: rgba(126, 34, 206, 0.2);
+        }
+
+        .theme-pink {
+            --accent-gradient: linear-gradient(135deg, #f472b6 0%, #db2777 100%);
+            --accent-soft: #fdf2f8;
+            --accent-color: #db2777;
+            --accent-shadow: rgba(219, 39, 119, 0.2);
+        }
+
+        .theme-gold {
+            --accent-gradient: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            --accent-soft: #fffbeb;
+            --accent-color: #d97706;
+            --accent-shadow: rgba(217, 119, 6, 0.2);
+        }
+
+        .theme-navy {
+            --accent-gradient: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            --accent-soft: #eff6ff;
+            --accent-color: #8b5cf6;
+            --accent-shadow: rgba(139, 92, 246, 0.2);
+        }
+
+        body { background-color: var(--bg-main); color: var(--text-main); }
+        .bg-card { background-color: var(--bg-card); }
+        .bg-inset { background-color: var(--bg-inset); }
+        .text-main { color: var(--text-main); }
+        .text-muted { color: var(--text-muted); }
+        .border-theme { border-color: var(--border-color); }
+        .gradient-accent { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .accent-soft { background: var(--accent-soft); }
+        .text-accent { color: var(--accent-color); }
+        .border-accent { border-color: var(--accent-color); }
+        .ring-accent { --tw-ring-color: var(--accent-color); }
+        .shadow-accent { box-shadow: 0 10px 15px -3px var(--accent-shadow), 0 4px 6px -4px var(--accent-shadow); }
+
+        .gradient-green { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); }
+        .gradient-yellow { background: linear-gradient(135deg, #facc15 0%, #eab308 100%); }
+        .gradient-red { background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); }
+        .gradient-blue { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); }
+        .gradient-purple { background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%); }
+        .gradient-green-soft { background: var(--accent-soft); }
+        .text-gradient { background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        [x-cloak] { display: none !important; }
+        .custom-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        .btn-active { background: var(--accent-gradient); color: white; transform: scale(1.02); box-shadow: 0 4px 12px var(--accent-shadow); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .nav-active { color: var(--accent-color); }
+        .nav-active i { transform: translateY(-4px); transition: transform 0.3s; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Page Management Fixes */
+        .app-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
+            background-color: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .page-wrapper {
+            position: relative;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .page-view {
+            overflow-y: auto;
+            padding: 1rem 1rem 10rem;
+            width: 100%;
+        }
+        
+    </style>
+</head>
+<body class="antialiased" x-data="trackerApp()" x-init="init()" :class="{ 'dark': darkMode, 'theme-rose': theme === 'rose', 'theme-ocean': theme === 'ocean', 'theme-purple': theme === 'purple', 'theme-pink': theme === 'pink', 'theme-gold': theme === 'gold', 'theme-navy': theme === 'navy' }">
+    
+    <div class="app-container">
+        <!-- Page Wrapper for all main pages -->
+        <div class="page-wrapper">
+            <!-- Onboarding Screen -->
+            <div x-show="view === 'onboarding'" x-cloak class="page-view bg-card overflow-y-auto px-6 py-12 max-w-[450px] mx-auto">
+        <div class="max-w-md mx-auto">
+            <div class="text-center mb-12">
+                <div class="w-20 h-20 gradient-accent rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-accent animate-float">
+                    <i data-lucide="moon" class="w-10 h-10 text-white"></i>
+                </div>
+                <h1 class="text-3xl font-black text-main mb-2 tracking-tighter">Ramadan Journey</h1>
+                <p class="text-muted font-medium">Mulakan pengembaraan ibadah anda</p>
+                <div class="mt-4">
+                    <span class="text-[8px] font-black px-3 py-1 rounded-full uppercase tracking-[0.3em] bg-slate-900 text-slate-100 border border-slate-700 shadow-sm">Public Release</span>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div>
+                    <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-3 ml-2">Nama Hero</label>
+                    <input type="text" x-model="onboarding.name" placeholder="Contoh: Ayah / Ibu / Ahmad" 
+                        class="w-full p-5 bg-inset rounded-[2rem] border-none focus:ring-4 ring-accent font-bold text-lg transition-all text-main focus:ring-opacity-20">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-3 ml-2">Pilih Ikon Karakter</label>
+                    <div class="grid grid-cols-4 gap-3">
+                        <template x-for="icon in ['moon', 'star', 'heart', 'sun', 'cloud', 'zap', 'shield', 'crown']" :key="icon">
+                            <button @click="onboarding.icon = icon" 
+                                class="p-4 rounded-2xl border-2 transition-all relative overflow-hidden"
+                                :class="onboarding.icon === icon ? 'border-accent bg-accent/10' : 'border-transparent bg-inset'">
+                                <i :data-lucide="icon" class="w-6 h-6 mx-auto" 
+                                   :class="onboarding.icon === icon ? 'text-accent' : 'text-muted'"></i>
+                                <div x-show="onboarding.icon === icon" class="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full"></div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-3 ml-2">Pilih Tahap Cabaran</label>
+                    <div class="grid grid-cols-1 gap-4">
+                        <template x-for="(data, mode) in templates" :key="mode">
+                            <button @click="onboarding.mode = mode" 
+                                class="p-6 rounded-[2.5rem] border-4 text-left transition-all duration-300 relative overflow-hidden"
+                                :class="onboarding.mode === mode ? 'border-accent accent-soft' : 'border-transparent bg-inset'">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="font-black text-xl uppercase tracking-tighter" 
+                                        :class="onboarding.mode === mode ? 'text-accent' : 'text-muted'" x-text="modeLabel(mode)"></span>
+                                    <i data-lucide="shield-check" class="w-6 h-6 text-accent" x-show="onboarding.mode === mode"></i>
+                                </div>
+                                <p class="text-xs font-medium text-muted leading-relaxed pr-8" x-text="data.description"></p>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+
+                <button @click="createProfile()" 
+                    class="w-full py-6 gradient-accent text-white font-black text-lg rounded-[2.5rem] shadow-accent active:scale-95 transition-transform mt-4 flex items-center justify-center gap-3">
+                    <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                    Mula Kumpul XP
+                </button>
+                
+                <button x-show="allProfiles.length > 0" @click="view = 'profiles'" class="w-full py-4 text-muted font-bold text-sm">
+                    Kembali ke Senarai Profil
+                </button>
+
+                <!-- Version Timestamp -->
+                <div class="text-center mt-8">
+                    <p class="text-[8px] font-black text-slate-300 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 00:05</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Main Tracker Page -->
+        <div id="view-tracker" x-show="view === 'tracker'" x-cloak class="page-view">
+        <!-- Gamified Header -->
+        <header class="flex justify-between items-start mb-4 relative">
+            <div class="flex gap-4">
+                <button @click="showUserMenu = !showUserMenu" class="relative group">
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 gradient-purple rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg relative transition-transform group-active:scale-95" style="box-shadow: -5px -5px 22px rgba(168, 85, 247, 0.12), -5px -5px 10px rgba(168, 85, 247, 0.10);">
+                            <span x-text="getUserLevel().level"></span>
+                        </div>
+                        <div class="-mt-0.1 bg-card px-1.5 py-0.5 rounded-full text-[7px] font-black text-purple-600 shadow-sm border border-purple-100/60 uppercase tracking-tighter">Level</div>
+                    </div>
+                </button>
+                <div>
+                    <h1 class="text-xl font-black text-main tracking-tighter flex items-center gap-2">
+                        <span x-text="activeProfile?.name"></span>
+                        <button @click="showUserMenu = !showUserMenu" class="p-1 rounded-lg hover:bg-inset transition-all">
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+                        </button>
+                    </h1>
+                    <div class="flex items-center gap-2 mt-1">
+                        <div class="w-24 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full gradient-purple transition-all duration-1000" :style="`width: ${getUserLevel().progress}%`"></div>
+                        </div>
+                        <span class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="`XP: ${activeProfile?.totalXP || 0}`"></span>
+                    </div>
+                    <!-- User Menu Dropdown -->
+                    <div x-show="showUserMenu" @click.away="showUserMenu = false" x-transition 
+                        class="absolute top-12 left-0 w-48 bg-card rounded-2xl shadow-xl border border-theme z-[100] p-2 mt-1">
+                        <button @click="view = 'profiles'; showUserMenu = false" class="w-full text-left p-3 hover:bg-inset rounded-xl transition-all flex items-center gap-3">
+                            <i data-lucide="users" class="w-4 h-4 text-accent"></i>
+                            <span class="text-xs font-bold text-main" x-text="t('tukar_akaun')"></span>
+                        </button>
+                        <button @click="view = 'onboarding'; showUserMenu = false" class="w-full text-left p-3 hover:bg-inset rounded-xl transition-all flex items-center gap-3">
+                            <i data-lucide="user-plus" class="w-4 h-4 text-blue-500"></i>
+                            <span class="text-xs font-bold text-main" x-text="t('tambah_karakter_baru')"></span>
+                        </button>
+                        <button @click="logout(); showUserMenu = false" class="w-full text-left p-3 hover:bg-red-50 text-red-500 rounded-xl transition-all flex items-center gap-3">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
+                            <span class="text-xs font-bold">Log Keluar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col items-end gap-2">
+                <div class="bg-orange-50 dark:bg-orange-900/10 px-3 py-2 rounded-2xl flex items-center gap-2 border border-orange-100 dark:border-orange-900/30">
+                    <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-current"></i>
+                    <span class="text-xs font-black text-orange-600 dark:text-orange-400" x-text="`${calculateStreak()} Day Streak`"></span>
+                </div>
+
+                <button x-show="prayer.enabled && (prayer.placement === 'tracker' || prayer.placement === 'both')" @click="showPrayerModal = true" class="bg-orange-50 dark:bg-orange-900/10 px-3 py-2 rounded-2xl flex items-center gap-2 border border-orange-100/60 dark:border-orange-900/30 custom-shadow text-left w-full">
+                    <i data-lucide="clock" class="w-4 h-4 text-orange-500"></i>
+                    <div>
+                        <p class="text-[10px] font-black text-main" x-text="prayer.nextLabel || (lang === 'en' ? 'Loading...' : 'Memuat...')"></p>
+                        <p class="text-[9px] font-bold text-muted" x-show="prayer.countdown" x-text="prayer.countdown"></p>
+                    </div>
+                </button>
+            </div>
+        </header>
+
+        <!-- Day Selector -->
+        <div class="mb-2">
+            <div class="flex justify-between items-center mb-2 px-2">
+                <h3 class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Pilih Tarikh</h3>
+                <button @click="showCalendar = !showCalendar" class="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-widest bg-card px-3 py-1.5 rounded-full border border-theme shadow-sm">
+                    <i :data-lucide="showCalendar ? 'list' : 'calendar'" class="w-3 h-3"></i>
+                    <span x-text="showCalendar ? 'List View' : 'Calendar View'"></span>
+                </button>
+            </div>
+
+            <!-- List View (Default) -->
+            <div x-show="!showCalendar" x-transition:enter class="flex items-center bg-card rounded-[2rem] p-3 custom-shadow overflow-x-auto whitespace-nowrap gap-3 scrollbar-hide border border-theme">
+                    <template x-for="day in 30" :key="day">
+                    <button @click="currentDay = day" :data-day="day"
+                        class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 font-bold relative"
+                        :class="[
+                            currentDay === day ? 'gradient-accent text-white shadow-accent scale-110' : 'bg-inset text-muted',
+                            isStreakDay(day) ? 'ring-2 ring-orange-300 ring-opacity-80' : ''
+                        ]"
+                        x-text="day">
+                        <div x-show="$data.calculateTotal(day) >= 50" class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border-2 border-white"></div>
+                        <div x-show="isStreakDay(day)" class="absolute -bottom-1 -left-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white"></div>
+                    </button>
+                </template>
+            </div>
+
+            <!-- Calendar View -->
+            <div x-show="showCalendar" x-transition:enter class="bg-card rounded-[2.5rem] p-6 custom-shadow border border-theme">
+                <div class="grid grid-cols-7 gap-2">
+                    <template x-for="dayName in ['I', 'S', 'R', 'K', 'J', 'S', 'A']">
+                        <div class="text-[10px] font-black text-muted text-center py-2" x-text="dayName"></div>
                     </template>
                     <template x-for="day in 30" :key="day">
                         <button @click="currentDay = day; showCalendar = false" 
-                            class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative border"
                             class="aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative border p-1"
                             :class="[
                                 currentDay === day ? 'border-accent ring-2 ring-accent ring-opacity-20' : 'border-transparent bg-inset',
-                                calculateTotal(day) > 0 ? 'opacity-100' : 'opacity-60'
+                                calculateTotal(day) > 0 ? 'opacity-100' : 'opacity-60',
+                                isStreakDay(day) ? 'ring-2 ring-orange-300 ring-opacity-70' : ''
                             ]">
-                            <span class="text-xs font-black" :class="currentDay === day ? 'text-accent' : 'text-main'" x-text="day"></span>
                             <span class="text-[10px] font-black leading-none mb-1" :class="currentDay === day ? 'text-accent' : 'text-main'" x-text="day"></span>
                             
                             <!-- Percentage Text -->
                             <span class="text-[8px] font-black leading-none" :class="getDailyPct(day) > 0 ? (getDailyPct(day) >= 80 ? 'text-green-500' : (getDailyPct(day) >= 40 ? 'text-yellow-500' : 'text-red-500')) : 'text-muted/30'" x-text="`${getDailyPct(day)}%`"></span>
                             
-                            <!-- Mini Progress Dot -->
-                            <div class="mt-1 flex gap-0.5">
-                                <template x-if="calculateTotal(day) > 0">
-                                    <div class="w-1 h-1 rounded-full" :class="getProgressColor(calculateTotal(day))"></div>
-                                </template>
-                            </div>
-
                             <!-- Perfect Day Star -->
-                            <div x-show="calculateTotal(day) >= 50" class="absolute top-1 right-1">
-                            <div x-show="calculateTotal(day) >= 50" class="absolute top-0.5 right-0.5">
+                            <div x-show="$data.calculateTotal(day) >= 50" class="absolute top-0.5 right-0.5">
                                 <i data-lucide="star" class="w-2 h-2 text-yellow-400 fill-current"></i>
                             </div>
-                        </button>
-@ -350,7 +346,7 @@
-            <p class="text-muted font-medium">Rekod kehebatan <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
-        </header>
 
-        <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
+                            <div x-show="isStreakDay(day)" class="absolute bottom-0.5 left-0.5">
+                                <i data-lucide="flame" class="w-2 h-2 text-orange-500 fill-current"></i>
+                            </div>
+                        </button>
+                    </template>
+                </div>
+                <div class="mt-6 flex justify-center gap-4 text-[8px] font-black text-muted uppercase tracking-widest">
+                    <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full gradient-red"></div> Rendah</div>
+                    <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full gradient-yellow"></div> Sederhana</div>
+                    <div class="flex items-center gap-1.5"><div class="w-2 h-2 rounded-full gradient-green"></div> Tinggi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="bg-card rounded-[2.5rem] p-8 custom-shadow mb-2 relative overflow-hidden border border-theme">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <span class="accent-soft text-accent text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest" x-text="`Ramadan Day ${currentDay}`"></span>
+                    <div class="mt-2 text-[9px] font-bold text-muted uppercase tracking-widest" x-text="getMasihiDate(currentDay)"></div>
+                    <h2 class="text-muted text-xs font-bold uppercase mt-4 tracking-tighter">Misi Harian</h2>
+                </div>
+                <div class="text-right">
+                    <span class="text-5xl font-black text-gradient" x-text="`${getDailyPct(currentDay)}%`"></span>
+                </div>
+            </div>
+            <div class="h-4 bg-inset rounded-full overflow-hidden mb-3">
+                <div class="h-full transition-all duration-700 ease-out" 
+                     :class="getProgressColor(calculateTotal(currentDay))"
+                     :style="`width: ${getDailyPct(currentDay)}%`"></div>
+            </div>
+            <div class="flex justify-between text-[10px] font-bold text-muted uppercase">
+                <span x-text="`${calculateTotal(currentDay)} / 50 Points`"></span>
+                <span x-show="getDailyPct(currentDay) === 100" class="text-yellow-500 font-black flex items-center gap-1">
+                    <i data-lucide="crown" class="w-3 h-3 fill-current"></i> Perfect Day!
+                </span>
+            </div>
+        </div>
+
+        <!-- Combo Bonus Notification -->
+        <div x-show="checkFullSolatBonus()" x-transition class="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-4 rounded-3xl mb-6 flex items-center gap-4">
+            <div class="w-10 h-10 gradient-blue rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+                <i data-lucide="zap" class="w-5 h-5 text-white fill-current"></i>
+            </div>
+            <div>
+                <p class="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">Full Solat Bonus Activated!</p>
+                <p class="text-[10px] font-bold text-blue-400 dark:text-blue-500 uppercase tracking-widest">+50 Bonus XP Earned</p>
+            </div>
+        </div>
+
+        <!-- Ibadah List -->
+        <div class="grid grid-cols-1 gap-4">
+            <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
+                <div class="bg-card rounded-[2rem] p-5 custom-shadow transition-all border border-theme relative group" :class="getScore(item.id) > 0 ? 'ring-2 ring-accent ring-opacity-10' : ''">
+                    <!-- Edit Mode Controls -->
+                    <div x-show="editMode" class="absolute -top-2 -right-2 flex gap-2 z-10">
+                        <button @click="const newName = prompt('Nama baru:', item.name); if(newName) item.name = newName; save();" 
+                            class="w-8 h-8 bg-blue-500 text-white rounded-full shadow-lg flex items-center justify-center">
+                            <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button @click="if(confirm('Padam misi ini?')) { activeProfile.ibadahList.splice(index, 1); save(); }" 
+                            class="w-8 h-8 bg-red-500 text-white rounded-full shadow-lg flex items-center justify-center">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-xl accent-soft">
+                                <i :data-lucide="item.icon || 'star'" class="w-4 h-4 text-accent"></i>
+                            </div>
+                            <h3 class="font-bold text-sm text-main" x-text="item.name"></h3>
+                        </div>
+                        <span x-show="getScore(item.id) > 0" class="text-[9px] font-black text-accent accent-soft px-2 py-1 rounded-lg uppercase tracking-tighter" x-text="`Earned +${getScore(item.id)} XP`"></span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="option in item.options" :key="option.v">
+                            <button @click="updateScore(item.id, option.v)"
+                                class="flex-1 min-w-[70px] py-3 px-2 rounded-[1.2rem] text-[10px] font-black transition-all duration-300 border-2 flex flex-col items-center justify-center"
+                                :class="getScore(item.id) === option.v ? 'btn-active border-transparent' : 'bg-inset border-transparent text-muted hover:border-accent hover:border-opacity-30'">
+                                <span class="opacity-40 mb-0.5" x-text="`+${option.v}`"></span>
+                                <span class="uppercase truncate w-full text-center px-1" x-text="option.l"></span>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Add New Ibadah (Only in Edit Mode) -->
+            <button x-show="editMode" @click="view = 'settings'; $nextTick(() => { document.querySelector('[x-model=\'newItem.name\']').scrollIntoView({behavior: 'smooth'}) })" 
+                class="w-full py-8 border-4 border-dashed border-accent/20 rounded-[2rem] text-accent/40 font-black text-sm hover:border-accent hover:text-accent transition-all flex flex-col items-center justify-center gap-2">
+                <i data-lucide="plus-circle" class="w-8 h-8"></i>
+                <span x-text="t('tambah_karakter_baru')"></span>
+            </button>
+            </div> <!-- Close tracker inner content container -->
+        </div> <!-- Close tracker .page-view -->
+
+        <!-- Stats Page -->
+        <div x-show="view === 'stats'" x-cloak class="page-view text-center">
+            <header class="mb-12 text-left">
+                <h1 class="text-3xl font-black text-main tracking-tighter">Achievement</h1>
+                <p class="text-muted font-medium">Pencapaian <span class="text-accent font-bold" x-text="activeProfile?.name"></span></p>
+            </header>
+
             <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
                 <div class="absolute -top-4 -right-4 opacity-5">
                     <i data-lucide="award" class="w-32 h-32 text-accent"></i>
                 </div>
-@ -371,6 +367,41 @@
+                <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Total Experience</h2>
+                <div class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="`${t('setakat')} ${getMasihiDate(currentDay)}`"></div>
+                <div class="text-7xl font-black text-gradient mb-2" x-text="activeProfile?.totalXP || 0"></div>
+                <p class="text-[10px] font-black text-accent opacity-60 uppercase tracking-widest mb-8">XP Points Collected</p>
             </div>
-        </div>
+            
+            <div class="grid grid-cols-2 gap-8 pt-8 border-t border-theme">
+                <div>
+                    <p class="text-3xl font-black text-main" x-text="calculateStreak()"></p>
+                    <p class="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Current Streak</p>
+                </div>
+                <div>
+                    <p class="text-3xl font-black text-main" x-text="getBestDay()"></p>
+                    <p class="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Best Score</p>
+                </div>
+            </div>
 
-        <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme">
+        <div x-show="prayer.enabled && (prayer.placement === 'profil' || prayer.placement === 'both')" class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme text-left">
             <div class="absolute -top-4 -right-4 opacity-5">
-                <i data-lucide="book-open" class="w-32 h-32 text-accent"></i>
+                <i data-lucide="clock" class="w-32 h-32 text-accent"></i>
             </div>
-            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Quran Khatam Journey</h2>
-            <div class="flex justify-between items-end mb-6">
-                <div class="text-left">
-                    <span class="text-5xl font-black text-gradient" x-text="calculateTotalJuz()"></span>
-                    <span class="text-muted font-black text-xs uppercase ml-1">/ 30 Juz</span>
-                </div>
-                <div class="text-right">
-                    <span class="text-xl font-black text-accent" x-text="`${Math.round((calculateTotalJuz() / 30) * 100)}%`"></span>
-                </div>
-            </div>
+            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]" x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></h2>
+            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="lang === 'en' ? 'Tap for full list' : 'Tap untuk senarai penuh'"></p>
 
-            <!-- Progress Bar -->
-            <div class="h-3 bg-inset rounded-full overflow-hidden mb-8">
-                <div class="h-full gradient-accent transition-all duration-1000" :style="`width: ${(calculateTotalJuz() / 30) * 100}%`"></div>
-            </div>
+            <button @click="showPrayerModal = true" class="w-full p-5 bg-inset rounded-2xl border border-theme">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="lang === 'en' ? 'Next' : 'Seterusnya'"></p>
+                        <p class="text-xl font-black text-main tracking-tighter" x-text="prayer.nextLabel || (lang === 'en' ? 'Loading...' : 'Memuat...')"></p>
+                        <p class="text-[10px] font-bold text-muted" x-show="prayer.countdown" x-text="prayer.countdown"></p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-muted"></i>
+                </div>
+            </button>
 
-            <!-- Juzu' Grid -->
-            <div class="grid grid-cols-10 gap-1.5">
-                <template x-for="j in 30" :key="j">
-                    <div class="aspect-square rounded-md flex items-center justify-center text-[8px] font-black transition-all duration-500"
-                         :class="calculateTotalJuz() >= j ? 'gradient-accent text-white shadow-sm scale-105' : 'bg-inset text-muted/30'"
-                         x-text="j">
+            <div class="mt-5 grid grid-cols-2 gap-3">
+                <template x-for="row in prayerRows().slice(0, 4)" :key="row.k">
+                    <div class="p-4 bg-card rounded-2xl border border-theme">
+                        <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="row.label"></p>
+                        <p class="text-[12px] font-black text-main mt-1" x-text="row.time"></p>
                     </div>
                 </template>
             </div>
-            <p class="text-[8px] font-bold text-muted uppercase tracking-[0.2em] mt-6 text-center">
-                <i data-lucide="info" class="w-3 h-3 inline-block mr-1 -mt-0.5 opacity-50"></i>
-                Setiap juzu' akan 'unlocked' secara automatik mengikut rekod bacaan harian anda.
-            </p>
+        </div>
+
+        <div class="bg-card rounded-[3rem] p-10 custom-shadow mb-8 relative overflow-hidden border border-theme text-left">
+            <div class="absolute -top-4 -right-4 opacity-5">
+                <i data-lucide="egg" class="w-32 h-32 text-accent"></i>
+            </div>
+            <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Companion</h2>
+            <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="t('telur_retro')"></p>
+
+            <template x-if="!activeProfile?.pet || !activeProfile.pet.line">
+                <div class="space-y-4">
+                    <p class="text-xs font-bold text-main" x-text="t('pilih_jenis_telur')"></p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button @click="choosePetLine('flame')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                            <i data-lucide="flame" class="w-6 h-6 text-orange-500 mx-auto"></i>
+                            <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Flame</p>
+                        </button>
+                        <button @click="choosePetLine('ocean')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                            <i data-lucide="droplets" class="w-6 h-6 text-sky-500 mx-auto"></i>
+                            <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Ocean</p>
+                        </button>
+                        <button @click="choosePetLine('forest')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                            <i data-lucide="leaf" class="w-6 h-6 text-emerald-500 mx-auto"></i>
+                            <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Forest</p>
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <template x-if="activeProfile?.pet && activeProfile.pet.line">
+                <div>
+                    <div class="flex items-center justify-between gap-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-3xl flex items-center justify-center text-white shadow-accent"
+                                :class="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).bgClass">
+                                <i :data-lucide="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).icon" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="`Line: ${activeProfile.pet.line}`"></p>
+                                <p class="text-xl font-black text-main tracking-tighter" x-text="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).name"></p>
+                                <p class="text-[10px] font-bold text-muted" x-text="activeProfile.pet.hatched ? 'Hatched' : 'Belum menetas'" :class="activeProfile.pet.hatched ? 'text-green-600' : 'text-orange-600'"></p>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <p class="text-[9px] font-black text-muted uppercase tracking-widest">Stage</p>
+                            <p class="text-3xl font-black text-accent" x-text="getPetStage(getUserLevel().level) + 1"></p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="flex justify-between text-[10px] font-black text-muted uppercase tracking-widest mb-2">
+                            <span x-text="'Progress Evolusi'"></span>
+                            <span x-text="petProgressLabel(getUserLevel().level)"></span>
+                        </div>
+                        <div class="h-3 bg-inset rounded-full overflow-hidden">
+                            <div class="h-full gradient-accent transition-all duration-700" :style="`width: ${petProgressPct(getUserLevel().level)}%`"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6" x-show="!activeProfile.pet.hatched">
+                        <button @click="hatchPet()" class="w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border"
+                            :class="canHatchPet() ? 'gradient-accent text-white border-transparent shadow-accent' : 'bg-inset text-muted border-theme'"
+                            :disabled="!canHatchPet()">
+                            <span x-text="canHatchPet() ? 'Hatch Sekarang' : 'Capai LVL 3 untuk hatch'"></span>
+                        </button>
+                    </div>
+                </div>
+            </template>
         </div>
 
         <!-- Badge Showcase -->
         <div class="mb-10 px-2">
             <h3 class="font-black text-main uppercase text-xs tracking-widest text-left ml-2 mb-6 flex items-center gap-2">
-@ -539,7 +570,12 @@
+                <i data-lucide="award" class="w-4 h-4 text-yellow-500"></i>
+                <span x-text="t('koleksi')"></span>
+            </h3>
+            <div class="grid grid-cols-4 gap-3">
+                <template x-for="badge in badgeDefinitions" :key="badge.id">
+                    <button @click="selectedBadge = badge" class="flex flex-col items-center gap-2 transition-transform active:scale-90">
+                        <div class="w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 relative group"
+                             :class="hasBadge(badge.id) ? badge.colorClass : 'bg-slate-100 dark:bg-slate-800 grayscale opacity-40'">
+                            <i :data-lucide="badge.icon" class="w-8 h-8 text-white"></i>
+                        </div>
+                        <span class="text-[8px] font-black text-muted uppercase tracking-tighter text-center leading-tight" x-text="badge.name"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <div class="space-y-4 text-left px-2">
+            <h3 class="font-black text-main uppercase text-xs tracking-widest ml-2" x-text="t('prestasi_mengikut_fasa')"></h3>
+            <div class="grid grid-cols-1 gap-3">
+                <template x-for="part in [1, 2, 3]" :key="part">
+                    <div class="bg-card p-6 rounded-[2.5rem] custom-shadow flex items-center justify-between border border-theme">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-inset flex items-center justify-center font-black text-accent" x-text="part"></div>
+                            <div>
+                                <p class="text-xs font-black text-main uppercase tracking-tighter" x-text="part === 1 ? 'Rahmah' : (part === 2 ? 'Maghfirah' : 'Itqum Minan Nar')"></p>
+                                <p class="text-[9px] font-bold text-muted uppercase" x-text="`Day ${part*10-9} to ${part*10}`"></p>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-black text-accent" x-text="`${calculatePartAverage(part)}%`"></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div class="mt-10 bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme text-left">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div>
+                    <p class="text-[9px] font-black text-muted uppercase tracking-[0.2em]" x-text="lang === 'en' ? 'Daily Reminder' : 'Peringatan Harian'"></p>
+                    <h2 class="text-lg font-black text-main tracking-tighter" x-text="lang === 'en' ? 'Islamic Quote' : 'Quote Islam'"></h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button @click="copyIslamicQuote()" class="px-3 py-2 rounded-2xl bg-inset border border-theme text-[9px] font-black uppercase tracking-widest text-muted hover:text-accent transition-all flex items-center gap-2">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span x-text="lang === 'en' ? 'Copy' : 'Salin'"></span>
+                    </button>
+                    <button @click="randomizeIslamicQuote(true)" class="px-3 py-2 rounded-2xl bg-inset border border-theme text-[9px] font-black uppercase tracking-widest text-muted hover:text-accent transition-all flex items-center gap-2">
+                        <i data-lucide="shuffle" class="w-4 h-4"></i>
+                        <span x-text="lang === 'en' ? 'Random' : 'Rawak'"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-5 bg-inset rounded-2xl border border-theme">
+                <p class="text-sm font-bold text-main leading-relaxed" x-text="getIslamicQuote().text"></p>
+                <div class="mt-4 pt-4 border-t border-theme">
+                    <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="getIslamicQuote().source"></p>
+                    <p class="text-[10px] font-bold text-muted" x-text="getIslamicQuote().ref"></p>
+                </div>
+                <p class="text-[9px] font-black text-accent mt-4" x-show="quoteCopyStatus" x-text="quoteCopyStatus"></p>
+            </div>
+        </div>
+        </div>
+
+    <!-- Profile Selection Screen -->
+    <div x-show="view === 'profiles'" x-cloak class="page-view">
+        <header class="mb-12">
+            <h1 class="text-3xl font-black text-main tracking-tighter" x-text="t('nav_arena')"></h1>
+            <p class="text-muted font-medium" x-text="t('pilih_karakter')"></p>
+        </header>
+
+        <div class="grid grid-cols-1 gap-4 mb-12">
+            <template x-for="p in allProfiles" :key="p.id">
+                <button @click="switchProfile(p.id)" 
+                    class="p-6 rounded-[2.5rem] bg-card border border-theme custom-shadow flex items-center justify-between transition-all relative overflow-hidden"
+                    :class="activeProfileId === p.id ? 'ring-4 ring-accent ring-opacity-30 scale-[1.02]' : 'opacity-70'">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-3xl flex items-center justify-center shadow-accent"
+                             :class="activeProfileId === p.id ? 'gradient-accent' : 'bg-slate-200 dark:bg-slate-700'">
+                            <i :data-lucide="p.icon || 'moon'" class="w-8 h-8 text-white" x-show="p.icon"></i>
+                            <span x-show="!p.icon" class="font-black text-2xl text-white uppercase" x-text="p.name[0]"></span>
+                        </div>
+                        <div class="text-left">
+                            <p class="font-black text-xl text-main tracking-tighter" x-text="p.name"></p>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[9px] font-black text-white gradient-accent px-2.5 py-1 rounded-full uppercase shadow-sm border border-white/10" x-text="`LVL ${Math.floor((p.totalXP || 0) / 500) + 1}`"></span>
+                                <span class="text-[9px] font-bold text-muted uppercase tracking-widest" x-text="modeLabel(p.mode)"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-2xl font-black text-accent tracking-tighter" x-text="p.totalXP || 0"></p>
+                        <p class="text-[9px] font-bold text-muted uppercase tracking-widest">Total XP</p>
+                    </div>
+                </button>
+            </template>
+        </div>
+
+        <button @click="view = 'onboarding'" 
+            class="w-full py-6 border-4 border-dashed border-slate-100 dark:border-slate-800 rounded-[2.5rem] text-slate-300 dark:text-slate-700 font-black text-lg hover:border-accent hover:text-accent transition-all flex items-center justify-center gap-3">
+            <i data-lucide="user-plus" class="w-6 h-6"></i>
+            <span x-text="t('tambah_karakter_baru')"></span>
+        </button>
+    </div>
+
+    <!-- Config Page -->
+    <div x-show="view === 'settings'" x-cloak class="page-view">
+        <header class="mb-12">
+            <h1 class="text-3xl font-black text-main tracking-tighter" x-text="t('tetapan')"></h1>
+            <p class="text-muted font-medium" x-text="t('urus_ibadah')"></p>
+        </header>
+
+        <div class="space-y-8">
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
+                <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i data-lucide="clock" class="w-5 h-5 text-accent"></i>
+                    <span x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></span>
+                </h2>
+
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-main" x-text="lang === 'en' ? 'Enable' : 'Aktifkan'"></span>
+                        <button @click="prayer.enabled = !prayer.enabled; if(prayer.enabled) ensurePrayerTimes(); save();" 
+                                class="w-12 h-6 rounded-full transition-colors relative"
+                                :class="prayer.enabled ? 'gradient-accent' : 'bg-slate-200 dark:bg-slate-700'">
+                            <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform"
+                                 :class="prayer.enabled ? 'translate-x-6' : ''"></div>
+                        </button>
+                    </div>
+
+                    <div>
+                        <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3" x-text="lang === 'en' ? 'Placement' : 'Lokasi Paparan'"></span>
+                        <select x-model="prayer.placement" @change="save();" class="w-full p-4 bg-inset rounded-2xl border border-theme text-[10px] font-black text-main">
+                            <option value="tracker" x-text="lang === 'en' ? 'Tracker' : 'Tracker'"></option>
+                            <option value="profil" x-text="lang === 'en' ? 'Profile (Profil)' : 'Profil'"></option>
+                            <option value="both" x-text="lang === 'en' ? 'Both' : 'Dua-dua'"></option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-main" x-text="prayer.zone === 'detecting' ? (lang === 'en' ? 'Detecting...' : 'Mengesan...') : prayer.zone"></span>
+                        <button @click="prayer.zone = 'detecting'; detectAndSetZone().then(() => ensurePrayerTimes());" 
+                                class="px-4 py-2 bg-inset rounded-xl font-black text-[10px] uppercase tracking-widest border border-theme hover:bg-accent hover:text-white transition-all"
+                                x-text="lang === 'en' ? 'Refresh' : 'Segar'">
+                        </button>
+                    </div>
+
+                    <p class="text-[10px] font-bold text-muted" x-text="lang === 'en' ? 'Uses your GPS location. Tap the card to view today\'s full list.' : 'Guna lokasi GPS. Tap kad untuk lihat senarai penuh hari ini.'"></p>
+                </div>
             </div>
 
             <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
-                <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest">Senarai Misi Semasa</h2>
+                <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i data-lucide="languages" class="w-5 h-5 text-accent"></i>
+                    <span x-text="t('bahasa')"></span>
+                </h2>
+                <div class="flex gap-3">
+                    <button @click="lang = 'ms'; save();" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border transition-all"
+                        :class="lang === 'ms' ? 'gradient-accent text-white border-transparent shadow-accent' : 'bg-inset text-muted border-theme'">BM</button>
+                    <button @click="lang = 'en'; save();" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border transition-all"
+                        :class="lang === 'en' ? 'gradient-accent text-white border-transparent shadow-accent' : 'bg-inset text-muted border-theme'">EN</button>
+                </div>
+            </div>
+            <!-- Theme Settings -->
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
+                <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i data-lucide="palette" class="w-5 h-5 text-accent"></i>
+                    <span x-text="t('penampilan')"></span>
+                </h2>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold text-main">Dark Mode</span>
+                        <button @click="darkMode = !darkMode" 
+                                class="w-12 h-6 rounded-full transition-colors relative"
+                                :class="darkMode ? 'gradient-accent' : 'bg-slate-200 dark:bg-slate-700'">
+                            <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform"
+                                 :class="darkMode ? 'translate-x-6' : ''"></div>
+                        </button>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-muted uppercase tracking-widest block mb-3" x-text="t('tema_warna')"></span>
+                        <div class="flex flex-wrap gap-4">
+                            <button @click="theme = 'emerald'" class="w-10 h-10 rounded-full bg-emerald-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'emerald' ? 'ring-emerald-200 scale-110' : ''"></button>
+                            <button @click="theme = 'navy'" class="w-10 h-10 rounded-full bg-[#1e3a8a] ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'navy' ? 'ring-blue-200 scale-110' : ''"></button>
+                            <button @click="theme = 'rose'" class="w-10 h-10 rounded-full bg-rose-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'rose' ? 'ring-rose-200 scale-110' : ''"></button>
+                            <button @click="theme = 'ocean'" class="w-10 h-10 rounded-full bg-sky-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'ocean' ? 'ring-sky-200 scale-110' : ''"></button>
+                            <button @click="theme = 'purple'" class="w-10 h-10 rounded-full bg-purple-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'purple' ? 'ring-purple-200 scale-110' : ''"></button>
+                            <button @click="theme = 'pink'" class="w-10 h-10 rounded-full bg-pink-500 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'pink' ? 'ring-pink-200 scale-110' : ''"></button>
+                            <button @click="theme = 'gold'" class="w-10 h-10 rounded-full bg-amber-400 ring-4 ring-offset-2 ring-transparent transition-all" :class="theme === 'gold' ? 'ring-amber-200 scale-110' : ''"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Actions -->
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
+                <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest" x-text="t('akaun')"></h2>
+                <div class="space-y-3">
+                    <button @click="view = 'profiles'" class="w-full py-5 bg-slate-50 dark:bg-slate-800 text-main font-black rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-transform border border-transparent hover:border-accent hover:border-opacity-20">
+                        <i data-lucide="users" class="w-5 h-5 text-accent"></i>
+                        <span x-text="t('tukar_akaun')"></span>
+                    </button>
+                    <button @click="logout()" class="w-full py-5 bg-red-50 dark:bg-red-900/20 text-red-500 font-black rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-transform border border-transparent hover:border-red-200">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                        Logout Hero
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
+                <h2 class="font-black text-main mb-6 flex items-center gap-2 uppercase text-xs tracking-widest">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-accent"></i>
+                    Misi Kustom
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 ml-1">Nama Ibadah</label>
+                        <input type="text" x-model="newItem.name" placeholder="Contoh: Selawat 100x" class="w-full p-5 bg-inset rounded-2xl border-none font-bold text-sm text-main focus:ring-2 ring-accent ring-opacity-20 transition-all">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-2 ml-1">Pilihan Skor & Deskripsi</label>
+                        <div class="space-y-3">
+                            <template x-for="(opt, index) in newItem.options" :key="index">
+                                <div class="flex gap-2">
+                                    <div class="w-20">
+                                        <input type="number" x-model.number="opt.v" placeholder="XP" class="w-full p-4 bg-inset rounded-xl border-none text-xs font-black text-center text-accent">
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="text" x-model="opt.l" placeholder="Deskripsi (Contoh: Ya / 2 Rakaat)" class="w-full p-4 bg-inset rounded-xl border-none text-xs font-bold text-main">
+                                    </div>
+                                    <button @click="newItem.options.splice(index, 1)" x-show="newItem.options.length > 1" class="p-2 text-red-400 hover:text-red-500 transition-colors">
+                                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        <button @click="newItem.options.push({v: 1, l: ''})" class="mt-3 w-full py-3 border-2 border-dashed border-theme rounded-xl text-[10px] font-black text-muted hover:text-accent hover:border-accent transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Tambah Pilihan Skor
+                        </button>
+                    </div>
+
+                    <button @click="addItem()" class="w-full py-5 gradient-accent text-white font-black rounded-2xl shadow-accent active:scale-95 transition-transform mt-4">Simpan Misi</button>
+                </div>
+            </div>
+
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme">
                 <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest flex justify-between items-center">
                     Senarai Misi Semasa
                     <button @click="syncTemplate()" class="text-[8px] bg-accent/10 text-accent px-2 py-1 rounded-md hover:bg-accent hover:text-white transition-all">
@@ -91,27 +856,163 @@
                 <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
                     <template x-for="(item, index) in activeProfile?.ibadahList" :key="item.id">
                         <div class="flex items-center justify-between p-4 bg-inset rounded-2xl">
-@ -588,8 +624,8 @@
+                            <div>
+                                <p class="font-black text-main text-sm" x-text="item.name"></p>
+                                <p class="text-[9px] text-muted font-black uppercase tracking-widest" x-text="`${item.options.length - 1} Pilihan`"></p>
+                            </div>
+                            <button @click="removeItem(index)" class="p-2 text-red-300 hover:text-red-500 transition-colors">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <button @click="deleteActiveProfile()" class="w-full py-5 bg-red-50 dark:bg-red-900/10 text-red-500 font-black rounded-[2rem] border-2 border-dashed border-red-100 dark:border-red-900/30">
+                Padam Profil <span x-text="activeProfile?.name"></span>
+            </button>
+
+            <!-- Support & Credits -->
+            <div class="bg-card rounded-[2.5rem] p-8 custom-shadow border border-theme mt-6">
+                <h2 class="font-black text-main mb-6 uppercase text-xs tracking-widest flex items-center gap-2">
+                    <i data-lucide="coffee" class="w-5 h-5 text-orange-400"></i>
+                    Sokongan & Kredit
+                </h2>
+                <p class="text-[10px] font-bold text-muted uppercase tracking-widest leading-relaxed mb-6">
+                    Dibina dengan ❤️ untuk manfaat ummah. Jika aplikasi ini membantu anda, anda boleh menyokong pembangun di sini:
+                </p>
+                <div class="space-y-3">
+                    <a href="https://buymeacoffee.com/nikirfan" target="_blank" class="w-full py-5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 font-black rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-transform border border-transparent hover:border-orange-200">
+                        <i data-lucide="coffee" class="w-5 h-5"></i>
+                        Buy Me a Coffee
+                    </a>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="https://github.com/Nik-Irfan/Ramadan-Tracker" target="_blank" class="py-4 bg-slate-50 dark:bg-slate-800 text-main font-black rounded-2xl flex items-center justify-center gap-2 text-[10px] border border-transparent hover:border-theme">
+                            <i data-lucide="github" class="w-4 h-4"></i>
+                            GitHub
+                        </a>
+                        <a href="https://my.linkedin.com/in/nikirfan98" target="_blank" class="py-4 bg-slate-50 dark:bg-slate-800 text-main font-black rounded-2xl flex items-center justify-center gap-2 text-[10px] border border-transparent hover:border-theme">
+                            <i data-lucide="linkedin" class="w-4 h-4"></i>
+                            LinkedIn
+                        </a>
+                    </div>
+                </div>
+            </div>
 
             <!-- Version Timestamp -->
             <div class="text-center py-8">
-                <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 00:15</p>
-                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.1.3-support</p>
-                <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 01:05</p>
-                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.1.7-sync-fix</p>
+                <p class="text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.3em]">Last Updated: 2026-02-27 02:35</p>
+                <p class="text-[8px] font-bold text-slate-200 dark:text-slate-700 mt-1 uppercase tracking-widest">v2.4.5-quiz-pro</p>
             </div>
         </div>
     </div>
-@ -661,11 +697,12 @@
+
+    <!-- Badge Description Modal -->
+    <div x-show="selectedBadge" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
+        <div @click="selectedBadge = null" class="absolute inset-0 modal-backdrop"></div>
+        <div class="bg-card w-full max-w-sm rounded-[3rem] p-8 relative z-10 custom-shadow border border-theme animate-float">
+            <div class="text-center">
+                <div class="w-24 h-24 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6"
+                     :class="hasBadge(selectedBadge?.id) ? selectedBadge?.colorClass : 'bg-slate-100 dark:bg-slate-800 grayscale opacity-40'">
+                    <i :data-lucide="selectedBadge?.icon" class="w-12 h-12 text-white"></i>
+                </div>
+                <h3 class="text-2xl font-black text-main mb-2 tracking-tighter" x-text="selectedBadge?.name"></h3>
+                <div class="mb-6">
+                    <template x-if="hasBadge(selectedBadge?.id)">
+                        <span class="bg-green-100 text-green-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Unlocked</span>
+                    </template>
+                    <template x-if="!hasBadge(selectedBadge?.id)">
+                        <span class="bg-slate-100 text-slate-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">Locked</span>
+                    </template>
+                </div>
+                <p class="text-sm font-medium text-muted leading-relaxed mb-8" x-text="selectedBadge?.desc"></p>
+                <button @click="selectedBadge = null" class="w-full py-4 gradient-accent text-white font-black rounded-2xl shadow-accent">Faham!</button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="showPrayerModal" x-cloak class="absolute inset-0 z-[200] flex items-center justify-center p-6">
+        <div @click="showPrayerModal = false" class="absolute inset-0 modal-backdrop"></div>
+        <div class="bg-card w-full max-w-sm rounded-[3rem] p-8 relative z-10 custom-shadow border border-theme">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div class="text-left">
+                    <p class="text-[9px] font-black text-muted uppercase tracking-[0.2em]" x-text="lang === 'en' ? 'Prayer Times' : 'Waktu Solat'"></p>
+                    <h3 class="text-2xl font-black text-main tracking-tighter" x-text="getMasihiDate(currentDay)"></h3>
+                </div>
+                <button @click="showPrayerModal = false" class="p-2 rounded-xl bg-inset text-muted hover:text-red-500">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2 text-left">
+                <template x-if="!prayer.timings">
+                    <div class="p-4 bg-inset rounded-2xl border border-theme">
+                        <p class="text-[10px] font-bold text-muted" x-text="lang === 'en' ? 'Loading timings...' : 'Memuat waktu solat...'"></p>
+                    </div>
+                </template>
+                <template x-if="prayer.timings">
+                    <div class="space-y-2">
+                        <template x-for="row in prayerRows()" :key="row.k">
+                            <div class="p-4 bg-inset rounded-2xl border border-theme flex items-center justify-between">
+                                <p class="text-[10px] font-black text-main" x-text="row.label"></p>
+                                <p class="text-[10px] font-black text-accent" x-text="row.time"></p>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+
+            <button @click="showPrayerModal = false" class="w-full py-4 gradient-accent text-white font-black rounded-2xl shadow-accent mt-6" x-text="lang === 'en' ? 'Close' : 'Tutup'"></button>
+        </div>
+    </div>
+    </div> <!-- Close page-wrapper -->
+    </div> <!-- Close app-container -->
+
+    <!-- Bottom Nav -->
+    <nav x-show="view !== 'onboarding'" class="nav-fixed bg-card/90 backdrop-blur-2xl rounded-[3rem] p-4 custom-shadow flex justify-around items-center border border-theme">
+        <button @click="view = 'tracker'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'tracker' ? 'nav-active' : 'text-muted'">
+            <i data-lucide="list-checks" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_amalan')"></span>
+        </button>
+                <button @click="view = 'stats'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'stats' ? 'nav-active' : 'text-muted'">
+            <i data-lucide="user" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_karakter')"></span>
+        </button>
+        <button @click="view = 'profiles'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'profiles' ? 'nav-active' : 'text-muted'">
+            <i data-lucide="swords" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_arena')"></span>
+        </button>
+        <button @click="view = 'settings'" class="flex flex-col items-center gap-1 transition-all" :class="view === 'settings' ? 'nav-active' : 'text-muted'">
+            <i data-lucide="settings-2" class="w-5 h-5"></i>
+            <span class="text-[8px] font-black uppercase tracking-tighter" x-text="t('nav_tetapan')"></span>
+        </button>
+    </nav>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        function trackerApp() {
+            const templates = {
+                'EASY': {
+                    description: 'Mode untuk mula konsisten dengan mengutamakan amalan utama.',
+                    list: [
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}] },
+                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
+                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
+                        { id: 'alkahfi_1', name: 'Al-Kahfi', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
+                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}] },
+                        { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
+                        { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
                         { id: 'doa_iftar', name: 'Doa Sebelum Iftar', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
                         { id: 'maghrib', name: 'Maghrib', icon: 'sunset', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
                         { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'< 20 min'}] },
-                        { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:8, l:'8 Rakaat'}] },
                         { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'8 Rakaat'}] },
                         { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'quran', name: 'Baca Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}] },
-                        { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
-                        { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}] }
                         { id: 'quran_ms', name: 'Al-Quran (MS)', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'10 ms'}, {v:2, l:'20 ms'}] },
                         { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'50x'}, {v:2, l:'100x'}] },
                         { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'50x'}, {v:2, l:'100x'}] },
@@ -119,7 +1020,12 @@
                     ]
                 },
                 'NORMAL': {
-@ -678,11 +715,14 @@
+                    description: 'Kombinasi seimbang antara fardu, sunat rawatib dan amalan harian.',
+                    list: [
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}, {v:4, l:'4 Rakaat'}] },
+                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
+                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
                         { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'2 Rakaat'}, {v:4, l:'4 Rakaat'}] },
                         { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
                         { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
@@ -128,14 +1034,20 @@
                         { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:1, l:'Berjemaah'}, {v:2, l:'Awal Waktu'}] },
                         { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:8, l:'8 Rakaat'}, {v:20, l:'20 Rakaat'}] },
                         { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'quran', name: 'Baca Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}, {v:2, l:'2 Juz'}] },
-                        { id: 'quran', name: 'Al-Quran (Juz)', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}, {v:2, l:'2 Juz'}] },
                         { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
                         { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}] },
                         { id: 'sedekah', name: 'Sedekah', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] }
                     ]
                 },
-@ -698,14 +738,16 @@
+                'HARD': {
+                    description: 'Cabaran ibadah penuh merangkumi rawatib lengkap, zikir dan tadabbur Quran.',
+                    list: [
+                        { id: 'tahajud', name: 'Tahajud', icon: 'moon', options: [{v:0, l:'0'}, {v:4, l:'4 Rakaat'}, {v:8, l:'8 Rakaat'}] },
+                        { id: 'sahur', name: 'Sahur', icon: 'utensils', options: [{v:0, l:'0'}, {v:1, l:'Ya'}] },
+                        { id: 'sunat_subuh', name: 'Sunat Subuh', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
+                        { id: 'subuh', name: 'Subuh', icon: 'sunrise', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
+                        { id: 'dhuha', name: 'Dhuha', icon: 'sun', options: [{v:0, l:'0'}, {v:4, l:'4 Rakaat'}, {v:8, l:'8 Rakaat'}] },
+                        { id: 'rawatib_zohor', name: 'Rawatib Zohor', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Qobliah'}, {v:4, l:'Lengkap'}] },
                         { id: 'zohor', name: 'Zohor', icon: 'sun', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
                         { id: 'rawatib_asar', name: 'Rawatib Asar', icon: 'clock', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] },
                         { id: 'asar', name: 'Asar', icon: 'cloud-sun', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
@@ -146,45 +1058,835 @@
                         { id: 'isyak', name: 'Isyak', icon: 'moon', options: [{v:0, l:'0'}, {v:2, l:'Berjemaah'}, {v:3, l:'Awal Waktu'}] },
                         { id: 'tarawih', name: 'Tarawih', icon: 'moon', options: [{v:0, l:'0'}, {v:8, l:'8 Rakaat'}, {v:20, l:'20 Rakaat'}] },
                         { id: 'witir', name: 'Witir', icon: 'star', options: [{v:0, l:'0'}, {v:1, l:'1 Rakaat'}, {v:3, l:'3 Rakaat'}] },
-                        { id: 'quran', name: 'Baca Al-Quran', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}, {v:2, l:'2 Juz'}] },
-                        { id: 'zikir', name: 'Zikir & Selawat', icon: 'message-circle', options: [{v:0, l:'0'}, {v:2, l:'100x'}, {v:4, l:'300x'}] },
-                        { id: 'quran', name: 'Al-Quran (Juz)', icon: 'book-open', options: [{v:0, l:'0'}, {v:1, l:'1 Juz'}, {v:2, l:'2 Juz'}, {v:4, l:'4 Juz'}] },
                         { id: 'istighfar', name: 'Istighfar', icon: 'message-circle', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}, {v:4, l:'500x'}] },
                         { id: 'selawat', name: 'Selawat', icon: 'heart', options: [{v:0, l:'0'}, {v:1, l:'100x'}, {v:2, l:'200x'}, {v:4, l:'500x'}] },
                         { id: 'sedekah', name: 'Sedekah Harian', icon: 'heart', options: [{v:0, l:'0'}, {v:2, l:'Ya'}] }
                     ]
                 }
-@ -967,6 +1009,25 @@
+            };
+
+            const badgeDefinitions = [
+                { id: 'baitul_jannah', name: 'Baitul Jannah', icon: 'home', colorClass: 'gradient-green', desc: 'Lengkapkan sekurang-kurangnya 12 Rakaat Solat Sunat dalam sehari.' },
+                { id: 'ramadan_rookie', name: 'Ramadan Rookie', icon: 'award', colorClass: 'gradient-blue', desc: 'Mula menjejak ibadah untuk hari pertama Ramadan.' },
+                { id: 'fast_learner', name: 'Fast Learner', icon: 'zap', colorClass: 'gradient-purple', desc: 'Capai Level 5 dengan mengumpul XP melalui ibadah.' },
+                { id: 'streak_starter', name: 'Streak Starter', icon: 'flame', colorClass: 'gradient-yellow', desc: 'Istiqamah beribadah selama 3 hari berturut-turut.' },
+                { id: 'perfect_day', name: 'Perfect Day', icon: 'crown', colorClass: 'gradient-red', desc: 'Lengkapkan kesemua misi harian dengan skor 100%.' },
+                { id: 'gold_hero', name: 'Gold Hero', icon: 'star', colorClass: 'gradient-yellow', desc: 'Kumpul jumlah keseluruhan sebanyak 5,000 XP.' },
+                { id: 'silver_hero', name: 'Silver Hero', icon: 'star', colorClass: 'gradient-blue', desc: 'Kumpul jumlah keseluruhan sebanyak 2,500 XP.' },
+                { id: 'bronze_hero', name: 'Bronze Hero', icon: 'star', colorClass: 'gradient-red', desc: 'Kumpul jumlah keseluruhan sebanyak 1,000 XP.' }
+            ];
+
+            return {
+                view: 'onboarding',
+                currentDay: 1,
+                activeProfileId: null,
+                allProfiles: [],
+                lang: 'ms',
+                showPrayerModal: false,
+                prayer: {
+                    enabled: false,
+                    placement: 'both',
+                    zone: 'detecting', // will auto-detect on first enable
+                    cacheKey: '',
+                    dateKey: '',
+                    timings: null,
+                    nextLabel: '',
+                    countdown: ''
+                },
+                islamicQuoteIndex: 0,
+                islamicQuoteDateKey: '',
+                quoteCopyStatus: '',
+                islamicQuotes: [
+                    {
+                        text: {
+                            ms: '“Sesungguhnya dengan mengingati Allah hati menjadi tenang.”',
+                            en: '“Surely in the remembrance of Allah do hearts find comfort.”'
+                        },
+                        source: 'Quran',
+                        ref: 'Surah Ar-Ra\u2019d 13:28'
+                    },
+                    {
+                        text: {
+                            ms: '“Dan bersabarlah; sesungguhnya Allah bersama orang-orang yang sabar.”',
+                            en: '“And be patient. Indeed, Allah is with the patient.”'
+                        },
+                        source: 'Quran',
+                        ref: 'Surah Al-Anfal 8:46'
+                    },
+                    {
+                        text: {
+                            ms: '“Amalan yang paling dicintai Allah ialah amalan yang berterusan walaupun sedikit.”',
+                            en: '“The most beloved deeds to Allah are those that are consistent, even if small.”'
+                        },
+                        source: 'Hadith (Sahih)',
+                        ref: 'Sahih al-Bukhari & Sahih Muslim (meaning)'
+                    },
+                    {
+                        text: {
+                            ms: '“Sesiapa yang beriman kepada Allah dan Hari Akhirat, hendaklah dia berkata baik atau diam.”',
+                            en: '“Whoever believes in Allah and the Last Day should speak good or remain silent.”'
+                        },
+                        source: 'Hadith (Sahih)',
+                        ref: 'Sahih al-Bukhari & Sahih Muslim (meaning)'
+                    },
+                    {
+                        text: {
+                            ms: '“Wahai orang-orang yang beriman, bertakwalah kepada Allah dan lihatlah apa yang telah kamu sediakan untuk hari esok.”',
+                            en: '“O believers, be mindful of Allah and let every soul look to what it has sent forth for tomorrow.”'
+                        },
+                        source: 'Quran',
+                        ref: 'Surah Al-Hashr 59:18'
+                    }
+                ],
+                templates: templates,
+                badgeDefinitions: badgeDefinitions,
+                onboarding: { name: '', mode: 'NORMAL', icon: 'moon' },
+                newItem: { name: '', options: [{v: 0, l: 'Tiada'}, {v: 1, l: 'Ya'}] },
+                darkMode: false,
+                theme: 'theme-navy',
+                selectedBadge: null,
+                showCalendar: false,
+                editMode: false,
+                showUserMenu: false,
+
+                init() {
+                    const saved = localStorage.getItem('ramadan_rpg_data');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        this.allProfiles = data.profiles || [];
+                        this.activeProfileId = data.activeId;
+                        this.darkMode = data.darkMode || false;
+                        this.theme = data.theme || 'emerald';
+                        this.lang = data.lang || 'ms';
+                        this.islamicQuoteIndex = Number.isFinite(data.islamicQuoteIndex) ? data.islamicQuoteIndex : 0;
+                        this.islamicQuoteDateKey = data.islamicQuoteDateKey || '';
+                        if (data.prayer && typeof data.prayer === 'object') {
+                            this.prayer.enabled = !!data.prayer.enabled;
+                            this.prayer.placement = typeof data.prayer.placement === 'string' ? data.prayer.placement : 'both';
+                            this.prayer.cacheKey = data.prayer.cacheKey || '';
+                            this.prayer.dateKey = data.prayer.dateKey || '';
+                            this.prayer.timings = data.prayer.timings || null;
+                        }
+                        this.prayer.method = Number.isFinite(data.prayer.method) ? data.prayer.method : 11;
+                        this.prayer.timings = data.prayer.timings || null;
+                    }
+                    (this.allProfiles || []).forEach(p => this.ensurePet(p));
+
+                    this.ensureDailyIslamicQuote();
+
+                    this.$nextTick(() => {
+                        setInterval(() => this.updateNextPrayer(), 30000);
+                    });
+                    
+                    // Auto-sync Ramadan Date
+                    // Ramadan 2026 starts around Feb 18
+                    const ramadanStart = new Date('2026-02-18T00:00:00');
+                    const today = new Date();
+                    const diffTime = today.getTime() - ramadanStart.getTime();
+                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    if (diffDays >= 1 && diffDays <= 30) {
+                        this.currentDay = diffDays;
+                    }
+
+                    this.$nextTick(() => {
+                        lucide.createIcons();
+                        this.scrollToCurrentDay();
+                        // #region agent log
+                        try {
+                            const trackerEl = document.getElementById('view-tracker');
+                            const mushafEl = document.getElementById('view-mushaf');
+                            console.log('[DEBUG:init_nextTick]', {
+                                view: this.view,
+                                scrollY: window.scrollY,
+                                innerHeight: window.innerHeight,
+                                docHeight: document.documentElement.scrollHeight,
+                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
+                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null
+                            });
+                        } catch (e) {}
+                        // #endregion
+                    });
+                    this.$watch('view', (newView, oldView) => this.$nextTick(() => {
+                        lucide.createIcons();
+                        // #region agent log
+                        try {
+                            const trackerEl = document.getElementById('view-tracker');
+                            const mushafEl = document.getElementById('view-mushaf');
+                            console.log('[DEBUG:view_watch]', {
+                                oldView,
+                                newView,
+                                scrollY: window.scrollY,
+                                innerHeight: window.innerHeight,
+                                docHeight: document.documentElement.scrollHeight,
+                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
+                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null,
+                                trackerInnerLength: trackerEl ? trackerEl.innerHTML.length : null,
+                                hasActiveProfile: !!this.activeProfile,
+                                ibadahCount: this.activeProfile?.ibadahList?.length ?? null
+                            });
+                        } catch (e) {}
+                        // #endregion
+                        // Always reset scroll position when switching "pages"
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        document.documentElement.scrollTop = 0;
+                        document.body.scrollTop = 0;
+                    }));
+                    this.$watch('currentDay', () => this.$nextTick(() => { lucide.createIcons(); this.scrollToCurrentDay(); }));
+                    this.$watch('darkMode', () => this.saveGlobal());
+                    this.$watch('theme', () => this.saveGlobal());
+                    this.$watch('lang', () => this.saveGlobal());
+                    this.$watch('prayer.enabled', () => { if (this.prayer.enabled) this.ensurePrayerTimes(); this.saveGlobal(); });
+                    this.$watch('prayer.placement', () => this.saveGlobal());
+                    this.$watch('selectedBadge', () => this.$nextTick(() => lucide.createIcons()));
+
+                    // Run Self-Tests on startup
+                    this.runTests();
+                },
+
+                get activeProfile() {
+                    return this.allProfiles.find(p => p.id === this.activeProfileId);
+                },
+
+                randomizeIslamicQuote(persistForToday = false) {
+                    const len = (this.islamicQuotes || []).length;
+                    if (!len) {
+                        this.islamicQuoteIndex = 0;
+                        return;
+                    }
+                    this.islamicQuoteIndex = Math.floor(Math.random() * len);
+                    if (persistForToday) {
+                        this.islamicQuoteDateKey = this.getTodayKey();
+                        this.save();
+                    }
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                getTodayKey() {
+                    const d = new Date();
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}`;
+                },
+
+                ensureDailyIslamicQuote() {
+                    const today = this.getTodayKey();
+                    const len = (this.islamicQuotes || []).length;
+                    if (!len) {
+                        this.islamicQuoteDateKey = today;
+                        this.islamicQuoteIndex = 0;
+                        return;
+                    }
+                    if (this.islamicQuoteDateKey !== today || !Number.isFinite(this.islamicQuoteIndex) || this.islamicQuoteIndex < 0 || this.islamicQuoteIndex >= len) {
+                        this.islamicQuoteIndex = Math.floor(Math.random() * len);
+                        this.islamicQuoteDateKey = today;
+                        this.save();
+                    }
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                async copyIslamicQuote() {
+                    const q = this.getIslamicQuote();
+                    const text = `${q.text}\n\n${q.source}\n${q.ref}`.trim();
+                    const setStatus = (msg) => {
+                        this.quoteCopyStatus = msg;
+                        setTimeout(() => { this.quoteCopyStatus = ''; }, 1400);
+                    };
+                    try {
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            await navigator.clipboard.writeText(text);
+                            setStatus(this.lang === 'en' ? 'Copied!' : 'Disalin!');
+                            return;
+                        }
+                    } catch (e) {}
+
+                    try {
+                        const ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.setAttribute('readonly', '');
+                        ta.style.position = 'fixed';
+                        ta.style.left = '-9999px';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        setStatus(this.lang === 'en' ? 'Copied!' : 'Disalin!');
+                    } catch (e) {
+                        setStatus(this.lang === 'en' ? 'Copy failed' : 'Gagal salin');
+                    }
+                },
+
+                getIslamicQuote() {
+                    const q = (this.islamicQuotes || [])[this.islamicQuoteIndex] || (this.islamicQuotes || [])[0] || null;
+                    if (!q) return { text: '', source: '', ref: '' };
+                    const textObj = q.text || {};
+                    const text = (this.lang === 'en' ? (textObj.en || textObj.ms) : (textObj.ms || textObj.en)) || '';
+                    return { text, source: q.source || '', ref: q.ref || '' };
+                },
+
+                t(key) {
+                    const dict = {
+                        ms: {
+                            nav_amalan: 'Amalan',
+                            nav_karakter: 'Profil',
+                            nav_arena: 'Karakter',
+                            nav_tetapan: 'Tetapan',
+                            pilih_tarikh: 'Pilih Tarikh',
+                            misi_harian: 'Misi Harian',
+                            setakat: 'Setakat',
+                            telur_retro: 'Telur retro yang akan evolve ikut level',
+                            pilih_jenis_telur: 'Pilih jenis telur',
+                            koleksi: 'Koleksi',
+                            prestasi_mengikut_fasa: 'Prestasi Mengikut Fasa',
+                            pilih_karakter: 'Pilih karakter untuk teruskan misi',
+                            tetapan: 'Tetapan',
+                            bahasa: 'Bahasa',
+                            penampilan: 'Penampilan',
+                            tema_warna: 'Tema Warna',
+                            akaun: 'Akaun',
+                            tukar_akaun: 'Tukar Akaun',
+                            urus_ibadah: 'Urus ibadah & profil anda',
+                            tambah_karakter_baru: 'Tambah karakter baru'
+                        },
+                        en: {
+                            nav_amalan: 'Tracker',
+                            nav_karakter: 'Profile',
+                            nav_arena: 'Character',
+                            nav_tetapan: 'Settings',
+                            pilih_tarikh: 'Select Date',
+                            misi_harian: 'Daily Mission',
+                            setakat: 'As of',
+                            telur_retro: 'Retro egg that evolves by level',
+                            pilih_jenis_telur: 'Choose egg type',
+                            koleksi: 'Collection',
+                            prestasi_mengikut_fasa: 'Performance by Phase',
+                            pilih_karakter: 'Select character to continue mission',
+                            tetapan: 'Settings',
+                            bahasa: 'Language',
+                            penampilan: 'Appearance',
+                            tema_warna: 'Color Theme',
+                            akaun: 'Account',
+                            tukar_akaun: 'Switch Account',
+                            urus_ibadah: 'Manage your worship & profile',
+                            tambah_karakter_baru: 'Add new character'
+                        }
+                    };
+                    const lang = this.lang || 'ms';
+                    return (dict[lang] && dict[lang][key]) ? dict[lang][key] : key;
+                },
+
+                ensurePet(p) {
+                    if (!p) return;
+                    if (!p.pet || typeof p.pet !== 'object') {
+                        p.pet = { line: '', hatched: false, ts: null };
+                    }
+                    if (typeof p.pet.line !== 'string') p.pet.line = '';
+                    if (typeof p.pet.hatched !== 'boolean') p.pet.hatched = false;
+                },
+
+                choosePetLine(line) {
+                    const p = this.activeProfile;
+                    if (!p) return;
+                    this.ensurePet(p);
+                    p.pet.line = line;
+                    p.pet.hatched = false;
+                    p.pet.ts = Date.now();
+                    this.save();
+                    this.$nextTick(() => lucide.createIcons());
+                },
+
+                canHatchPet() {
+                    const p = this.activeProfile;
+                    if (!p) return false;
+                    this.ensurePet(p);
+                    const lvl = this.getUserLevel().level || 1;
+                    return !!p.pet.line && lvl >= 3;
+                },
+
+                hatchPet() {
+                    const p = this.activeProfile;
+                    if (!p) return;
+                    this.ensurePet(p);
+                    if (!this.canHatchPet()) return;
+                    p.pet.hatched = true;
+                    p.pet.hatchedAt = Date.now();
+                    this.save();
+                },
+
+                getPetStage(level) {
+                    const lvl = Number(level || 1);
+                    if (lvl >= 12) return 4;
+                    if (lvl >= 8) return 3;
+                    if (lvl >= 5) return 2;
+                    if (lvl >= 3) return 1;
+                    return 0;
+                },
+
+                getPetMeta(line, stage) {
+                    const l = (line || '').toString();
+                    const s = Number(stage || 0);
+                    const base = {
+                        flame: {
+                            bg: 'gradient-red',
+                            stages: [
+                                { name: 'Telur Bara', icon: 'egg' },
+                                { name: 'Retak Api', icon: 'egg' },
+                                { name: 'Pyro Cub', icon: 'flame' },
+                                { name: 'Inferno Rogue', icon: 'swords' },
+                                { name: 'Phoenix Lord', icon: 'crown' }
+                            ]
+                        },
+                        ocean: {
+                            bg: 'gradient-blue',
+                            stages: [
+                                { name: 'Telur Ombak', icon: 'egg' },
+                                { name: 'Retak Air', icon: 'egg' },
+                                { name: 'Aqua Sprite', icon: 'droplets' },
+                                { name: 'Tidal Knight', icon: 'shield' },
+                                { name: 'Leviathan', icon: 'award' }
+                            ]
+                        },
+                        forest: {
+                            bg: 'gradient-green',
+                            stages: [
+                                { name: 'Telur Rimba', icon: 'egg' },
+                                { name: 'Retak Daun', icon: 'egg' },
+                                { name: 'Mossling', icon: 'leaf' },
+                                { name: 'Wild Ranger', icon: 'target' },
+                                { name: 'Ancient Guardian', icon: 'shield-check' }
+                            ]
+                        }
+                    };
+                    const picked = base[l] || base.forest;
+                    const meta = picked.stages[Math.min(Math.max(s, 0), 4)];
+                    return { name: meta.name, icon: meta.icon, bgClass: picked.bg };
+                },
+
+                petProgressPct(level) {
+                    const lvl = Number(level || 1);
+                    const bands = [1, 3, 5, 8, 12];
+                    const s = this.getPetStage(lvl);
+                    const start = bands[s] || 1;
+                    const end = bands[s + 1] || (start + 1);
+                    const pct = Math.max(0, Math.min(1, (lvl - start) / (end - start)));
+                    return Math.round(pct * 100);
+                },
+
+                petProgressLabel(level) {
+                    const lvl = Number(level || 1);
+                    const s = this.getPetStage(lvl);
+                    const nextReq = [3, 5, 8, 12, null][s];
+                    if (!nextReq) return 'MAX';
+                    return `LVL ${lvl} / ${nextReq}`;
+                },
+
+                isStreakDay(day) {
+                    const d = Number(day);
+                    const scores = this.activeProfile?.scores || {};
+                    const startDay = (() => {
+                        let anchor = this.currentDay;
+                        if (!scores[anchor] || Object.keys(scores[anchor] || {}).length === 0) {
+                            anchor = Math.max(1, anchor - 1);
+                        }
+                        const len = this.calculateStreak();
+                        return Math.max(1, anchor - len + 1);
+                    })();
+                    const endDay = (() => {
+                        let anchor = this.currentDay;
+                        if (!scores[anchor] || Object.keys(scores[anchor] || {}).length === 0) {
+                            anchor = Math.max(1, anchor - 1);
+                        }
+                        return anchor;
+                    })();
+                    if (!Number.isFinite(d)) return false;
+                    return d >= startDay && d <= endDay && (this.getDailyPct(d) > 0);
+                },
+
+                modeLabel(mode) {
+                    const m = (mode || '').toString().toUpperCase();
+                    const labels = {
+                        ms: { EASY: 'Permulaan', NORMAL: 'Biasa', HARD: 'Intensif' },
+                        en: { EASY: 'Beginner', NORMAL: 'Standard', HARD: 'Intensive' }
+                    };
+                    const lang = this.lang || 'ms';
+                    return (labels[lang] && labels[lang][m]) ? labels[lang][m] : m;
+                },
+
+                createProfile() {
+                    if (!this.onboarding.name) return;
+                    // Security: Sanitize name
+                    const sanitizedName = this.onboarding.name.replace(/<[^>]*>?/gm, '').substring(0, 20);
+                    const id = 'p_' + Date.now();
+                    const newProfile = {
+                        id: id,
+                        name: sanitizedName,
+                        mode: this.onboarding.mode,
+                        icon: this.onboarding.icon || 'moon',
+                        ibadahList: JSON.parse(JSON.stringify(this.templates[this.onboarding.mode].list)),
+                        scores: {},
+                        totalXP: 0,
+                        pet: { line: '', hatched: false, ts: null },
+                        badges: []
+                    };
+                    this.allProfiles.push(newProfile);
+                    this.activeProfileId = id;
+                    this.onboarding = { name: '', mode: 'NORMAL', icon: 'moon' };
+                    this.view = 'tracker';
+                    this.save();
+                },
+
+                switchProfile(id) {
+                    const p = this.allProfiles.find(x => x.id === id);
+                    if (confirm(`Masuk sebagai ${p.name}?`)) {
+                        this.activeProfileId = id;
+                        this.view = 'tracker';
+                        this.save();
+                    }
+                },
+
+                logout() {
+                    this.activeProfileId = null;
+                    this.view = 'onboarding';
+                    this.save();
+                },
+
+                deleteActiveProfile() {
+                    if (confirm(`Padam profil ${this.activeProfile.name}?`)) {
+                        this.allProfiles = this.allProfiles.filter(p => p.id !== this.activeProfileId);
+                        this.activeProfileId = this.allProfiles.length > 0 ? this.allProfiles[0].id : null;
+                        this.view = this.activeProfileId ? 'profiles' : 'onboarding';
+                        this.save();
+                    }
+                },
+
+                updateScore(itemId, value) {
+                    const profile = this.activeProfile;
+                    if (!profile.scores[this.currentDay]) profile.scores[this.currentDay] = {};
+                    profile.scores[this.currentDay][itemId] = value;
+                    this.recalculateTotalXP();
+                    this.checkBadges();
+                    this.save();
+                },
+
+                getScore(itemId) {
+                    return (this.activeProfile?.scores[this.currentDay] && this.activeProfile.scores[this.currentDay][itemId]) || 0;
+                },
+
+                calculateTotal(day, profileId = null) {
+                    const p = profileId ? this.allProfiles.find(x => x.id === profileId) : this.activeProfile;
+                    if (!p || !p.scores[day]) return 0;
+                    return Object.values(p.scores[day]).reduce((a, b) => a + b, 0);
+                },
+
+                getDailyPct(day) {
+                    return Math.min(Math.round((this.calculateTotal(day) / 50) * 100), 100);
+                },
+
+                getProgressColor(total) {
+                    const pct = (total / 50) * 100;
+                    if (pct < 40) return 'gradient-red';
+                    if (pct < 80) return 'gradient-yellow';
+                    return 'gradient-green';
+                },
+
+                recalculateTotalXP() {
+                    const p = this.activeProfile;
+                    let xp = 0;
+                    for (let d = 1; d <= 30; d++) {
+                        xp += this.calculateTotal(d);
+                        // Full Solat Bonus (+50 XP)
+                        const solatIds = ['subuh', 'zohor', 'asar', 'maghrib', 'isyak'];
+                        const hasAllSolat = solatIds.every(id => (p.scores[d] && p.scores[d][id] > 0));
+                        if (hasAllSolat) xp += 50;
+                    }
+                    p.totalXP = xp;
+                },
+
+                getUserLevel(customXP = null) {
+                    const xp = customXP !== null ? customXP : (this.activeProfile?.totalXP || 0);
+                    const level = Math.floor(xp / 500) + 1;
+                    const progress = ((xp % 500) / 500) * 100;
+                    return { level, progress };
+                },
+
+                runTests() {
+                    console.group('🛠️ Ramadan RPG Self-Test Suite');
+                    const tests = [
+                        { name: 'Level 1 at 0 XP', result: this.getUserLevel(0).level === 1 },
+                        { name: 'Level 2 at 500 XP', result: this.getUserLevel(500).level === 2 },
+                        { name: 'Level 3 at 1200 XP', result: this.getUserLevel(1200).level === 3 },
+                        { name: 'Progress 50% at 250 XP', result: this.getUserLevel(250).progress === 50 },
+                        { name: 'Masihi Date Feb 18 for Day 1', result: this.getMasihiDate(1).includes('18 Feb') },
+                        { name: 'Masihi Date Mar 19 for Day 30', result: this.getMasihiDate(30).includes('19 Mac') }
+                    ];
+
+                    tests.forEach(t => console.log(`${t.result ? '✅' : '❌'} ${t.name}`));
+                    console.groupEnd();
+                    return tests.every(t => t.result);
+                },
+
+                calculateStreak() {
+                    const scores = this.activeProfile?.scores || {};
+                    let streak = 0;
+                    // Check backwards from current day (or day before if today empty)
+                    for (let d = 30; d >= 1; d--) {
+                        if (this.calculateTotal(d) > 0) {
+                            streak++;
+                        } else if (streak > 0) {
+                            break;
+                        }
+                    }
+                    return streak;
+                },
+
+                checkFullSolatBonus() {
+                    const p = this.activeProfile;
+                    const solatIds = ['subuh', 'zohor', 'asar', 'maghrib', 'isyak'];
+                    return solatIds.every(id => (p?.scores[this.currentDay] && p.scores[this.currentDay][id] > 0));
+                },
+
+                checkBadges() {
+                    const p = this.activeProfile;
+                    if (!p) return;
+                    if (!p.badges) p.badges = [];
+
+                    // 1. Baitul Jannah (12 Rakaat Sunat)
+                    const sunatIds = ['tahajud', 'sunat_subuh', 'dhuha', 'rawatib_zohor', 'rawatib_asar', 'rawatib_maghrib', 'rawatib_isyak', 'tarawih', 'witir'];
+                    let totalSunat = 0;
+                    sunatIds.forEach(id => {
+                        const score = p.scores[this.currentDay]?.[id] || 0;
+                        totalSunat += score;
+                    });
+                    if (totalSunat >= 12 && !p.badges.includes('baitul_jannah')) p.badges.push('baitul_jannah');
+
+                    // 2. Rookie (Tracked 1 day)
+                    if (this.getTotalDaysTracked() >= 1 && !p.badges.includes('ramadan_rookie')) p.badges.push('ramadan_rookie');
+
+                    // 3. Fast Learner (Level 5)
+                    if (this.getUserLevel().level >= 5 && !p.badges.includes('fast_learner')) p.badges.push('fast_learner');
+
+                    // 4. Streak Starter (3 Days)
+                    if (this.calculateStreak() >= 3 && !p.badges.includes('streak_starter')) p.badges.push('streak_starter');
+
+                    // 5. Perfect Day
+                    if (this.getDailyPct(this.currentDay) >= 100 && !p.badges.includes('perfect_day')) p.badges.push('perfect_day');
+
+                    // Tiers
+                    if (p.totalXP >= 5000 && !p.badges.includes('gold_hero')) p.badges.push('gold_hero');
+                    if (p.totalXP >= 2500 && !p.badges.includes('silver_hero')) p.badges.push('silver_hero');
+                    if (p.totalXP >= 1000 && !p.badges.includes('bronze_hero')) p.badges.push('bronze_hero');
+                },
+
+                hasBadge(id) {
+                    return this.activeProfile?.badges?.includes(id);
+                },
+
+                calculateMonthlyAverage(profileId = null) {
+                    let totalPct = 0;
+                    let count = 0;
+                    for (let i = 1; i <= 30; i++) {
+                        const dayTotal = this.calculateTotal(i, profileId);
+                        if (dayTotal > 0) {
+                            totalPct += (dayTotal / 50) * 100;
+                            count++;
+                        }
+                    }
+                    return count === 0 ? 0 : Math.round(totalPct / count);
+                },
+
+                getTotalDaysTracked() {
+                    return Object.keys(this.activeProfile?.scores || {}).filter(d => this.calculateTotal(d) > 0).length;
+                },
+
+                getBestDay() {
+                    let max = 0;
+                    for (let i = 1; i <= 30; i++) {
+                        max = Math.max(max, this.calculateTotal(i));
+                    }
                     return max;
                 },
 
-                calculateTotalJuz() {
-                    const p = this.activeProfile;
-                    if (!p) return 0;
-                    let totalJuz = 0;
-                    for (let d = 1; d <= 30; d++) {
-                        // Support both 'quran' (Juz unit) and 'quran_ms' (Page unit)
-                        const juzVal = p.scores[d]?.quran || 0;
-                        const msVal = p.scores[d]?.quran_ms || 0;
-                        
-                        totalJuz += juzVal;
-                        if (msVal > 0) {
-                            // In Easy mode, 10ms = 1pt, 20ms = 2pt. 
-                            // 1 Juz is approx 20 pages. So 10ms = 0.5 Juz, 20ms = 1 Juz.
-                            totalJuz += (msVal * 10) / 20; 
-                        }
-                    }
-                    return Math.min(totalJuz, 30);
-                },
-
+                
+                
                 calculatePartAverage(part) {
                     let totalPct = 0;
                     let count = 0;
-@ -1029,7 +1090,24 @@
+                    const start = (part - 1) * 10 + 1;
+                    const end = part * 10;
+                    for (let i = start; i <= end; i++) {
+                        const dayTotal = this.calculateTotal(i);
+                        if (dayTotal > 0) {
+                            totalPct += (dayTotal / 50) * 100;
+                            count++;
+                        }
+                    }
+                    return count === 0 ? 0 : Math.round(totalPct / count);
+                },
+
+                addItem() {
+                    if (!this.newItem.name) return;
+                    // Security: Sanitize custom item name
+                    const sanitizedItemName = this.newItem.name.replace(/<[^>]*>?/gm, '').substring(0, 30);
+                    const id = 'c_' + Date.now();
+                    // Ensure options have content
+                    const cleanOptions = this.newItem.options.filter(o => o.l.trim() !== '');
+                    if (cleanOptions.length === 0) {
+                        alert('Sila tambah sekurang-kurangnya satu pilihan skor dengan deskripsi.');
+                        return;
+                    }
+
+                    // Security: Sanitize option labels
+                    const sanitizedOptions = cleanOptions.map(o => ({
+                        v: parseInt(o.v) || 0,
+                        l: o.l.replace(/<[^>]*>?/gm, '').substring(0, 20)
+                    }));
+
+                    // Always include a 0 option if not present
+                    if (!sanitizedOptions.find(o => o.v === 0)) {
+                        sanitizedOptions.unshift({v: 0, l: 'Tiada'});
+                    }
+
+                    this.activeProfile.ibadahList.push({ 
+                        id: id, 
+                        name: sanitizedItemName, 
+                        icon: 'star', 
+                        options: sanitizedOptions 
+                    });
+                    this.newItem = { name: '', options: [{v: 0, l: 'Tiada'}, {v: 1, l: 'Ya'}] };
+                    this.save();
+                },
+
+                getMasihiDate(day) {
+                    const ramadanStart = new Date('2026-02-18T00:00:00');
+                    const targetDate = new Date(ramadanStart.getTime() + (day - 1) * 24 * 60 * 60 * 1000);
+                    const months = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+                    return `${targetDate.getDate()} ${months[targetDate.getMonth()]} ${targetDate.getFullYear()}`;
+                },
+
+                removeItem(index) {
+                    if (confirm('Padam ibadah ini?')) {
+                        this.activeProfile.ibadahList.splice(index, 1);
+                        this.save();
                     }
                 },
 
-                scrollToCurrentDay() {
+                
+                
+                startLocationTracking() {
+                    if ("geolocation" in navigator) {
+                        navigator.geolocation.watchPosition(
+                            (pos) => {
+                                this.userLocation = {
+                                    lat: pos.coords.latitude,
+                                    lng: pos.coords.longitude
+                                };
+                                this.updateNextPrayer();
+                            }, (err) => {
+                                console.warn('Geolocation error:', err);
+                            }, { enableHighAccuracy: true });
+                    }
+                },
+
+                prayerCacheKey() {
+                    const zone = this.prayer.zone || 'WLY01';
+                    const today = new Date();
+                    return `${zone}-${today.getFullYear()}-${today.getMonth() + 1}`;
+                },
+
+                async ensurePrayerTimes() {
+                    if (!this.prayer.enabled) return;
+                    if (!this.userLocation) return;
+
+                    const key = this.prayerCacheKey();
+                    const today = new Date();
+                    if (!key) return;
+
+                    if (this.prayer.cacheKey === key && this.prayer.timings && this.prayer.dateKey === today.toDateString()) {
+                        this.updateNextPrayer();
+                        return;
+                    }
+
+                    // Auto-detect zone if not set or if user wants refresh
+                    if (!this.prayer.zone || this.prayer.zone === 'detecting') {
+                        await this.fetchPrayerTimes();
+                    }
+                },
+
+                tsToTime(ts) {
+                    const h = Math.floor(ts / 3600);
+                    const m = Math.floor((ts % 3600) / 60);
+                    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                },
+
+                parsePrayerTimeToDate(hhmm) {
+                    const m = (hhmm || '').match(/^(\d{1,2}):(\d{2})/);
+                    if (!m) return null;
+                    const d = new Date();
+                    d.setHours(Number(m[1]), Number(m[2]), 0, 0);
+                    return d;
+                },
+
+                updateNextPrayer() {
+                    const t = this.prayer.timings;
+                    if (!t) {
+                        this.prayer.nextLabel = this.lang === 'en' ? 'No data' : 'Tiada data';
+                        this.prayer.countdown = '';
+                        return;
+                    }
+
+                    const order = [
+                        { k: 'Fajr', labelMs: 'Subuh', labelEn: 'Fajr' },
+                        { k: 'Dhuhr', labelMs: 'Zohor', labelEn: 'Dhuhr' },
+                        { k: 'Asr', labelMs: 'Asar', labelEn: 'Asr' },
+                        { k: 'Maghrib', labelMs: 'Maghrib', labelEn: 'Maghrib' },
+                        { k: 'Isha', labelMs: 'Isyak', labelEn: 'Isha' }
+                    ];
+
+                    const now = new Date();
+                    let next = null;
+
+                    for (const it of order) {
+                        const d = this.parsePrayerTimeToDate(t[it.k]);
+                        if (d && d.getTime() > now.getTime()) {
+                            next = { ...it, time: t[it.k], date: d };
+                            break;
+                        }
+                    }
+
+                    if (next) {
+                        this.prayer.nextLabel = this.lang === 'en' ? next.labelEn : next.labelMs;
+                        const diff = Math.floor((next.date.getTime() - now.getTime()) / 60000);
+                        if (diff > 0) {
+                            const h = Math.floor(diff / 60);
+                            const m = diff % 60;
+                            this.prayer.countdown = this.lang === 'en'
+                                ? `${h > 0 ? `${h}h ` : ''}${m}m`
+                                : `${h > 0 ? `${h}j ` : ''}${m}m`;
+                        } else {
+                            this.prayer.countdown = '';
+                        }
+                    } else {
+                        // After Isha, show Fajr of next day
+                        this.prayer.nextLabel = this.lang === 'en' ? 'Fajr (tomorrow)' : 'Subuh (esok)';
+                        this.prayer.countdown = '';
+                    }
+                },
+
+                prayerRows() {
+                    const t = this.prayer.timings || {};
+                    const tr = (ms, en) => (this.lang === 'en' ? en : ms);
+                    const rows = [
+                        { k: 'Fajr', label: tr('Subuh', 'Fajr') },
+                        { k: 'Sunrise', label: tr('Syuruk', 'Sunrise') },
+                        { k: 'Dhuhr', label: tr('Zohor', 'Dhuhr') },
+                        { k: 'Asr', label: tr('Asar', 'Asr') },
+                        { k: 'Maghrib', label: tr('Maghrib', 'Maghrib') },
+                        { k: 'Isha', label: tr('Isyak', 'Isha') }
+                    ];
+                    return rows.map(r => ({ ...r, time: (t[r.k] || '--:--').toString().trim() }));
+                },
+
+                
                 syncTemplate() {
                     const p = this.activeProfile;
                     if (!p) return;
@@ -202,7 +1904,38 @@
                     }
                 },
 
-                save() {
+                scrollToCurrentDay() {
                     const el = document.querySelector(`[data-day="${this.currentDay}"]`);
                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                 },
+
+                saveGlobal() {
+                    this.save();
+                },
+
+                save() {
+                    localStorage.setItem('ramadan_rpg_data', JSON.stringify({
+                        activeId: this.activeProfileId,
+                        profiles: this.allProfiles,
+                        darkMode: this.darkMode,
+                        theme: this.theme,
+                        lang: this.lang,
+                        islamicQuoteIndex: this.islamicQuoteIndex,
+                        islamicQuoteDateKey: this.islamicQuoteDateKey,
+                        prayer: {
+                            enabled: this.prayer.enabled,
+                            placement: this.prayer.placement,
+                            zone: this.prayer.zone,
+                            cacheKey: this.prayer.cacheKey,
+                            dateKey: this.prayer.dateKey,
+                            timings: this.prayer.timings,
+                            nextLabel: this.prayer.nextLabel,
+                            countdown: this.prayer.countdown
+                        }
+                    }));
+                }
+            }
+        }
+    </script>
+</body>
+</html>
