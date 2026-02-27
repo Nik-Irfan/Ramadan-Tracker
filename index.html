@@ -1566,41 +1566,9 @@
                     this.$nextTick(() => {
                         lucide.createIcons();
                         this.scrollToCurrentDay();
-                        // #region agent log
-                        try {
-                            const trackerEl = document.getElementById('view-tracker');
-                            const mushafEl = document.getElementById('view-mushaf');
-                            console.log('[DEBUG:init_nextTick]', {
-                                view: this.view,
-                                scrollY: window.scrollY,
-                                innerHeight: window.innerHeight,
-                                docHeight: document.documentElement.scrollHeight,
-                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
-                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null
-                            });
-                        } catch (e) {}
-                        // #endregion
                     });
-                    this.$watch('view', (newView, oldView) => this.$nextTick(() => {
+                    this.$watch('view', () => this.$nextTick(() => {
                         lucide.createIcons();
-                        // #region agent log
-                        try {
-                            const trackerEl = document.getElementById('view-tracker');
-                            const mushafEl = document.getElementById('view-mushaf');
-                            console.log('[DEBUG:view_watch]', {
-                                oldView,
-                                newView,
-                                scrollY: window.scrollY,
-                                innerHeight: window.innerHeight,
-                                docHeight: document.documentElement.scrollHeight,
-                                trackerTop: trackerEl ? trackerEl.getBoundingClientRect().top : null,
-                                mushafTop: mushafEl ? mushafEl.getBoundingClientRect().top : null,
-                                trackerInnerLength: trackerEl ? trackerEl.innerHTML.length : null,
-                                hasActiveProfile: !!this.activeProfile,
-                                ibadahCount: this.activeProfile?.ibadahList?.length ?? null
-                            });
-                        } catch (e) {}
-                        // #endregion
                         // Always reset scroll position when switching "pages"
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                         document.documentElement.scrollTop = 0;
