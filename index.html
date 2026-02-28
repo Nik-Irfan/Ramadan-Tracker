@@ -515,21 +515,19 @@
                 <!-- Egg Selection - Original Design -->
                 <div>
                     <label class="block text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-4 ml-2">
-                        <span x-text="lang === 'en' ? 'Choose Your Companion Egg' : 'Pilih Telur Teman Anda'"></span>
+                        <span x-text="lang === 'en' ? 'Choose Your Pet Element' : 'Pilih Elemen Peneman Anda'"></span>
                     </label>
                     <div class="grid grid-cols-3 gap-4">
                         <template x-for="egg in companionEggs" :key="egg.id">
                             <button @click="onboarding.egg = egg.id" 
                                 class="p-6 rounded-[2rem] border-4 transition-all duration-300 relative overflow-hidden flex flex-col items-center"
                                 :class="onboarding.egg === egg.id ? 'border-accent accent-soft shadow-accent' : 'border-transparent bg-inset hover:border-accent/30'">
-                                <!-- Element Icon - Same as Profile Section -->
+                                <!-- Element Icon - Lucide Icons -->
                                 <div class="relative mb-3">
-                                    <div class="w-16 h-16 rounded-3xl flex items-center justify-center text-3xl shadow-accent transition-all"
-                                         :class="onboarding.egg === egg.id ? 'gradient-accent' : 'bg-inset'" 
-                                         :style="onboarding.egg === egg.id ? '' : `background-color: ${egg.color}20;`"
-                                         x-text="egg.icon"></div>
-                                    <!-- Selection Indicator -->
-                                    <i data-lucide="check-circle" class="w-5 h-5 text-accent absolute -top-1 -right-1" x-show="onboarding.egg === egg.id"></i>
+                                    <div class="w-16 h-16 rounded-3xl flex items-center justify-center shadow-accent transition-all bg-inset"
+                                         :style="`background-color: ${egg.color}20;`">
+                                        <i :data-lucide="egg.icon" :class="`w-8 h-8 ${egg.iconColor}`"></i>
+                                    </div>
                                 </div>
                                 <!-- Egg Name -->
                                 <p class="text-sm font-black text-main text-center" x-text="egg.name[lang]"></p>
@@ -589,10 +587,16 @@
             <div class="flex gap-4">
                 <button @click="showUserMenu = !showUserMenu" class="relative group">
                     <div class="flex flex-col items-center">
-                        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg relative transition-transform group-active:scale-95"
+                        <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg relative transition-transform group-active:scale-95"
                              :class="getUserLevel().isMaxLevel ? 'gradient-accent' : 'bg-inset'"
-                             :style="getUserLevel().isMaxLevel ? '' : `background-color: ${getEggData(activeProfile?.egg).color}20;`"
-                             x-text="getEggData(activeProfile?.egg).icon"></div>
+                             :style="getUserLevel().isMaxLevel ? '' : `background-color: ${getEggData(activeProfile?.egg).color}20;`">
+                            <template x-if="getPetStage(activeProfile?.eggLevel || 1) > 0">
+                                <i :data-lucide="getCurrentPetIcon()" :class="`w-7 h-7 ${getEggData(activeProfile?.egg).iconColor}`"></i>
+                            </template>
+                            <template x-if="getPetStage(activeProfile?.eggLevel || 1) === 0">
+                                <i data-lucide="egg" :class="`w-7 h-7 ${getEggData(activeProfile?.egg).iconColor}`"></i>
+                            </template>
+                        </div>
                         <div class="-mt-0.1 bg-card px-1.5 py-0.5 rounded-full text-[7px] font-black text-accent shadow-sm border border-accent/20 uppercase tracking-tighter">
                             <span x-text="`Level ${activeProfile?.eggLevel || 1}`"></span>
                         </div>
@@ -861,19 +865,19 @@
             <h2 class="text-muted text-[10px] font-black uppercase mb-2 tracking-[0.3em]">Companion</h2>
             <p class="text-[9px] font-bold text-muted uppercase tracking-widest mb-6" x-text="t('telur_retro')"></p>
 
-            <template x-if="!activeProfile?.pet || !activeProfile.pet.line">
+            <template x-if="!activeProfile?.egg">
                 <div class="space-y-4">
                     <p class="text-xs font-bold text-main" x-text="t('pilih_jenis_telur')"></p>
                     <div class="grid grid-cols-3 gap-3">
-                        <button @click="choosePetLine('flame')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                        <button @click="activeProfile.egg = 'flame_egg'" class="p-4 rounded-2xl border border-theme bg-inset text-center">
                             <i data-lucide="flame" class="w-6 h-6 text-orange-500 mx-auto"></i>
                             <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Flame</p>
                         </button>
-                        <button @click="choosePetLine('ocean')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                        <button @click="activeProfile.egg = 'ocean_egg'" class="p-4 rounded-2xl border border-theme bg-inset text-center">
                             <i data-lucide="droplets" class="w-6 h-6 text-sky-500 mx-auto"></i>
                             <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Ocean</p>
                         </button>
-                        <button @click="choosePetLine('forest')" class="p-4 rounded-2xl border border-theme bg-inset text-center">
+                        <button @click="activeProfile.egg = 'forest_egg'" class="p-4 rounded-2xl border border-theme bg-inset text-center">
                             <i data-lucide="leaf" class="w-6 h-6 text-emerald-500 mx-auto"></i>
                             <p class="text-[9px] font-black text-main uppercase tracking-widest mt-2">Forest</p>
                         </button>
@@ -881,24 +885,24 @@
                 </div>
             </template>
 
-            <template x-if="activeProfile?.pet && activeProfile.pet.line">
+            <template x-if="activeProfile?.egg">
                 <div>
                     <div class="flex items-center justify-between gap-6">
                         <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 rounded-3xl flex items-center justify-center text-white shadow-accent"
-                                :class="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).bgClass">
-                                <i :data-lucide="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).icon" class="w-8 h-8"></i>
+                            <div class="w-16 h-16 rounded-3xl flex items-center justify-center shadow-accent bg-inset"
+                                :style="`background-color: ${getEggData(activeProfile.egg).color}20;`">
+                                <i :data-lucide="getEggData(activeProfile.egg).icon" :class="`w-8 h-8 ${getEggData(activeProfile.egg).iconColor}`"></i>
                             </div>
                             <div>
-                                <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="`Line: ${activeProfile.pet.line}`"></p>
-                                <p class="text-xl font-black text-main tracking-tighter" x-text="getPetMeta(activeProfile.pet.line, getPetStage(getUserLevel().level)).name"></p>
-                                <p class="text-[10px] font-bold text-muted" x-text="activeProfile.pet.hatched ? 'Hatched' : 'Belum menetas'" :class="activeProfile.pet.hatched ? 'text-green-600' : 'text-orange-600'"></p>
+                                <p class="text-[9px] font-black text-muted uppercase tracking-widest" x-text="`Element: ${getEggData(activeProfile.egg).name[lang]}`"></p>
+                                <p class="text-xl font-black text-main tracking-tighter" x-text="getCurrentPetName()"></p>
+                                <p class="text-[10px] font-bold text-muted" x-text="activeProfile.eggLevel >= 5 ? (lang === 'en' ? 'Evolved' : 'Berevolusi') : (lang === 'en' ? 'Growing' : 'Membesar')" :class="activeProfile.eggLevel >= 5 ? 'text-green-600' : 'text-orange-600'"></p>
                             </div>
                         </div>
 
                         <div class="text-right">
                             <p class="text-[9px] font-black text-muted uppercase tracking-widest">Stage</p>
-                            <p class="text-3xl font-black text-accent" x-text="getPetStage(getUserLevel().level) + 1"></p>
+                            <p class="text-3xl font-black text-accent" x-text="activeProfile.eggLevel || 1"></p>
                         </div>
                     </div>
 
@@ -1050,10 +1054,15 @@
                         :class="activeProfileId === p.id ? 'ring-4 ring-accent ring-opacity-30 scale-[1.02]' : 'opacity-70'">
                         <div class="flex items-center gap-4">
                             <div class="relative">
-                                <div class="w-16 h-16 rounded-3xl flex items-center justify-center text-3xl shadow-accent transition-all"
-                                     :class="activeProfileId === p.id ? 'gradient-accent' : 'bg-inset'" 
-                                     :style="activeProfileId === p.id ? '' : `background-color: ${getEggData(p.egg).color}20;`"
-                                     x-text="getEggData(p.egg).icon"></div>
+                                <div class="w-16 h-16 rounded-3xl flex items-center justify-center shadow-accent transition-all bg-inset"
+                                     :style="`background-color: ${getEggData(p.egg).color}20;`">
+                                    <template x-if="getPetStage(p.eggLevel || 1) > 0">
+                                        <i :data-lucide="getPetIconForProfile(p)" :class="`w-8 h-8 ${getEggData(p.egg).iconColor}`"></i>
+                                    </template>
+                                    <template x-if="getPetStage(p.eggLevel || 1) === 0">
+                                        <i data-lucide="egg" :class="`w-8 h-8 ${getEggData(p.egg).iconColor}`"></i>
+                                    </template>
+                                </div>
                                 <div class="absolute -bottom-1 -right-1 bg-accent text-white text-[7px] font-black px-1.5 py-0.5 rounded-full border-2 border-card">
                                     <span x-text="`Level ${p.eggLevel || 1}`"></span>
                                 </div>
@@ -1226,19 +1235,20 @@
                     <div class="border border-theme rounded-2xl p-6 transition-all hover:border-accent"
                          :class="activeProfile?.egg === egg.id ? 'ring-2 ring-accent ring-opacity-20 bg-accent/5' : ''">
                         <div class="flex items-start gap-4">
-                            <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
-                                 :style="`background-color: ${egg.color}20;`"
-                                 x-text="egg.icon"></div>
+                            <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 bg-inset"
+                                 :style="`background-color: ${egg.color}20;`">
+                                <i :data-lucide="egg.icon" :class="`w-8 h-8 ${egg.iconColor}`"></i>
+                            </div>
                             <div class="flex-1">
                                 <h3 class="text-lg font-black text-main mb-2" x-text="egg.name[lang]"></h3>
-                                <p class="text-sm text-muted mb-3" x-text="egg.description[lang]"></p>
+                                <p class="text-sm text-muted mb-3" x-text="egg.shortDescription[lang]"></p>
                                 <div class="flex gap-4">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-special-purple"></span>
                                         <span class="text-xs font-bold text-muted">
                                             <span x-show="lang === 'ms'">Perlindungan:</span>
                                             <span x-show="lang === 'en'">Protection:</span>
-                                            <span x-text="egg.protection[lang]"></span>
+                                            <span x-text="`${Math.round(egg.protectionValue * 100)}%`"></span>
                                         </span>
                                     </div>
                                     <div class="flex items-center gap-2">
@@ -1246,7 +1256,7 @@
                                         <span class="text-xs font-bold text-muted">
                                             <span x-show="lang === 'ms'">Kuasa:</span>
                                             <span x-show="lang === 'en'">Power:</span>
-                                            <span x-text="egg.power[lang]"></span>
+                                            <span x-text="`${Math.round(egg.powerValue * 100)}%`"></span>
                                         </span>
                                     </div>
                                 </div>
@@ -1265,44 +1275,33 @@
                 <span x-show="lang === 'en'">Heart Enemies & End Times Boss</span>
             </h2>
             
-            <!-- Current Protection Status -->
+            <!-- Current Protection Status - Final Boss Only -->
             <div class="bg-gradient-to-r from-special-purple-light to-special-blue-light rounded-2xl p-6 mb-6">
                 <h3 class="font-black text-main mb-4">
-                    <span x-show="lang === 'ms'">Status Perlindungan Semasa</span>
-                    <span x-show="lang === 'en'">Current Protection Status</span>
+                    <span x-show="lang === 'ms'">Status Perlindungan Final Boss</span>
+                    <span x-show="lang === 'en'">Final Boss Protection Status</span>
                 </h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <template x-for="enemy in ['takabbur', 'sumah', 'riak', 'ujub']" :key="enemy">
-                        <div class="text-center">
-                            <p class="text-xs font-bold text-muted mb-1" x-text="getEnemyData(enemy).name"></p>
-                            <div class="w-full h-2 bg-inset rounded-full overflow-hidden mb-1">
-                                <div class="h-full bg-gradient-to-r from-special-purple to-special-blue transition-all duration-500"
-                                     :style="`width: ${Math.round((1 - getCurrentBossChance(enemy)) * 100)}%`"></div>
-                            </div>
-                            <p class="text-[10px] font-black text-accent">
-                                <span x-text="`${Math.round((1 - getCurrentBossChance(enemy)) * 100)}%`"></span>
-                                <span x-show="lang === 'ms'"> Kurang</span>
-                                <span x-show="lang === 'en'"> Reduced</span>
-                            </p>
-                        </div>
-                    </template>
-                </div>
-                <div class="mt-4 pt-4 border-t border-theme/50">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-bold text-main">
-                                <span x-show="lang === 'ms'">Final Boss (Malik al-Nafs)</span>
-                                <span x-show="lang === 'en'">Final Boss (Malik al-Nafs)</span>
-                            </p>
-                            <p class="text-xs text-muted">
-                                <span x-show="lang === 'ms'">Peluang spawn:</span>
-                                <span x-show="lang === 'en'">Spawn chance:</span>
-                                <span x-text="`${Math.round(getCurrentBossChance('big_boss') * 100)}%`"></span>
-                            </p>
-                        </div>
-                        <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl bg-red-500/10">
-                            👑
-                        </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-bold text-main">
+                            <span x-show="lang === 'ms'">Final Boss (Malik al-Nafs)</span>
+                            <span x-show="lang === 'en'">Final Boss (Malik al-Nafs)</span>
+                        </p>
+                        <p class="text-xs text-muted mb-2">
+                            <span x-show="lang === 'ms'">Peluang spawn:</span>
+                            <span x-show="lang === 'en'">Spawn chance:</span>
+                            <span x-text="`${Math.round(getCurrentBossChance('big_boss') * 100)}%`"></span>
+                        </p>
+                        <p class="text-xs font-bold text-accent">
+                            <span x-show="lang === 'ms'">Perlindungan Pet:</span>
+                            <span x-show="lang === 'en'">Pet Protection:</span>
+                            <span x-text="`${Math.round(getPetBossReduction() * 100)}%`"></span>
+                            <span x-show="lang === 'ms'"> XP dilindungi</span>
+                            <span x-show="lang === 'en'"> XP protected</span>
+                        </p>
+                    </div>
+                    <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl bg-red-500/10">
+                        👑
                     </div>
                 </div>
             </div>
@@ -1866,7 +1865,8 @@
                 companionEggs: [
                     {
                         id: 'flame_egg',
-                        icon: '🔥',
+                        icon: 'flame',
+                        iconColor: 'text-orange-500',
                         name: { ms: 'Flame', en: 'Flame' },
                         shortDescription: { ms: 'Api semangat yang membakar kelemahan', en: 'Spirit fire that burns weaknesses' },
                         description: { ms: 'Flame dilahirkan dari semangat juang para pejuang Islam. Ia memberikan kekuatan untuk membakar sifat malas dan kelemahan dalam diri, mengubah kelemahan menjadi kekuatan untuk beribadah.', en: 'Flame is born from the fighting spirit of Muslim warriors. It provides the strength to burn laziness and weaknesses within, transforming weaknesses into strengths for worship.' },
@@ -1876,7 +1876,8 @@
                     },
                     {
                         id: 'ocean_egg',
-                        icon: '🌊',
+                        icon: 'droplets',
+                        iconColor: 'text-sky-500',
                         name: { ms: 'Ocean', en: 'Ocean' },
                         shortDescription: { ms: 'Kedamaian lautan menenangkan jiwa', en: 'Ocean peace calms the soul' },
                         description: { ms: 'Ocean menyerap ketenangan dan kedamaian lautan yang mendalam. Ia mengajarkan kesabaran menghadapi ombak hidup dan memberikan ketenangan jiwa dalam menghadapi ujian spiritual.', en: 'Ocean absorbs the peace and tranquility of the deep ocean. It teaches patience in facing life\'s waves and provides peace of soul in facing spiritual trials.' },
@@ -1886,7 +1887,8 @@
                     },
                     {
                         id: 'forest_egg',
-                        icon: '🌲',
+                        icon: 'leaf',
+                        iconColor: 'text-emerald-500',
                         name: { ms: 'Forest', en: 'Forest' },
                         shortDescription: { ms: 'Kekuatan alam melindungi hati', en: 'Nature strength protects the heart' },
                         description: { ms: 'Forest tumbuh dari kekuatan alam semula jadi. Ia membentuk perisai pelindung yang kukuh untuk menangkis godaan dunia dan menjaga hati tetap hijau dan segar dengan iman.', en: 'Forest grows from the strength of nature. It forms a strong protective shield to deflect worldly temptations and keeps the heart green and fresh with faith.' },
@@ -1896,33 +1898,33 @@
                     }
                 ],
                 
-                // Pet Evolution System
+                // Pet Evolution System - Using Profile Page Evolution Titles with Lucide Icons
                 petEvolution: {
                     flame_egg: {
                         stages: [
-                            { level: 1, icon: '🔥', name: { ms: 'Api Kecil', en: 'Small Flame' } },
-                            { level: 3, icon: '🌟', name: { ms: 'Bintang Api', en: 'Fire Star' } },
-                            { level: 5, icon: '💫', name: { ms: 'Komet Api', en: 'Fire Comet' } },
-                            { level: 7, icon: '☄️', name: { ms: 'Meteor Api', en: 'Fire Meteor' } },
-                            { level: 10, icon: '🌞', name: { ms: 'Matahari', en: 'Sun' } }
+                            { level: 1, icon: 'egg', name: { ms: 'Telur Bara', en: 'Telur Bara' } },
+                            { level: 3, icon: 'egg', name: { ms: 'Retak Api', en: 'Retak Api' } },
+                            { level: 5, icon: 'flame', name: { ms: 'Pyro Cub', en: 'Pyro Cub' } },
+                            { level: 7, icon: 'sword', name: { ms: 'Inferno Rogue', en: 'Inferno Rogue' } },
+                            { level: 10, icon: 'crown', name: { ms: 'Phoenix Lord', en: 'Phoenix Lord' } }
                         ]
                     },
                     ocean_egg: {
                         stages: [
-                            { level: 1, icon: '💧', name: { ms: 'Titik Air', en: 'Water Drop' } },
-                            { level: 3, icon: '🌊', name: { ms: 'Ombak Kecil', en: 'Small Wave' } },
-                            { level: 5, icon: '🐋', name: { ms: 'Penyu Lautan', en: 'Ocean Turtle' } },
-                            { level: 7, icon: '🌌', name: { ms: 'Lautan Dalam', en: 'Deep Ocean' } },
-                            { level: 10, icon: '🌍', name: { ms: 'Dunia Air', en: 'Water World' } }
+                            { level: 1, icon: 'egg', name: { ms: 'Telur Ombak', en: 'Telur Ombak' } },
+                            { level: 3, icon: 'egg', name: { ms: 'Retak Air', en: 'Retak Air' } },
+                            { level: 5, icon: 'droplets', name: { ms: 'Aqua Sprite', en: 'Aqua Sprite' } },
+                            { level: 7, icon: 'shield', name: { ms: 'Tidal Knight', en: 'Tidal Knight' } },
+                            { level: 10, icon: 'award', name: { ms: 'Leviathan', en: 'Leviathan' } }
                         ]
                     },
                     forest_egg: {
                         stages: [
-                            { level: 1, icon: '🌱', name: { ms: 'Anak Benih', en: 'Seedling' } },
-                            { level: 3, icon: '🌿', name: { ms: 'Pokok Kecil', en: 'Small Plant' } },
-                            { level: 5, icon: '🌳', name: { ms: 'Pokok Dewasa', en: 'Mature Tree' } },
-                            { level: 7, icon: '🌲', name: { ms: 'Hutan Purba', en: 'Ancient Forest' } },
-                            { level: 10, icon: '🌏', name: { ms: 'Bumi Hijau', en: 'Green Earth' } }
+                            { level: 1, icon: 'egg', name: { ms: 'Telur Rimba', en: 'Telur Rimba' } },
+                            { level: 3, icon: 'egg', name: { ms: 'Retak Daun', en: 'Retak Daun' } },
+                            { level: 5, icon: 'leaf', name: { ms: 'Mossling', en: 'Mossling' } },
+                            { level: 7, icon: 'target', name: { ms: 'Wild Ranger', en: 'Wild Ranger' } },
+                            { level: 10, icon: 'shield-check', name: { ms: 'Ancient Guardian', en: 'Ancient Guardian' } }
                         ]
                     }
                 },
